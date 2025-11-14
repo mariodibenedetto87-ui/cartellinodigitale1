@@ -1,0 +1,23 @@
+import { StatusItem } from '../types';
+
+export const defaultStatusItems: StatusItem[] = [
+  { code: 8, description: 'RECUPERO ORE ECCEDENTI', year: 2025, class: 'GPO', entitlement: 10, category: 'leave-day' },
+  { code: 10, description: 'FESTIVITA\' SOPPRESSE', year: 2025, class: 'GPO', entitlement: 4, category: 'leave-day' },
+  { code: 12, description: 'CONCORSI ED ESAMI', year: 2025, class: 'GPO', entitlement: 8, category: 'leave-day' },
+  { code: 14, description: 'PARTICOLARI MOTIVI PERSONALI O FAMILIARI', year: 2025, class: 'GPO', entitlement: 3, category: 'leave-day' },
+  { code: 15, description: 'FERIE ANNO CORRENTE', year: 2025, class: 'GPO', entitlement: 25, category: 'leave-day' },
+  { code: 16, description: 'FERIE ANNI PRECEDENTI', year: 2025, class: 'GPO', entitlement: 5, category: 'leave-day' },
+  { code: 26, description: 'Permesso Breve RICHIESTA PERMESSO', year: 2025, class: 'GPO', entitlement: 0, category: 'leave-hours' },
+  { code: 29, description: 'SERVIZIO RESO A TERZI', year: 2025, class: 'PAG', entitlement: 0, category: 'info' },
+  { code: 32, description: 'VISITE TERAPIE PRESTAZIONI OD ESAMI DIAGNOSTICI', year: 2025, class: 'GPO', entitlement: 18, category: 'leave-day' },
+  { code: 108, description: 'ASSEMBLEA SINDACALE', year: 2025, class: 'GPO', entitlement: 12, category: 'leave-hours' },
+  { code: 2020, description: 'Straordinario Elettorale - Diurno', year: 2025, class: 'PAG', entitlement: 0, category: 'overtime' },
+  { code: 2021, description: 'Straordinario Elettorale Notturno', year: 2025, class: 'PAG', entitlement: 0, category: 'overtime' },
+  { code: 2022, description: 'Straordinario Elettorale Festivo Diurno', year: 2025, class: 'PAG', entitlement: 0, category: 'overtime' },
+  { code: 2023, description: 'Straordinario Elettorale Festivo Notturno', year: 2025, class: 'PAG', entitlement: 0, category: 'overtime' },
+  { code: 2027, description: 'ORE SERVIZIO ELETTORALE DA RECUPERARE', year: 2025, class: 'ACC', entitlement: 0, category: 'leave-hours' },
+  { code: 2041, description: 'CORSO DI AGGIORNAMENTO', year: 2025, class: 'ACC', entitlement: 0, category: 'leave-hours' },
+  { code: 2054, description: 'ORE ASSISTENZA ORGANI DA RECUPERARE', year: 2025, class: 'ACC', entitlement: 0, category: 'leave-hours' },
+  { code: 6666, description: 'SALDO ORE', year: 2025, class: 'ACC', entitlement: 0, category: 'balance' },
+  { code: 6667, description: 'Nuovo Permesso Orario', year: 2025, class: 'ACC', entitlement: 5, category: 'leave-hours' },
+];
