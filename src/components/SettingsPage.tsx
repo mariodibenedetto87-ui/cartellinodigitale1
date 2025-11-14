@@ -1,3 +1,5 @@
+
+
 import React, { useState, useRef, useEffect } from 'react';
 import { WorkSettings, OfferSettings, DashboardLayout, WidgetVisibility, SavedRotation, ShiftType, StatusItem, AllDayInfo, Shift } from '../types';
 import { calculateStatusUsage } from '../utils/statusUtils';
@@ -332,6 +334,31 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     <main className="container mx-auto px-4 py-8 md:px-8">
       <div className="max-w-4xl mx-auto space-y-8">
         
+        {/* Dashboard Settings */}
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg dark:shadow-black/20">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Gestione Widget Dashboard</h2>
+            <p className="text-sm text-gray-500 dark:text-slate-400 mb-6">
+                Attiva o disattiva i widget e riordinali trascinandoli per personalizzare la tua dashboard.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 className="font-semibold text-gray-700 dark:text-slate-300 mb-3 border-b border-gray-200 dark:border-slate-700 pb-2">Colonna Principale</h3>
+                    <div className="space-y-2" onDrop={handleDrop}>
+                        {renderWidgetList('main')}
+                    </div>
+                </div>
+                <div>
+                    <h3 className="font-semibold text-gray-700 dark:text-slate-300 mb-3 border-b border-gray-200 dark:border-slate-700 pb-2">Barra Laterale</h3>
+                    <div className="space-y-2" onDrop={handleDrop}>
+                        {renderWidgetList('sidebar')}
+                    </div>
+                </div>
+            </div>
+            <div className="mt-6 text-right">
+                <button onClick={handleSaveDashboardSettings} className="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-semibold transition-colors">Salva Dashboard</button>
+            </div>
+        </div>
+
         {/* Balances Settings */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg dark:shadow-black/20">
             <div className="flex justify-between items-center mb-6">
@@ -488,30 +515,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             </div>
         </div>
 
-        {/* Dashboard Settings */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg dark:shadow-black/20">
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Gestione Widget Dashboard</h2>
-            <p className="text-sm text-gray-500 dark:text-slate-400 mb-6">
-                Attiva o disattiva i widget e riordinali trascinandoli per personalizzare la tua dashboard.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <h3 className="font-semibold text-gray-700 dark:text-slate-300 mb-3 border-b border-gray-200 dark:border-slate-700 pb-2">Colonna Principale</h3>
-                    <div className="space-y-2" onDrop={handleDrop}>
-                        {renderWidgetList('main')}
-                    </div>
-                </div>
-                <div>
-                    <h3 className="font-semibold text-gray-700 dark:text-slate-300 mb-3 border-b border-gray-200 dark:border-slate-700 pb-2">Barra Laterale</h3>
-                    <div className="space-y-2" onDrop={handleDrop}>
-                        {renderWidgetList('sidebar')}
-                    </div>
-                </div>
-            </div>
-            <div className="mt-6 text-right">
-                <button onClick={handleSaveDashboardSettings} className="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-semibold transition-colors">Salva Dashboard</button>
-            </div>
-        </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg dark:shadow-black/20">
             <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Offerta Speciale</h2>

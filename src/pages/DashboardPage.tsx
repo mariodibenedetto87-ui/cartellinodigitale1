@@ -1,3 +1,5 @@
+
+
 import React, { useMemo } from 'react';
 import { AllTimeLogs, WorkStatus, WorkSettings, AllDayInfo, OfferSettings, StatusItem, DashboardLayout, WidgetVisibility, AllManualOvertime } from '../types';
 import { formatDateKey, isSameDay, addDays, startOfWeek, calculateWorkSummary } from '../utils/timeUtils';
@@ -39,10 +41,10 @@ const DashboardPage: React.FC<DashboardPageProps> = (props) => {
     const { 
         allLogs, allDayInfo, allManualOvertime, selectedDate, workStatus, 
         currentSessionStart, currentSessionDuration, workSettings, offerSettings,
-        statusItems, onToggle, onOpenQuickLeaveModal,
+        statusItems, onToggle,
         onSetSelectedDate, onEditEntry, onDeleteEntry, onOpenAddEntryModal,
         onOpenAddManualEntryModal, onDeleteManualOvertime,
-        dashboardLayout, widgetVisibility, onOpenRangePlanner
+        dashboardLayout, widgetVisibility, onOpenRangePlanner, onOpenQuickLeaveModal
     } = props;
     
     const isTodaySelected = isSameDay(selectedDate, new Date());
