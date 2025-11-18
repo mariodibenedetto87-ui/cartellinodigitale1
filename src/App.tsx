@@ -5,6 +5,7 @@ import { WorkStatus, AllTimeLogs, TimeEntry, WorkSettings, AllDayInfo, StatusIte
 import { formatDateKey, formatDuration, addDays, parseDateKey } from './utils/timeUtils';
 import { scheduleReminders, requestNotificationPermission, clearScheduledNotifications } from './utils/notificationUtils';
 import { generateSmartNotifications, SmartNotification } from './utils/smartNotifications';
+import { applyTheme } from './utils/themeUtils';
 import { defaultStatusItems } from './data/statusItems';
 import Auth from './components/Auth';
 import Header from './components/Header';
@@ -188,7 +189,9 @@ const App: React.FC = () => {
                                 shifts: mergedShifts 
                             },
                             offerSettings: { ...prevSettings.offerSettings, ...settingsData.offer_settings },
-                            themeSettings: { ...prevSettings.themeSettings, ...settingsData.theme_settings },
+                            themeSettings: settingsData.theme_settings 
+                                ? { ...prevSettings.themeSettings, ...settingsData.theme_settings }
+                                : prevSettings.themeSettings, // Fallback se colonna manca
                             dashboardLayout: { 
                                 main: mergedMainLayout,
                                 sidebar: mergedSidebarLayout
@@ -202,16 +205,18 @@ const App: React.FC = () => {
                         };
                     });
                 } else if (settingsError && settingsError.code === 'PGRST116') {
-                    const { error: insertError } = await supabase.from('user_settings').insert({ 
+                    // Inserimento nuovo utente - non include theme_settings se colonna manca
+                    const insertData: any = { 
                         user_id: session.user.id, 
                         work_settings: settings.workSettings,
                         offer_settings: settings.offerSettings,
-                        theme_settings: settings.themeSettings,
                         dashboard_layout: settings.dashboardLayout,
                         widget_visibility: settings.widgetVisibility,
                         status_items: settings.statusItems,
                         saved_rotations: settings.savedRotations,
-                    });
+                    };
+                    
+                    const { error: insertError } = await supabase.from('user_settings').insert(insertData);
                     if (insertError) showToast(`Errore nel creare le impostazioni: ${insertError.message}`, 'error');
                 }
 
@@ -290,17 +295,38 @@ const App: React.FC = () => {
     // --- DATA PERSISTENCE ---
     const debouncedSaveSettings = useCallback(debounce(async (newSettings) => {
         if (!session) return;
-        const { error } = await supabase.from('user_settings').update({
+        
+        // Prepara i dati da salvare
+        const updateData: any = {
             work_settings: newSettings.workSettings,
             offer_settings: newSettings.offerSettings,
-            theme_settings: newSettings.themeSettings,
             dashboard_layout: newSettings.dashboardLayout,
             widget_visibility: newSettings.widgetVisibility,
             status_items: newSettings.statusItems,
             saved_rotations: newSettings.savedRotations,
-        }).eq('user_id', session.user.id);
-        if (error) showToast(`Salvataggio impostazioni fallito: ${error.message}`, 'error');
-        else showToast('Impostazioni salvate nel cloud!');
+        };
+        
+        // Aggiungi theme_settings solo se supportato (evita errore 400)
+        // TODO: Eseguire migration SQL per aggiungere colonna al database
+        try {
+            updateData.theme_settings = newSettings.themeSettings;
+            const { error } = await supabase.from('user_settings').update(updateData).eq('user_id', session.user.id);
+            if (error) {
+                // Se errore per colonna mancante, riprova senza theme_settings
+                if (error.message.includes('theme_settings')) {
+                    delete updateData.theme_settings;
+                    const { error: retryError } = await supabase.from('user_settings').update(updateData).eq('user_id', session.user.id);
+                    if (retryError) showToast(`Salvataggio fallito: ${retryError.message}`, 'error');
+                    else showToast('Impostazioni salvate! (tema locale)');
+                } else {
+                    showToast(`Salvataggio fallito: ${error.message}`, 'error');
+                }
+            } else {
+                showToast('Impostazioni salvate nel cloud!');
+            }
+        } catch (err: any) {
+            showToast(`Errore: ${err.message}`, 'error');
+        }
     }, 2000), [session, showToast]);
 
     useEffect(() => {
@@ -367,6 +393,11 @@ const App: React.FC = () => {
             return () => clearInterval(interval);
         }
     }, [session, loading, workStatus, allLogs, allDayInfo, allManualOvertime, settings.workSettings, currentSessionStart]);
+
+    // APPLY THEME - Applica il tema selezionato dinamicamente
+    useEffect(() => {
+        applyTheme(settings.themeSettings.accentColor, settings.themeSettings.primaryShade);
+    }, [settings.themeSettings]);
 
     // --- CORE LOGIC HANDLERS ---
     const handleImportData = (importedDays: any[]) => {
