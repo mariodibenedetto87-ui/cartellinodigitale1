@@ -11,10 +11,22 @@ export default function InstallPrompt() {
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
+    // Verifica che siamo in ambiente browser
+    if (typeof window === 'undefined') return;
+
     // Verifica se l'app è già installata
-    if (window.matchMedia('(display-mode: standalone)').matches) {
+    if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true);
       return;
+    }
+
+    // Verifica se è già stata installata in precedenza
+    if (typeof localStorage !== 'undefined') {
+      const wasInstalled = localStorage.getItem('pwa-installed');
+      if (wasInstalled === 'true') {
+        setIsInstalled(true);
+        return;
+      }
     }
 
     // Ascolta l'evento beforeinstallprompt
@@ -24,11 +36,13 @@ export default function InstallPrompt() {
       setDeferredPrompt(promptEvent);
       
       // Mostra il prompt dopo 30 secondi se non è stato già mostrato
-      const hasSeenPrompt = localStorage.getItem('pwa-install-prompt-seen');
-      if (!hasSeenPrompt) {
-        setTimeout(() => {
-          setShowPrompt(true);
-        }, 30000); // 30 secondi
+      if (typeof localStorage !== 'undefined') {
+        const hasSeenPrompt = localStorage.getItem('pwa-install-prompt-seen');
+        if (!hasSeenPrompt) {
+          setTimeout(() => {
+            setShowPrompt(true);
+          }, 30000); // 30 secondi
+        }
       }
     };
 
@@ -37,7 +51,9 @@ export default function InstallPrompt() {
       setIsInstalled(true);
       setShowPrompt(false);
       setDeferredPrompt(null);
-      localStorage.setItem('pwa-installed', 'true');
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('pwa-installed', 'true');
+      }
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -52,34 +68,43 @@ export default function InstallPrompt() {
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
 
-    // Mostra il prompt di installazione nativo
-    await deferredPrompt.prompt();
+    try {
+      // Mostra il prompt di installazione nativo
+      await deferredPrompt.prompt();
 
-    // Aspetta la scelta dell'utente
-    const { outcome } = await deferredPrompt.userChoice;
+      // Aspetta la scelta dell'utente
+      const { outcome } = await deferredPrompt.userChoice;
 
-    if (outcome === 'accepted') {
-      console.log('User accepted the install prompt');
-    } else {
-      console.log('User dismissed the install prompt');
+      if (outcome === 'accepted') {
+        console.log('User accepted the install prompt');
+      } else {
+        console.log('User dismissed the install prompt');
+      }
+
+      // Salva che l'utente ha visto il prompt
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('pwa-install-prompt-seen', 'true');
+      }
+    } catch (error) {
+      console.error('Error during installation:', error);
+    } finally {
+      // Resetta lo stato
+      setDeferredPrompt(null);
+      setShowPrompt(false);
     }
-
-    // Salva che l'utente ha visto il prompt
-    localStorage.setItem('pwa-install-prompt-seen', 'true');
-    
-    // Resetta lo stato
-    setDeferredPrompt(null);
-    setShowPrompt(false);
   };
 
   const handleDismiss = () => {
     setShowPrompt(false);
-    localStorage.setItem('pwa-install-prompt-seen', 'true');
     
-    // Ri-mostra dopo 7 giorni se l'utente dismette
-    setTimeout(() => {
-      localStorage.removeItem('pwa-install-prompt-seen');
-    }, 7 * 24 * 60 * 60 * 1000); // 7 giorni
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('pwa-install-prompt-seen', 'true');
+      
+      // Ri-mostra dopo 7 giorni se l'utente dismette
+      setTimeout(() => {
+        localStorage.removeItem('pwa-install-prompt-seen');
+      }, 7 * 24 * 60 * 60 * 1000); // 7 giorni
+    }
   };
 
   // Non mostrare se già installata o se non c'è il prompt

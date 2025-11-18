@@ -19,7 +19,25 @@ const DayView: React.FC<DayViewProps> = ({ allLogs, allDayInfo, selectedDate, st
     const dateKey = formatDateKey(selectedDate);
     const logs = allLogs[dateKey] || [];
     const dayInfo = allDayInfo[dateKey];
-    const isMatch = !activeFilter || (dayInfo?.shift === activeFilter) || (dayInfo?.leave?.type === activeFilter) || (activeFilter === 'onCall' && dayInfo?.onCall);
+    
+    // Gestione eventi multipli con retrocompatibilità
+    const events = dayInfo?.events || [];
+    const hasMultipleEvents = events.length > 0;
+    
+    // Se non ci sono eventi multipli, usa la vecchia struttura
+    const legacyShift = !hasMultipleEvents && dayInfo?.shift;
+    const legacyLeave = !hasMultipleEvents && dayInfo?.leave;
+    const legacyOnCall = !hasMultipleEvents && dayInfo?.onCall;
+    
+    const isMatch = !activeFilter || 
+        (hasMultipleEvents && events.some(e => 
+            (e.shift === activeFilter) || 
+            (e.leave?.type === activeFilter) || 
+            (activeFilter === 'onCall' && e.onCall)
+        )) ||
+        (legacyShift === activeFilter) || 
+        (legacyLeave && legacyLeave.type === activeFilter) || 
+        (activeFilter === 'onCall' && legacyOnCall);
     
     const nextDayInfo = allDayInfo[formatDateKey(addDays(selectedDate, 1))];
     const { summary } = calculateWorkSummary(selectedDate, logs, workSettings, dayInfo, nextDayInfo, manualOvertimeEntries);
@@ -54,23 +72,65 @@ const DayView: React.FC<DayViewProps> = ({ allLogs, allDayInfo, selectedDate, st
     };
     
     const workBlocks = getWorkBlocks(logs);
-    // FIX: Use getShiftDetails with shifts from workSettings.
-    const shiftDetails = dayInfo?.shift ? getShiftDetails(dayInfo.shift, workSettings.shifts) : null;
-    let shiftBlock = null;
-
-    if (shiftDetails && shiftDetails.startHour !== null && shiftDetails.endHour !== null) {
-        const startMinutes = shiftDetails.startHour * 60;
-        const durationMinutes = (shiftDetails.endHour * 60) - startMinutes;
-        shiftBlock = {
-            topRem: (startMinutes / 60) * 4,
-            heightRem: (durationMinutes / 60) * 4,
-            label: `Turno: ${shiftDetails.label}`,
-            bgColor: shiftDetails.bgColor,
-            borderColor: shiftDetails.borderColor
-        };
+    
+    // Gestione shift multipli e legacy
+    const shiftBlocks: Array<{
+        topRem: number;
+        heightRem: number;
+        label: string;
+        bgColor: string;
+        borderColor: string;
+        startTime: string;
+        endTime: string;
+    }> = [];
+    
+    if (hasMultipleEvents) {
+        // Processa tutti gli eventi shift
+        events.forEach((event) => {
+            if (event.type === 'shift' && event.shift) {
+                const shiftDetails = getShiftDetails(event.shift, workSettings.shifts);
+                if (shiftDetails && shiftDetails.startHour !== null && shiftDetails.endHour !== null) {
+                    const startMinutes = shiftDetails.startHour * 60;
+                    const durationMinutes = (shiftDetails.endHour * 60) - startMinutes;
+                    shiftBlocks.push({
+                        topRem: (startMinutes / 60) * 4,
+                        heightRem: (durationMinutes / 60) * 4,
+                        label: `Turno: ${shiftDetails.label}`,
+                        bgColor: shiftDetails.bgColor,
+                        borderColor: shiftDetails.borderColor,
+                        startTime: `${String(Math.floor(shiftDetails.startHour)).padStart(2, '0')}:${String(Math.round((shiftDetails.startHour % 1) * 60)).padStart(2, '0')}`,
+                        endTime: `${String(Math.floor(shiftDetails.endHour)).padStart(2, '0')}:${String(Math.round((shiftDetails.endHour % 1) * 60)).padStart(2, '0')}`
+                    });
+                }
+            }
+        });
+    } else if (legacyShift) {
+        // Modalità legacy - singolo shift
+        const shiftDetails = getShiftDetails(legacyShift, workSettings.shifts);
+        if (shiftDetails && shiftDetails.startHour !== null && shiftDetails.endHour !== null) {
+            const startMinutes = shiftDetails.startHour * 60;
+            const durationMinutes = (shiftDetails.endHour * 60) - startMinutes;
+            shiftBlocks.push({
+                topRem: (startMinutes / 60) * 4,
+                heightRem: (durationMinutes / 60) * 4,
+                label: `Turno: ${shiftDetails.label}`,
+                bgColor: shiftDetails.bgColor,
+                borderColor: shiftDetails.borderColor,
+                startTime: `${String(Math.floor(shiftDetails.startHour)).padStart(2, '0')}:${String(Math.round((shiftDetails.startHour % 1) * 60)).padStart(2, '0')}`,
+                endTime: `${String(Math.floor(shiftDetails.endHour)).padStart(2, '0')}:${String(Math.round((shiftDetails.endHour % 1) * 60)).padStart(2, '0')}`
+            });
+        }
     }
     
-    const leaveDetails = dayInfo?.leave?.type ? getStatusItemDetails(dayInfo.leave.type, statusItems) : null;
+    // Gestione leave multipli e legacy
+    const leaveEvents = hasMultipleEvents 
+        ? events.filter(e => e.type === 'leave' && e.leave).map(e => e.leave!)
+        : (legacyLeave ? [legacyLeave] : []);
+    
+    // Gestione onCall multipli e legacy
+    const hasOnCall = hasMultipleEvents 
+        ? events.some(e => e.type === 'onCall' && e.onCall)
+        : Boolean(legacyOnCall);
     
     if (activeFilter && !isMatch) {
         return (
@@ -81,20 +141,33 @@ const DayView: React.FC<DayViewProps> = ({ allLogs, allDayInfo, selectedDate, st
         );
     }
 
-    if (dayInfo?.leave && workBlocks.length === 0) {
+    // Visualizzazione leave quando non ci sono timbrature
+    if (leaveEvents.length > 0 && workBlocks.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-slate-800/50 p-4">
-                <div className="text-center bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-lg">
-                    <div className={`inline-block px-6 py-3 rounded-lg text-2xl font-bold ${leaveDetails!.textColor} ${leaveDetails!.bgColor} mb-4`}>
-                        {leaveDetails!.label}
-                    </div>
-                    <p className="text-gray-500 dark:text-slate-400 mt-4">{dayInfo.leave.hours ? `Permesso di ${dayInfo.leave.hours} ore` : 'Giorno di assenza pianificato'}</p>
+                <div className="text-center bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-lg space-y-4">
+                    {leaveEvents.map((leave, index) => {
+                        const leaveDetails = getStatusItemDetails(leave.type, statusItems);
+                        return (
+                            <div key={index}>
+                                <div className={`inline-block px-6 py-3 rounded-lg text-2xl font-bold ${leaveDetails.textColor} ${leaveDetails.bgColor} mb-2`}>
+                                    {leaveDetails.label}
+                                </div>
+                                {leave.hours && (
+                                    <p className="text-gray-500 dark:text-slate-400">Permesso di {leave.hours} ore</p>
+                                )}
+                            </div>
+                        );
+                    })}
+                    {leaveEvents.length === 1 && !leaveEvents[0].hours && (
+                        <p className="text-gray-500 dark:text-slate-400">Giorno di assenza pianificato</p>
+                    )}
                 </div>
             </div>
         );
     }
 
-    if (workBlocks.length === 0 && !shiftBlock && !dayInfo?.onCall) {
+    if (workBlocks.length === 0 && shiftBlocks.length === 0 && !hasOnCall) {
         return (
             <div className="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-slate-800/50 p-4">
                 <div className="text-center">
@@ -150,13 +223,15 @@ const DayView: React.FC<DayViewProps> = ({ allLogs, allDayInfo, selectedDate, st
                         {hours.map(hour => (
                             <div key={hour} className="h-16 border-t border-gray-200 dark:border-slate-700/50"></div>
                         ))}
-                        {shiftBlock && (
+                        {shiftBlocks.map((shiftBlock, index) => (
                             <div 
+                                key={index}
                                 className={`absolute w-full border-2 border-dashed rounded-lg p-2 text-sm text-slate-800 dark:text-white/80 overflow-hidden ${shiftBlock.bgColor} ${shiftBlock.borderColor}`}
                                 style={{ top: `${shiftBlock.topRem}rem`, height: `${shiftBlock.heightRem}rem`, left: '0.5rem', width: 'calc(100% - 1rem)' }}>
                                 <div className="font-semibold">{shiftBlock.label}</div>
+                                <div className="text-xs opacity-80">{shiftBlock.startTime} - {shiftBlock.endTime}</div>
                             </div>
-                        )}
+                        ))}
                         {workBlocks.map((block, i) => (
                             <div key={i}
                                 className="absolute w-full bg-teal-500/90 rounded-lg p-2 text-xs text-white overflow-hidden z-10 shadow-md"

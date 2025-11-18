@@ -37,13 +37,27 @@ export interface AllTimeLogs {
     [dateKey: string]: TimeEntry[];
 }
 
-export interface DayInfo {
+export interface CalendarEvent {
+    id: string;
+    type: 'shift' | 'leave' | 'onCall';
     shift?: ShiftType;
     leave?: {
         type: LeaveType;
         hours?: number;
     };
     onCall?: boolean;
+}
+
+export interface DayInfo {
+    // Manteniamo i campi vecchi per retrocompatibilità
+    shift?: ShiftType;
+    leave?: {
+        type: LeaveType;
+        hours?: number;
+    };
+    onCall?: boolean;
+    // Nuovo campo per supportare più eventi
+    events?: CalendarEvent[];
 }
 
 export interface AllDayInfo {

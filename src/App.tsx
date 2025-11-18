@@ -222,6 +222,9 @@ const App: React.FC = () => {
                             }
                         });
 
+                        // Rimuovi duplicati tra main e sidebar (mantieni solo in sidebar)
+                        const uniqueMainLayout = mergedMainLayout.filter(widget => !mergedSidebarLayout.includes(widget));
+
                         return {
                             workSettings: { 
                                 ...prevSettings.workSettings, 
@@ -233,7 +236,7 @@ const App: React.FC = () => {
                                 ? { ...prevSettings.themeSettings, ...settingsData.theme_settings }
                                 : prevSettings.themeSettings, // Fallback se colonna manca
                             dashboardLayout: { 
-                                main: mergedMainLayout,
+                                main: uniqueMainLayout,
                                 sidebar: mergedSidebarLayout
                             },
                             widgetVisibility: { 

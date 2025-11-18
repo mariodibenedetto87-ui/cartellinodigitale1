@@ -286,8 +286,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
 
 
   const widgetNames: Record<string, string> = {
-    nfcScanner: 'Controllo Presenze',
+    smartNotifications: 'Controllo Presenze',
+    nfcScanner: 'Scanner NFC',
     summary: 'Riepilogo del Giorno',
+    dashboardInsights: 'Statistiche Comparative',
+    mealVoucherCard: 'Buoni Pasto',
     offerCard: 'Offerta Speciale',
     balancesSummary: 'Saldi Principali',
     monthlySummary: 'Riepilogo Mensile',

@@ -5,6 +5,7 @@ import LeaveDonutChart from '../components/charts/LeaveDonutChart';
 import { getStatusItemDetails } from '../utils/leaveUtils';
 import AnnualSummary from '../components/AnnualSummary';
 import ComparativeStats from '../components/ComparativeStats';
+import BalanceDetailsModal from '../components/modals/BalanceDetailsModal';
 
 interface BalancesPageProps {
   statusItems: StatusItem[];
@@ -18,6 +19,7 @@ interface BalancesPageProps {
 
 const BalancesPage: React.FC<BalancesPageProps> = ({ statusItems, allDayInfo, allLogs, workSettings, allManualOvertime, allMealVouchers, onOpenAddOvertimeModal }) => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedStatusItem, setSelectedStatusItem] = useState<StatusItem | null>(null);
   
   const usageData = useMemo(() => {
     return calculateStatusUsage(allDayInfo, selectedYear, statusItems, allManualOvertime);
@@ -91,15 +93,32 @@ const BalancesPage: React.FC<BalancesPageProps> = ({ statusItems, allDayInfo, al
                 const details = getStatusItemDetails(`code-${item.code}`, statusItems);
                 const progress = item.entitlement > 0 ? (used / item.entitlement) * 100 : 0;
                 const isOvertime = item.category === 'overtime';
+                const isClickable = !isOvertime && (item.category === 'leave-day' || item.category === 'leave-hours');
                 
                 return (
                     <div 
                         key={item.code} 
                         className={`bg-gray-50 dark:bg-slate-700/50 p-4 rounded-lg ${
-                            isOvertime ? 'cursor-pointer hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all hover:shadow-md' : ''
+                            isOvertime 
+                              ? 'cursor-pointer hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all hover:shadow-md' 
+                              : isClickable 
+                                ? 'cursor-pointer hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-all hover:shadow-md'
+                                : ''
                         }`}
-                        onClick={isOvertime ? () => onOpenAddOvertimeModal(new Date()) : undefined}
-                        title={isOvertime ? 'Click per aggiungere straordinari' : ''}
+                        onClick={
+                          isOvertime 
+                            ? () => onOpenAddOvertimeModal(new Date()) 
+                            : isClickable 
+                              ? () => setSelectedStatusItem(item)
+                              : undefined
+                        }
+                        title={
+                          isOvertime 
+                            ? 'Click per aggiungere straordinari' 
+                            : isClickable 
+                              ? 'Click per vedere i dettagli'
+                              : ''
+                        }
                     >
                         <div className="flex justify-between items-center mb-2">
                             <div className="flex items-center space-x-3">
@@ -137,6 +156,16 @@ const BalancesPage: React.FC<BalancesPageProps> = ({ statusItems, allDayInfo, al
           </div>
         </div>
       </div>
+
+      {/* Balance Details Modal */}
+      {selectedStatusItem && (
+        <BalanceDetailsModal
+          statusItem={selectedStatusItem}
+          allDayInfo={allDayInfo}
+          selectedYear={selectedYear}
+          onClose={() => setSelectedStatusItem(null)}
+        />
+      )}
     </main>
   );
 };

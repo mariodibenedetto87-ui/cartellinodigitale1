@@ -1,26 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' fill='%2314b8a6'>⏱</text></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#14b8a6" />
+    <meta name="description" content="Gestione professionale delle timbrature e delle presenze" />
     <title>Timecard Manager Pro</title>
     <link rel="manifest" href="/manifest.json" />
-    <link rel="stylesheet" href="/src/index.css" />
-<script type="importmap">
-{
-  "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.0",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.0",
-    "@supabase/supabase-js": "https://aistudiocdn.com/@supabase/supabase-js@^2.81.0",
-    "vite": "https://aistudiocdn.com/vite@^7.2.2"
-  }
-}
-</script>
-</head>
+    <style>
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes fadeInScaleIn {
+        from { opacity: 0; transform: scale(0.95) translateY(10px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+      }
+      .animate-fade-in {
+        animation: fadeIn 0.3s ease-out forwards;
+      }
+      .animate-modal-content {
+        animation: fadeInScaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+      }
+      .animate-fade-in-up {
+        animation: fadeInUp 0.3s ease-out forwards;
+      }
+      @keyframes paint-feedback {
+        from { transform: scale(0.75); opacity: 1; }
+        to { transform: scale(1.25); opacity: 0; }
+      }
+      .animate-paint-feedback {
+        animation: paint-feedback 0.4s ease-out forwards;
+      }
+      @keyframes fingerprint-fade-out {
+        from { opacity: 1; transform: scale(1) rotate(0); }
+        to { opacity: 0; transform: scale(0.5) rotate(-45deg); }
+      }
+      .animate-fingerprint-fade-out {
+        animation: fingerprint-fade-out 0.3s ease-in-out forwards;
+      }
+      @keyframes checkmark-pop {
+        0% { transform: scale(0.5); opacity: 0; }
+        60% { transform: scale(1.15); opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
+      }
+      .animate-checkmark-pop {
+        animation: checkmark-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.1s forwards;
+      }
+      
+      /* Custom style for Exit Time Input */
+      .time-input-uscita:focus {
+        --tw-ring-color: #ef4444 !important; /* red-500 */
+        border-color: #ef4444 !important;
+      }
+    </style>
+  </head>
   <body class="bg-gray-100 dark:bg-slate-900">
     <div id="root"></div>
     <script type="module" src="/src/index.tsx"></script>

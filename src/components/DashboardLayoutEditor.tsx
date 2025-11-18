@@ -1,6 +1,3 @@
-import { useState, useCallback } from 'react';
-import GridLayout, { Layout } from 'react-grid-layout';
-import 'react-grid-layout/css/styles.css';
 import { DashboardLayout, WidgetVisibility } from '../types';
 
 interface DashboardLayoutEditorProps {
@@ -11,68 +8,30 @@ interface DashboardLayoutEditorProps {
   onClose: () => void;
 }
 
-const widgetInfo: Record<string, { name: string; description: string; minW: number; minH: number; defaultW: number; defaultH: number }> = {
-  smartNotifications: { name: 'Notifiche Smart', description: 'Notifiche intelligenti e suggerimenti', minW: 2, minH: 2, defaultW: 4, defaultH: 3 },
-  nfcScanner: { name: 'Scanner NFC', description: 'Scansione badge NFC/QR', minW: 2, minH: 2, defaultW: 4, defaultH: 2 },
-  summary: { name: 'Riepilogo Giorno', description: 'Ore lavorate oggi', minW: 2, minH: 2, defaultW: 4, defaultH: 3 },
-  dashboardInsights: { name: 'Insights AI', description: 'Analisi settimanali e suggerimenti', minW: 2, minH: 3, defaultW: 4, defaultH: 4 },
-  mealVoucherCard: { name: 'Buoni Pasto', description: 'Gestione ticket restaurant', minW: 2, minH: 2, defaultW: 4, defaultH: 2 },
-  plannerCard: { name: 'Pianificatore', description: 'Pianifica turni e ferie', minW: 2, minH: 2, defaultW: 3, defaultH: 3 },
-  offerCard: { name: 'Offerta Speciale', description: 'Banner promozionale', minW: 2, minH: 2, defaultW: 3, defaultH: 2 },
-  balancesSummary: { name: 'Saldi', description: 'Riepilogo ferie e permessi', minW: 2, minH: 3, defaultW: 3, defaultH: 4 },
-  monthlySummary: { name: 'Riepilogo Mensile', description: 'Statistiche del mese', minW: 2, minH: 2, defaultW: 3, defaultH: 3 },
-  weeklySummary: { name: 'Riepilogo Settimanale', description: 'Ore della settimana', minW: 2, minH: 2, defaultW: 3, defaultH: 2 },
-  weeklyHoursChart: { name: 'Grafico Ore', description: 'Grafico ore settimanali', minW: 2, minH: 3, defaultW: 3, defaultH: 3 },
+const widgetInfo: Record<string, { name: string; description: string; minW: number; minH: number; defaultW: number; defaultH: number; category: 'main' | 'sidebar' }> = {
+  smartNotifications: { name: 'Controllo Presenze', description: 'Notifiche intelligenti e gestione timbrature', minW: 2, minH: 2, defaultW: 4, defaultH: 3, category: 'main' },
+  nfcScanner: { name: 'Scanner NFC', description: 'Scansione badge NFC/QR', minW: 2, minH: 2, defaultW: 4, defaultH: 2, category: 'main' },
+  summary: { name: 'Riepilogo del Giorno', description: 'Ore lavorate oggi', minW: 2, minH: 2, defaultW: 4, defaultH: 3, category: 'main' },
+  dashboardInsights: { name: 'Statistiche Comparative', description: 'Analisi settimanali e suggerimenti', minW: 2, minH: 3, defaultW: 4, defaultH: 4, category: 'main' },
+  mealVoucherCard: { name: 'Buoni Pasto', description: 'Gestione ticket restaurant', minW: 2, minH: 2, defaultW: 4, defaultH: 2, category: 'main' },
+  plannerCard: { name: 'Pianificazione Rapida', description: 'Pianifica turni e ferie', minW: 2, minH: 2, defaultW: 3, defaultH: 3, category: 'sidebar' },
+  offerCard: { name: 'Offerta Speciale', description: 'Banner promozionale', minW: 2, minH: 2, defaultW: 3, defaultH: 2, category: 'sidebar' },
+  balancesSummary: { name: 'Saldi Principali', description: 'Riepilogo ferie e permessi', minW: 2, minH: 3, defaultW: 3, defaultH: 4, category: 'sidebar' },
+  monthlySummary: { name: 'Riepilogo Mensile', description: 'Statistiche del mese corrente', minW: 2, minH: 2, defaultW: 3, defaultH: 3, category: 'sidebar' },
+  weeklySummary: { name: 'Riepilogo Settimanale', description: 'Ore della settimana', minW: 2, minH: 2, defaultW: 3, defaultH: 2, category: 'sidebar' },
+  weeklyHoursChart: { name: 'Grafico Ore Settimanali', description: 'Visualizzazione grafica ore settimanali', minW: 2, minH: 3, defaultW: 3, defaultH: 3, category: 'sidebar' },
 };
 
 export default function DashboardLayoutEditor({
-  currentLayout,
   widgetVisibility,
   onLayoutChange,
   onVisibilityChange,
   onClose,
 }: DashboardLayoutEditorProps) {
-  const [editMode, setEditMode] = useState(false);
-  const [localLayout, setLocalLayout] = useState<Layout[]>(() => {
-    // Convert DashboardLayout to react-grid-layout format
-    const allWidgets = [...currentLayout.main, ...currentLayout.sidebar];
-    return allWidgets.map((widgetId, index) => {
-      const info = widgetInfo[widgetId] || { defaultW: 3, defaultH: 2, minW: 2, minH: 2 };
-      return {
-        i: widgetId,
-        x: (index % 4) * 3,
-        y: Math.floor(index / 4) * 3,
-        w: info.defaultW,
-        h: info.defaultH,
-        minW: info.minW,
-        minH: info.minH,
-      };
-    });
-  });
-
-  const handleLayoutChange = useCallback((newLayout: Layout[]) => {
-    setLocalLayout(newLayout);
-  }, []);
-
   const handleSave = () => {
-    // Convert react-grid-layout format back to DashboardLayout
-    // Split into main (first 5) and sidebar (rest)
-    const visibleWidgets = localLayout
-      .filter(item => widgetVisibility[item.i] !== false)
-      .sort((a, b) => {
-        if (a.y === b.y) return a.x - b.x;
-        return a.y - b.y;
-      })
-      .map(item => item.i);
-
-    const newLayout: DashboardLayout = {
-      main: visibleWidgets.slice(0, 5),
-      sidebar: visibleWidgets.slice(5),
-    };
-
-    onLayoutChange(newLayout);
-    showToast('Layout salvato!');
-    setEditMode(false);
+    // Save current visibility state
+    showToast('Impostazioni salvate con successo!');
+    onClose();
   };
 
   const handleReset = () => {
@@ -88,21 +47,6 @@ export default function DashboardLayoutEditor({
       onVisibilityChange(widgetId, true);
     });
     
-    // Recreate local layout
-    const allWidgets = [...defaultLayout.main, ...defaultLayout.sidebar];
-    const resetLayout = allWidgets.map((widgetId, index) => {
-      const info = widgetInfo[widgetId] || { defaultW: 3, defaultH: 2, minW: 2, minH: 2 };
-      return {
-        i: widgetId,
-        x: (index % 4) * 3,
-        y: Math.floor(index / 4) * 3,
-        w: info.defaultW,
-        h: info.defaultH,
-        minW: info.minW,
-        minH: info.minH,
-      };
-    });
-    setLocalLayout(resetLayout);
     showToast('Layout ripristinato al default!');
   };
 
@@ -122,10 +66,10 @@ export default function DashboardLayoutEditor({
         <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between z-10">
           <div>
             <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-              Personalizza Dashboard
+              Gestione Widget Dashboard
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Mostra/nascondi widgets e riorganizza il layout
+              Attiva o disattiva i widget e riordinali trascinandoli per personalizzare la tua dashboard.
             </p>
           </div>
           <button
@@ -139,95 +83,81 @@ export default function DashboardLayoutEditor({
         </div>
 
         {/* Widget Visibility Controls */}
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">
-            Visibilità Widgets
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {Object.entries(widgetInfo).map(([widgetId, info]) => (
-              <label
-                key={widgetId}
-                className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              >
-                <input
-                  type="checkbox"
-                  checked={widgetVisibility[widgetId] !== false}
-                  onChange={(e) => onVisibilityChange(widgetId, e.target.checked)}
-                  className="w-4 h-4 text-teal-600 focus:ring-teal-500 rounded"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                    {info.name}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                    {info.description}
-                  </div>
-                </div>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        {/* Layout Editor */}
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-              Riorganizza Layout
-            </h3>
-            <button
-              onClick={() => setEditMode(!editMode)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                editMode
-                  ? 'bg-green-500 hover:bg-green-600 text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-              }`}
-            >
-              {editMode ? '✓ Modalità Modifica Attiva' : 'Attiva Modifica'}
-            </button>
-          </div>
-
-          {editMode && (
-            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-              <p className="text-sm text-blue-800 dark:text-blue-200">
-                <strong>💡 Suggerimento:</strong> Trascina i widgets per riorganizzarli. Ridimensionali trascinando gli angoli.
-              </p>
+        <div className="px-6 py-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Colonna Principale */}
+            <div>
+              <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 pb-2 border-b border-gray-300 dark:border-gray-600">
+                Colonna Principale
+              </h4>
+              <div className="space-y-2">
+                {Object.entries(widgetInfo)
+                  .filter(([_, info]) => info.category === 'main')
+                  .map(([widgetId, info]) => (
+                    <label
+                      key={widgetId}
+                      className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <div className="relative inline-block w-12 h-6 flex-shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={widgetVisibility[widgetId] !== false}
+                          onChange={(e) => onVisibilityChange(widgetId, e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-12 h-6 bg-gray-300 peer-focus:ring-2 peer-focus:ring-teal-500 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-teal-600"></div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                          {info.name}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {info.description}
+                        </div>
+                      </div>
+                    </label>
+                  ))}
+              </div>
             </div>
-          )}
 
-          <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 min-h-[400px]">
-            <GridLayout
-              className="layout"
-              layout={localLayout}
-              cols={12}
-              rowHeight={60}
-              width={1000}
-              isDraggable={editMode}
-              isResizable={editMode}
-              onLayoutChange={handleLayoutChange}
-              draggableHandle=".drag-handle"
-            >
-              {localLayout
-                .filter(item => widgetVisibility[item.i] !== false)
-                .map(item => (
-                  <div key={item.i} className="bg-white dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 rounded-lg shadow-sm overflow-hidden">
-                    <div className={`h-full flex flex-col ${editMode ? 'drag-handle cursor-move' : ''}`}>
-                      <div className="bg-gradient-to-r from-teal-500 to-teal-600 text-white px-3 py-2 text-sm font-medium flex items-center gap-2">
-                        {editMode && (
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-                          </svg>
-                        )}
-                        {widgetInfo[item.i]?.name || item.i}
+            {/* Barra Laterale */}
+            <div>
+              <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 pb-2 border-b border-gray-300 dark:border-gray-600">
+                Barra Laterale
+              </h4>
+              <div className="space-y-2">
+                {Object.entries(widgetInfo)
+                  .filter(([_, info]) => info.category === 'sidebar')
+                  .map(([widgetId, info]) => (
+                    <label
+                      key={widgetId}
+                      className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <div className="relative inline-block w-12 h-6 flex-shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={widgetVisibility[widgetId] !== false}
+                          onChange={(e) => onVisibilityChange(widgetId, e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-12 h-6 bg-gray-300 peer-focus:ring-2 peer-focus:ring-teal-500 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-teal-600"></div>
                       </div>
-                      <div className="flex-1 p-3 flex items-center justify-center text-gray-500 dark:text-gray-400 text-xs">
-                        {widgetInfo[item.i]?.description || 'Widget'}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                          {info.name}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {info.description}
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
-            </GridLayout>
+                    </label>
+                  ))}
+              </div>
+            </div>
           </div>
         </div>
+
+
 
         {/* Footer Actions */}
         <div className="sticky bottom-0 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">

@@ -15,6 +15,7 @@ import { generateCSV } from '../utils/csvUtils';
 import { GoogleGenAI, Type } from "@google/genai";
 import ImportStatusToast from '../components/ImportStatusToast';
 import OnCallModal from '../components/modals/OnCallModal';
+import DayEventsModal from '../components/modals/DayEventsModal';
 
 // Get Google API Key from environment - direct access to VITE_ prefixed variables
 const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY || '';
@@ -51,6 +52,8 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [activeFilter, setActiveFilter] = useState<string | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isDayEventsModalOpen, setDayEventsModalOpen] = useState(false);
+    const [eventsModalDate, setEventsModalDate] = useState<Date>(new Date());
 
     const handleExport = (startDateStr: string, endDateStr: string, format: 'ics' | 'csv') => {
         const [sY, sM, sD] = startDateStr.split('-').map(Number);
@@ -390,7 +393,20 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
             
             {/* Desktop Sidebar */}
             <aside className="hidden lg:flex lg:w-96 flex-shrink-0 border-l border-gray-200 dark:border-slate-700/50 p-4 lg:p-6 overflow-y-auto bg-gray-50 dark:bg-slate-900/50 flex-col">
-                <div className="flex justify-end mb-4 gap-2">
+                <div className="flex justify-end mb-4 gap-2 flex-wrap">
+                    <button 
+                        onClick={() => {
+                            setEventsModalDate(selectedDate);
+                            setDayEventsModalOpen(true);
+                        }} 
+                        className="text-xs sm:text-sm bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-3 sm:px-4 rounded-lg transition-all active:scale-95 flex items-center gap-1"
+                        title="Gestisci eventi multipli"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Eventi
+                    </button>
                     <button onClick={() => setOnCallModalOpen(true)} className="text-xs sm:text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-3 sm:px-4 rounded-lg transition-all active:scale-95">
                       Reperibilità
                     </button>
@@ -438,6 +454,19 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
                         </div>
                         <div className="p-4">
                             <div className="flex flex-col gap-2 mb-4">
+                                <button 
+                                    onClick={() => { 
+                                        setEventsModalDate(selectedDate);
+                                        setDayEventsModalOpen(true); 
+                                        setIsSidebarOpen(false); 
+                                    }} 
+                                    className="text-sm bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    Gestisci Eventi
+                                </button>
                                 <button onClick={() => { setOnCallModalOpen(true); setIsSidebarOpen(false); }} className="text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all active:scale-95">
                                   Gestisci Reperibilità
                                 </button>
@@ -487,6 +516,27 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
                         onSetAllDayInfo(newDayInfo);
                         setOnCallModalOpen(false);
                     }}
+                />
+            )}
+            {isDayEventsModalOpen && (
+                <DayEventsModal
+                    date={eventsModalDate}
+                    dayInfo={allDayInfo[formatDateKey(eventsModalDate)]}
+                    statusItems={statusItems}
+                    shifts={workSettings.shifts}
+                    onSave={(date, events) => {
+                        const dateKey = formatDateKey(date);
+                        const updatedDayInfo = {
+                            ...allDayInfo,
+                            [dateKey]: {
+                                ...allDayInfo[dateKey],
+                                events: events,
+                            }
+                        };
+                        onSetAllDayInfo(updatedDayInfo);
+                        setDayEventsModalOpen(false);
+                    }}
+                    onClose={() => setDayEventsModalOpen(false)}
                 />
             )}
             <ExportCalendarModal
