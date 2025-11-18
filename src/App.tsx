@@ -22,6 +22,9 @@ import RangePlannerModal from './components/RangePlannerModal';
 import MealVoucherModal from './components/MealVoucherModal';
 import Onboarding from './components/Onboarding';
 import QuickActionsFAB from './components/QuickActionsFAB';
+import ConnectionStatus from './components/ConnectionStatus';
+import { offlineManager } from './utils/offlineManager';
+import { syncWithDatabase } from './utils/syncManager';
 
 type Page = 'dashboard' | 'calendar' | 'settings' | 'balances';
 type ToastMessage = { id: number; message: string; type: 'success' | 'error'; };
@@ -113,6 +116,9 @@ const App: React.FC = () => {
     const [isTogglingRef, setIsTogglingRef] = useState(false);
     const [isAddingEntryRef, setIsAddingEntryRef] = useState(false);
 
+    // OFFLINE SYNC STATE
+    const [isInitializingOffline, setIsInitializingOffline] = useState(true);
+
     // TOAST HANDLER
     const showToast = useCallback((message: string, type: 'success' | 'error' = 'success') => {
         const id = Date.now();
@@ -120,7 +126,38 @@ const App: React.FC = () => {
         setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
     }, []);
 
+    // OFFLINE SYNC HANDLER
+    const handleSyncRequest = useCallback(async () => {
+        try {
+            const result = await syncWithDatabase();
+            if (result.success > 0 || result.failed > 0) {
+                showToast(result.message, result.failed > 0 ? 'error' : 'success');
+            }
+            // Reload data after sync
+            if (result.success > 0 && session) {
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error('Sync failed:', error);
+            showToast('Sincronizzazione fallita', 'error');
+        }
+    }, [session, showToast]);
+
     // --- DATA FETCHING & INITIALIZATION ---
+    // Initialize offline manager
+    useEffect(() => {
+        const initOffline = async () => {
+            try {
+                await offlineManager.init();
+                setIsInitializingOffline(false);
+            } catch (error) {
+                console.error('Failed to initialize offline manager:', error);
+                setIsInitializingOffline(false);
+            }
+        };
+        initOffline();
+    }, []);
+
     useEffect(() => {
         const fetchSession = async () => {
             const { data: { session } } = await supabase.auth.getSession();
@@ -1234,6 +1271,9 @@ const App: React.FC = () => {
             <div className="fixed top-24 right-4 z-[100] w-full max-w-xs space-y-2">
                 {toasts.map(t => <Toast key={t.id} message={t.message} type={t.type} onDismiss={() => setToasts(p => p.filter(toast => toast.id !== t.id))} />)}
             </div>
+            {session && !isInitializingOffline && (
+                <ConnectionStatus onSyncRequest={handleSyncRequest} />
+            )}
         </div>
     );
 };
