@@ -14,19 +14,19 @@ Aggiungi questi URL nelle **Redirect URLs**:
 ```
 http://localhost:5173
 http://localhost:5173/
-https://cartellinodigitale1-dfp3dlqqa-marios-projects-dad1128c.vercel.app
-https://cartellinodigitale1-dfp3dlqqa-marios-projects-dad1128c.vercel.app/
+https://cartellinodigitale1.vercel.app
+https://cartellinodigitale1.vercel.app/
 https://*.vercel.app
 ```
 
 ### 2. Configura il Site URL
 
-Imposta il **Site URL** principale (IMPORTANTE - usa l'URL attuale):
+Imposta il **Site URL** principale (USA QUESTO URL FISSO):
 ```
-https://cartellinodigitale1-dnko83w7q-marios-projects-dad1128c.vercel.app
+https://cartellinodigitale1.vercel.app
 ```
 
-**NOTA**: Se hai un dominio personalizzato, usalo invece dell'URL Vercel.
+**IMPORTANTE**: Usa il dominio principale di Vercel, non gli URL temporanei dei deployment!
 
 ### 2b. Verifica Authentication Settings
 
