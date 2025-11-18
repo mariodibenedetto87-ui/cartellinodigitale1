@@ -15,8 +15,8 @@ interface SummaryProps {
     workSettings: WorkSettings;
     statusItems: StatusItem[];
     manualOvertimeEntries: ManualOvertimeEntry[];
-    onEditEntry: (dateKey: string, entryIndex: number, newTimestamp: Date, newType: 'in' | 'out') => void;
-    onDeleteEntry: (dateKey: string, entryIndex: number) => void;
+    onEditEntry: (dateKey: string, entryId: string, newTimestamp: Date, newType: 'in' | 'out') => void;
+    onDeleteEntry: (dateKey: string, entryId: string) => void;
     onOpenAddEntryModal: (date: Date) => void;
     onOpenAddManualEntryModal: (date: Date) => void;
     onOpenAddOvertimeModal: (date: Date) => void;
@@ -32,7 +32,7 @@ const CalendarIcon: React.FC<{className?: string}> = ({className}) => (
 
 
 const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, workSettings, statusItems, manualOvertimeEntries, onEditEntry, onDeleteEntry, onOpenAddEntryModal, onOpenAddManualEntryModal, onOpenAddOvertimeModal, onDeleteManualOvertime, onOpenQuickLeaveModal }) => {
-    const [editingEntry, setEditingEntry] = useState<{ entry: TimeEntry; index: number } | null>(null);
+    const [editingEntry, setEditingEntry] = useState<{ entry: TimeEntry; id: string } | null>(null);
     const [isCalendarPopoverOpen, setCalendarPopoverOpen] = useState(false);
     const popoverRef = useRef<HTMLDivElement>(null);
     const calendarButtonRef = useRef<HTMLButtonElement>(null);
@@ -327,8 +327,6 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                     {entries.length > 0 ? (
                         <ul className="space-y-2">
                             {[...entries].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()).map((entry) => {
-                                // Trova l'indice originale nell'array non ordinato
-                                const originalIndex = entries.findIndex(e => e.id === entry.id);
                                 const intervalForEntry = entry.type === 'out' ? intervalMap.get(entry.id) : undefined;
                                 const hasIntervalDetails = intervalForEntry && (intervalForEntry.nullHoursMs > 0 || intervalForEntry.standardWorkMs > 0 || intervalForEntry.excessHoursMs > 0 || intervalForEntry.overtimeDiurnalMs > 0 || intervalForEntry.overtimeNocturnalMs > 0 || intervalForEntry.overtimeHolidayMs > 0 || intervalForEntry.overtimeNocturnalHolidayMs > 0);
 
@@ -343,10 +341,10 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                                             </div>
                                         </div>
                                         <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => setEditingEntry({ entry, index: originalIndex })} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600" aria-label="Modifica timbratura">
+                                            <button onClick={() => setEditingEntry({ entry, id: entry.id })} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600" aria-label="Modifica timbratura">
                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z" /></svg>
                                             </button>
-                                            <button onClick={() => onDeleteEntry(dateKey, originalIndex)} className="p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50" aria-label="Elimina timbratura">
+                                            <button onClick={() => onDeleteEntry(dateKey, entry.id)} className="p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50" aria-label="Elimina timbratura">
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                             </button>
                                         </div>
@@ -425,7 +423,7 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                     entry={editingEntry.entry}
                     onClose={() => setEditingEntry(null)}
                     onSave={(newTimestamp, newType) => {
-                        onEditEntry(dateKey, editingEntry.index, newTimestamp, newType);
+                        onEditEntry(dateKey, editingEntry.id, newTimestamp, newType);
                         setEditingEntry(null);
                     }}
                 />

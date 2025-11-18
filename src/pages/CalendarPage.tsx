@@ -27,9 +27,9 @@ interface CalendarPageProps {
     workSettings: WorkSettings;
     statusItems: StatusItem[];
     savedRotations: SavedRotation[];
-    onSetAllDayInfo: (allDayInfo: AllDayInfo) => void;
-    onEditEntry: (dateKey: string, entryIndex: number, newTimestamp: Date, newType: 'in' | 'out') => void;
-    onDeleteEntry: (dateKey: string, entryIndex: number) => void;
+    onSetAllDayInfo: (newAllDayInfo: AllDayInfo) => Promise<void>;
+    onEditEntry: (dateKey: string, entryId: string, newTimestamp: Date, newType: 'in' | 'out') => void;
+    onDeleteEntry: (dateKey: string, entryId: string) => void;
     onOpenAddEntryModal: (date: Date) => void;
     onOpenAddOvertimeModal: (date: Date) => void;
     onDeleteManualOvertime: (dateKey: string, entryId: string) => void;

@@ -1185,8 +1185,8 @@ const App: React.FC = () => {
                     onToggle={handleToggle} onOpenQuickLeaveModal={(options) => setQuickLeaveModalOptions(options)}
                     onSetSelectedDate={setSelectedDate}
                     onDismissNotification={(id) => setSmartNotifications(prev => prev.filter(n => n.id !== id))}
-                    onEditEntry={(dateKey, index, ts, type) => handleEditEntry(dateKey, allLogs[dateKey][index].id, ts, type)}
-                    onDeleteEntry={(dateKey, index) => handleDeleteEntry(dateKey, allLogs[dateKey][index].id)}
+                    onEditEntry={(dateKey, entryId, ts, type) => handleEditEntry(dateKey, entryId, ts, type)}
+                    onDeleteEntry={(dateKey, entryId) => handleDeleteEntry(dateKey, entryId)}
                     onOpenAddEntryModal={setAddEntryModalDate}
                     onOpenAddManualEntryModal={setAddManualEntryModalDate}
                     onDeleteManualOvertime={handleDeleteManualOvertime}
@@ -1199,8 +1199,8 @@ const App: React.FC = () => {
                     allLogs={allLogs} allDayInfo={allDayInfo} allManualOvertime={allManualOvertime}
                     workSettings={workSettings} statusItems={statusItems} savedRotations={savedRotations}
                     onSetAllDayInfo={handleSetAllDayInfo}
-                    onEditEntry={(dateKey, index, ts, type) => handleEditEntry(dateKey, allLogs[dateKey][index].id, ts, type)}
-                    onDeleteEntry={(dateKey, index) => handleDeleteEntry(dateKey, allLogs[dateKey][index].id)}
+                    onEditEntry={(dateKey, entryId, ts, type) => handleEditEntry(dateKey, entryId, ts, type)}
+                    onDeleteEntry={(dateKey, entryId) => handleDeleteEntry(dateKey, entryId)}
                     onOpenAddEntryModal={setAddEntryModalDate}
                     onOpenAddOvertimeModal={setAddOvertimeModalDate}
                     onDeleteManualOvertime={handleDeleteManualOvertime} onImportData={handleImportData}
