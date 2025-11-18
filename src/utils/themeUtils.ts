@@ -74,8 +74,179 @@ const updateGradients = (_accentColor: string) => {
     const existing = document.getElementById('dynamic-theme-style');
     if (existing) existing.remove();
     
-    // Create dynamic CSS with current accent color
+    // Create dynamic CSS with current accent color - COMPREHENSIVE OVERRIDE
     style.innerHTML = `
+        /* === BUTTONS & INTERACTIVE ELEMENTS === */
+        .bg-teal-600, .bg-teal-500, .bg-teal-700 {
+            background-color: var(--accent-color) !important;
+        }
+        .hover\\:bg-teal-700:hover, .hover\\:bg-teal-600:hover {
+            background-color: var(--accent-color-hover) !important;
+        }
+        .text-teal-600, .text-teal-500, .text-teal-700 {
+            color: var(--accent-color) !important;
+        }
+        .border-teal-500, .border-teal-600 {
+            border-color: var(--accent-color) !important;
+        }
+        
+        /* === GRADIENTS - All variations === */
+        .bg-gradient-to-br.from-teal-500,
+        .bg-gradient-to-br.from-teal-400,
+        .bg-gradient-to-r.from-teal-500,
+        .bg-gradient-to-r.from-teal-400,
+        .bg-gradient-to-br.from-teal-500.to-blue-500,
+        .bg-gradient-to-r.from-teal-500.to-blue-500 {
+            background: linear-gradient(135deg, var(--accent-color-light), var(--accent-color)) !important;
+        }
+        
+        /* === FOCUS STATES === */
+        .focus\\:ring-teal-500:focus {
+            --tw-ring-color: var(--accent-color) !important;
+        }
+        .focus\\:border-teal-500:focus {
+            border-color: var(--accent-color) !important;
+        }
+        
+        /* === HOVER GRADIENTS === */
+        .hover\\:from-teal-600:hover,
+        .hover\\:to-blue-600:hover {
+            background: linear-gradient(135deg, var(--accent-color), var(--accent-color-hover)) !important;
+        }
+        
+        /* === FAB BUTTON (Quick Actions) === */
+        button[aria-label*="Apri menu"],
+        button[aria-label*="Chiudi menu"] {
+            background: linear-gradient(135deg, var(--accent-color-light), var(--accent-color)) !important;
+        }
+        button[aria-label*="Apri menu"]:hover,
+        button[aria-label*="Chiudi menu"]:hover {
+            background: linear-gradient(135deg, var(--accent-color), var(--accent-color-hover)) !important;
+        }
+        
+        /* === HEADER NAVIGATION === */
+        nav button.bg-teal-600 {
+            background-color: var(--accent-color) !important;
+        }
+        nav button.bg-teal-600:hover {
+            background-color: var(--accent-color-hover) !important;
+        }
+        
+        /* === PROGRESS BARS === */
+        .bg-teal-500 {
+            background-color: var(--accent-color) !important;
+        }
+        
+        /* === BADGES & PILLS === */
+        .bg-teal-100 {
+            background-color: color-mix(in srgb, var(--accent-color) 20%, white) !important;
+        }
+        .text-teal-800 {
+            color: color-mix(in srgb, var(--accent-color) 80%, black) !important;
+        }
+        
+        /* === CARDS & CONTAINERS === */
+        .border-teal-200 {
+            border-color: color-mix(in srgb, var(--accent-color) 30%, white) !important;
+        }
+        
+        /* === ICONS WITH BACKGROUND === */
+        div[class*="bg-gradient-to-br from-teal"] {
+            background: linear-gradient(135deg, var(--accent-color-light), var(--accent-color)) !important;
+        }
+        
+        /* === ONBOARDING PROGRESS BAR === */
+        .bg-gradient-to-r.from-teal-500.to-blue-500 {
+            background: linear-gradient(to right, var(--accent-color-light), var(--accent-color)) !important;
+        }
+        
+        /* === SELECTION RINGS (Theme Picker) === */
+        .bg-gradient-to-br.from-teal-500.to-blue-500.-z-10 {
+            background: linear-gradient(135deg, var(--accent-color-light), var(--accent-color)) !important;
+        }
+        
+        /* === DASHBOARD INSIGHTS GRADIENTS === */
+        .bg-clip-text.text-transparent[class*="from-teal"] {
+            background: linear-gradient(to right, var(--accent-color-light), var(--accent-color)) !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+        }
+        
+        /* === ANIMATIONS & PULSE === */
+        .animate-ping[class*="bg-teal"] {
+            background-color: var(--accent-color-light) !important;
+        }
+        span[class*="bg-teal"] {
+            background-color: var(--accent-color) !important;
+        }
+        
+        /* === DARK MODE VARIANTS === */
+        .dark .dark\\:bg-teal-900\\/50 {
+            background-color: color-mix(in srgb, var(--accent-color) 15%, black) !important;
+        }
+        .dark .dark\\:text-teal-200 {
+            color: color-mix(in srgb, var(--accent-color) 60%, white) !important;
+        }
+        .dark .dark\\:border-teal-800 {
+            border-color: color-mix(in srgb, var(--accent-color) 60%, black) !important;
+        }
+        
+        /* === SPECIFIC COMPONENTS === */
+        /* NfcScanner circular button */
+        .rounded-full.bg-gradient-to-br {
+            background: linear-gradient(135deg, var(--accent-color-light), var(--accent-color)) !important;
+        }
+        
+        /* Header icons/buttons */
+        header button[class*="bg-teal"] {
+            background-color: var(--accent-color) !important;
+        }
+        header button[class*="bg-teal"]:hover {
+            background-color: var(--accent-color-hover) !important;
+        }
+        
+        /* Settings save buttons */
+        button[class*="bg-teal-600"] {
+            background-color: var(--accent-color) !important;
+        }
+        button[class*="bg-teal-600"]:hover {
+            background-color: var(--accent-color-hover) !important;
+        }
+        
+        /* Modal action buttons */
+        button[class*="from-teal-500"] {
+            background: linear-gradient(135deg, var(--accent-color-light), var(--accent-color)) !important;
+        }
+        button[class*="from-teal-500"]:hover {
+            background: linear-gradient(135deg, var(--accent-color), var(--accent-color-hover)) !important;
+        }
+        
+        /* Links and text accents */
+        a[class*="text-teal"] {
+            color: var(--accent-color) !important;
+        }
+        a[class*="text-teal"]:hover {
+            color: var(--accent-color-hover) !important;
+        }
+        
+        /* Checkbox and radio buttons (if any) */
+        input[type="checkbox"]:checked,
+        input[type="radio"]:checked {
+            background-color: var(--accent-color) !important;
+            border-color: var(--accent-color) !important;
+        }
+        
+        /* Calendar highlights */
+        .bg-teal-50 {
+            background-color: color-mix(in srgb, var(--accent-color) 10%, white) !important;
+        }
+        
+        /* Sidebar active states */
+        .border-l-4.border-teal-500 {
+            border-left-color: var(--accent-color) !important;
+        }
+        
+        /* === UTILITIES === */
         .theme-gradient {
             background: linear-gradient(135deg, var(--accent-color-light), var(--accent-color)) !important;
         }
@@ -90,23 +261,6 @@ const updateGradients = (_accentColor: string) => {
         }
         .theme-border {
             border-color: var(--accent-color) !important;
-        }
-        /* Override Tailwind gradients */
-        .bg-gradient-to-br.from-teal-500,
-        .bg-gradient-to-br.from-teal-400,
-        .bg-gradient-to-r.from-teal-500 {
-            background: linear-gradient(to bottom right, var(--accent-color-light), var(--accent-color)) !important;
-        }
-        .bg-gradient-to-r.from-teal-400 {
-            background: linear-gradient(to right, var(--accent-color-light), var(--accent-color)) !important;
-        }
-        /* FAB button */
-        .bg-gradient-to-br.from-teal-500.to-blue-500 {
-            background: linear-gradient(135deg, var(--accent-color-light), var(--accent-color)) !important;
-        }
-        /* Hover states */
-        .hover\\:from-teal-600:hover {
-            background: linear-gradient(135deg, var(--accent-color), var(--accent-color-hover)) !important;
         }
     `;
     
