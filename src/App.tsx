@@ -24,6 +24,7 @@ import Onboarding from './components/Onboarding';
 import QuickActionsFAB from './components/QuickActionsFAB';
 import ConnectionStatus from './components/ConnectionStatus';
 import GlobalSearch from './components/GlobalSearch';
+import InstallPrompt from './components/InstallPrompt';
 import { offlineManager } from './utils/offlineManager';
 import { syncWithDatabase } from './utils/syncManager';
 
@@ -1290,6 +1291,9 @@ const App: React.FC = () => {
                     }}
                 />
             )}
+            
+            {/* Install PWA Prompt */}
+            <InstallPrompt />
         </div>
     );
 };

@@ -164,3 +164,77 @@ self.addEventListener('message', event => {
     self.skipWaiting();
   }
 });
+
+// Push Notification Event Listener
+self.addEventListener('push', event => {
+  console.log('[Service Worker] Push received:', event);
+  
+  const defaultOptions = {
+    icon: '/icon-192x192.png',
+    badge: '/icon-192x192.png',
+    vibrate: [200, 100, 200],
+    tag: 'timecard-notification',
+    requireInteraction: false,
+    actions: [
+      { action: 'open', title: 'Apri App', icon: '/icon-192x192.png' },
+      { action: 'close', title: 'Chiudi' }
+    ]
+  };
+
+  let notificationData = {
+    title: 'Timecard Pro',
+    body: 'Hai una nuova notifica',
+    ...defaultOptions
+  };
+
+  // Parse payload if exists
+  if (event.data) {
+    try {
+      const payload = event.data.json();
+      notificationData = {
+        title: payload.title || notificationData.title,
+        body: payload.body || notificationData.body,
+        icon: payload.icon || defaultOptions.icon,
+        badge: payload.badge || defaultOptions.badge,
+        tag: payload.tag || defaultOptions.tag,
+        data: payload.data || {},
+        requireInteraction: payload.requireInteraction || false,
+        actions: defaultOptions.actions
+      };
+    } catch (e) {
+      notificationData.body = event.data.text();
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(notificationData.title, notificationData)
+  );
+});
+
+// Notification Click Event
+self.addEventListener('notificationclick', event => {
+  console.log('[Service Worker] Notification click:', event);
+  
+  event.notification.close();
+
+  if (event.action === 'close') {
+    return;
+  }
+
+  // Open app on notification click
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
+      // Check if there's already a window open
+      for (const client of clientList) {
+        if (client.url.includes(self.registration.scope) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      
+      // No window open, open new one
+      if (clients.openWindow) {
+        return clients.openWindow('/');
+      }
+    })
+  );
+});

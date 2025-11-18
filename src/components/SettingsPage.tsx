@@ -7,6 +7,7 @@ import StatusItemModal from './modals/StatusItemModal';
 import ShiftModal from './modals/ShiftModal';
 import ThemeColorPicker from './ThemeColorPicker';
 import DashboardLayoutEditor from './DashboardLayoutEditor';
+import PushNotificationsSettings from './PushNotificationsSettings';
 import { formatHoursDecimal } from '../utils/timeUtils';
 
 interface SettingsPageProps {
@@ -606,6 +607,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                 )}
             </div>
         </div>
+
+        {/* Push Notifications Section */}
+        <PushNotificationsSettings onShowToast={onShowToast} />
+
         {isStatusModalOpen && (
             <StatusItemModal 
                 item={editingStatusItem}
