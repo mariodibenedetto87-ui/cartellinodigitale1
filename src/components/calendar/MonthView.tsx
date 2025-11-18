@@ -75,9 +75,9 @@ const MonthView: React.FC<MonthViewProps> = ({ allLogs, allDayInfo, selectedDate
   };
   
   return (
-    <div className="p-4 relative">
-       <div className="grid grid-cols-7 gap-1 text-center border-b border-gray-200 dark:border-slate-700">
-        {weekDays.map(day => <div key={day} className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase py-2">{day}</div>)}
+    <div className="p-2 sm:p-4 relative">
+       <div className="grid grid-cols-7 gap-0.5 sm:gap-1 text-center border-b border-gray-200 dark:border-slate-700">
+        {weekDays.map(day => <div key={day} className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase py-1 sm:py-2">{day}</div>)}
        </div>
        <div className="grid grid-cols-7 grid-rows-6 gap-px bg-gray-300 dark:bg-slate-700 border-l border-t border-gray-300 dark:border-slate-700" style={{ minHeight: '75vh' }}>
         {daysInMonth.map((day, index) => {

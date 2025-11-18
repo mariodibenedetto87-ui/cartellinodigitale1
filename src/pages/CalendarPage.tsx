@@ -50,6 +50,7 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
     const [importStatus, setImportStatus] = useState<{ message: string; type: 'info' | 'success' | 'error' | '' }>({ message: '', type: '' });
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [activeFilter, setActiveFilter] = useState<string | null>(null);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const handleExport = (startDateStr: string, endDateStr: string, format: 'ics' | 'csv') => {
         const [sY, sM, sD] = startDateStr.split('-').map(Number);
@@ -319,10 +320,11 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
     const nextDayInfo = allDayInfo[nextDayKey];
 
     return (
-        <main className="flex h-[calc(100vh-81px)]">
+        <main className="flex flex-col lg:flex-row h-[calc(100vh-65px)] md:h-[calc(100vh-81px)]">
             {/* Allow images and PDFs for import */}
             <input type="file" accept="image/*,application/pdf" ref={fileInputRef} onChange={handleFileSelected} className="hidden" />
-            <div className="flex-grow flex flex-col overflow-y-auto">
+            
+            <div className="flex-grow flex flex-col overflow-hidden">
                 <CalendarHeader 
                     view={view} 
                     displayDate={displayDate} 
@@ -333,12 +335,13 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
                     onOpenImportModal={() => fileInputRef.current?.click()}
                     isImporting={isImporting}
                     statusItems={statusItems}
-                    // FIX: Pass workSettings prop to CalendarHeader.
                     workSettings={workSettings}
                     activeFilter={activeFilter}
                     onFilterChange={setActiveFilter}
+                    onToggleSidebar={() => setIsSidebarOpen(prev => !prev)}
+                    isSidebarOpen={isSidebarOpen}
                 />
-                <div className="flex-grow relative">
+                <div className="flex-grow relative overflow-auto">
                     {renderView()}
                     <ImportStatusToast
                         message={importStatus.message}
@@ -347,13 +350,15 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
                     />
                 </div>
             </div>
-            <aside className="w-96 flex-shrink-0 border-l border-gray-200 dark:border-slate-700/50 p-6 overflow-y-auto bg-gray-50 dark:bg-slate-900/50">
+            
+            {/* Desktop Sidebar */}
+            <aside className="hidden lg:flex lg:w-96 flex-shrink-0 border-l border-gray-200 dark:border-slate-700/50 p-4 lg:p-6 overflow-y-auto bg-gray-50 dark:bg-slate-900/50 flex-col">
                 <div className="flex justify-end mb-4 gap-2">
-                    <button onClick={() => setOnCallModalOpen(true)} className="text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all active:scale-95">
-                      Gestisci Reperibilità
+                    <button onClick={() => setOnCallModalOpen(true)} className="text-xs sm:text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-3 sm:px-4 rounded-lg transition-all active:scale-95">
+                      Reperibilità
                     </button>
-                    <button onClick={() => setPlannerOpen(true)} className="text-sm bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 px-4 rounded-lg transition-all active:scale-95">
-                      Apri Pianificatore
+                    <button onClick={() => setPlannerOpen(true)} className="text-xs sm:text-sm bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 px-3 sm:px-4 rounded-lg transition-all active:scale-95">
+                      Pianificatore
                     </button>
                 </div>
                 <Summary
@@ -373,6 +378,56 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
                     onOpenQuickLeaveModal={(date) => onOpenQuickLeaveModal({ date })}
                 />
             </aside>
+
+            {/* Mobile Sidebar Drawer */}
+            {isSidebarOpen && (
+                <>
+                    <div 
+                        className="lg:hidden fixed inset-0 bg-black/50 z-40" 
+                        onClick={() => setIsSidebarOpen(false)}
+                    />
+                    <aside className="lg:hidden fixed right-0 top-0 bottom-0 w-full sm:w-96 bg-white dark:bg-slate-900 z-50 shadow-2xl overflow-y-auto">
+                        <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 p-4 flex justify-between items-center">
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-white">Dettagli Giorno</h3>
+                            <button 
+                                onClick={() => setIsSidebarOpen(false)}
+                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                                aria-label="Chiudi"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="p-4">
+                            <div className="flex flex-col gap-2 mb-4">
+                                <button onClick={() => { setOnCallModalOpen(true); setIsSidebarOpen(false); }} className="text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all active:scale-95">
+                                  Gestisci Reperibilità
+                                </button>
+                                <button onClick={() => { setPlannerOpen(true); setIsSidebarOpen(false); }} className="text-sm bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 px-4 rounded-lg transition-all active:scale-95">
+                                  Apri Pianificatore
+                                </button>
+                            </div>
+                            <Summary
+                                date={selectedDate}
+                                entries={allLogs[selectedDateKey] || []}
+                                dayInfo={allDayInfo[selectedDateKey]}
+                                nextDayInfo={nextDayInfo}
+                                workSettings={workSettings}
+                                statusItems={statusItems}
+                                manualOvertimeEntries={manualOvertimeForSelectedDate}
+                                onEditEntry={onEditEntry}
+                                onDeleteEntry={onDeleteEntry}
+                                onOpenAddEntryModal={onOpenAddEntryModal}
+                                onOpenAddManualEntryModal={() => {}}
+                                onDeleteManualOvertime={onDeleteManualOvertime}
+                                onOpenAddOvertimeModal={() => onOpenAddOvertimeModal(selectedDate)}
+                                onOpenQuickLeaveModal={(date) => onOpenQuickLeaveModal({ date })}
+                            />
+                        </div>
+                    </aside>
+                </>
+            )}
             {isPlannerOpen && (
                 <VisualShiftPlannerModal 
                     initialDayInfo={allDayInfo}

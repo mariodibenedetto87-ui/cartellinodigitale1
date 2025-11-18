@@ -17,6 +17,8 @@ interface CalendarHeaderProps {
   workSettings: WorkSettings;
   activeFilter: string | null;
   onFilterChange: (filter: string | null) => void;
+  onToggleSidebar?: () => void;
+  isSidebarOpen?: boolean;
 }
 
 const FilterIcon: React.FC<{className?: string}> = ({className}) => (
@@ -25,7 +27,7 @@ const FilterIcon: React.FC<{className?: string}> = ({className}) => (
     </svg>
 );
 
-const CalendarHeader: React.FC<CalendarHeaderProps> = ({ view, displayDate, onViewChange, onDateChange, onToday, onOpenExportModal, onOpenImportModal, isImporting, statusItems, workSettings, activeFilter, onFilterChange }) => {
+const CalendarHeader: React.FC<CalendarHeaderProps> = ({ view, displayDate, onViewChange, onDateChange, onToday, onOpenExportModal, onOpenImportModal, isImporting, statusItems, workSettings, activeFilter, onFilterChange, onToggleSidebar, isSidebarOpen }) => {
     const [animationKey, setAnimationKey] = useState(0);
     const [sliderStyle, setSliderStyle] = useState({});
     const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -125,19 +127,19 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({ view, displayDate, onVi
     ];
 
     return (
-        <div className="flex flex-wrap items-center justify-between gap-4 p-4 border-b border-gray-200 dark:border-slate-700/50">
-            <div className="flex items-center space-x-2 sm:space-x-4">
-                <button onClick={handleTodayClick} className="px-4 py-2 rounded-lg bg-white dark:bg-slate-800 shadow-sm dark:shadow-black/20 border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-semibold transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-95">Oggi</button>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-3 sm:p-4 border-b border-gray-200 dark:border-slate-700/50">
+            <div className="flex items-center justify-between sm:justify-start space-x-2 sm:space-x-4">
+                <button onClick={handleTodayClick} className="px-3 sm:px-4 py-1.5 sm:py-2 text-sm rounded-lg bg-white dark:bg-slate-800 shadow-sm dark:shadow-black/20 border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-semibold transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-95">Oggi</button>
                 <div className="flex items-center">
-                    <button onClick={handlePrev} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-all active:scale-95" aria-label="Periodo precedente"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg></button>
-                    <button onClick={handleNext} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-all active:scale-95" aria-label="Periodo successivo"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button>
+                    <button onClick={handlePrev} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-all active:scale-95" aria-label="Periodo precedente"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg></button>
+                    <button onClick={handleNext} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-all active:scale-95" aria-label="Periodo successivo"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button>
                 </div>
-                <h2 key={animationKey} className="text-lg sm:text-xl md:text-2xl font-bold text-slate-800 dark:text-white capitalize text-center w-64 animate-fade-in-up">{getTitle()}</h2>
+                <h2 key={animationKey} className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-slate-800 dark:text-white capitalize text-center flex-1 sm:w-auto sm:min-w-[200px] animate-fade-in-up truncate">{getTitle()}</h2>
             </div>
-            <div className="flex items-center space-x-2">
-                <div className="relative bg-gray-200 dark:bg-slate-800 p-1 rounded-lg flex space-x-1">
+            <div className="flex items-center justify-between sm:justify-end space-x-1.5 sm:space-x-2">
+                <div className="relative bg-gray-200 dark:bg-slate-800 p-0.5 sm:p-1 rounded-lg flex space-x-0.5 sm:space-x-1">
                     <div 
-                        className="absolute top-1 bottom-1 bg-teal-500 rounded-md shadow-md transition-all duration-300 ease-in-out"
+                        className="absolute top-0.5 sm:top-1 bottom-0.5 sm:bottom-1 bg-teal-500 rounded-md shadow-md transition-all duration-300 ease-in-out"
                         style={sliderStyle}
                     />
                     {viewOptions.map(option => (
@@ -145,7 +147,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({ view, displayDate, onVi
                             key={option.value} 
                             ref={viewRefs[option.value]}
                             onClick={() => onViewChange(option.value)} 
-                            className={`relative z-10 px-3 py-1 text-sm font-semibold rounded-md transition-colors duration-300 ${view === option.value ? 'text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-gray-300/50 dark:hover:bg-slate-700/50'}`}>
+                            className={`relative z-10 px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold rounded-md transition-colors duration-300 ${view === option.value ? 'text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-gray-300/50 dark:hover:bg-slate-700/50'}`}>
                             {option.label}
                         </button>
                     ))}
@@ -154,11 +156,11 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({ view, displayDate, onVi
                     <button
                         ref={filterButtonRef}
                         onClick={() => setIsFilterOpen(prev => !prev)}
-                        className={`p-2.5 rounded-lg font-semibold transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-95 ${activeFilter ? 'bg-teal-500 text-white' : 'bg-white dark:bg-slate-800 shadow-sm dark:shadow-black/20 border border-gray-200 dark:border-slate-700 text-slate-800 dark:text-white'}`}
+                        className={`p-1.5 sm:p-2.5 rounded-lg font-semibold transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-95 ${activeFilter ? 'bg-teal-500 text-white' : 'bg-white dark:bg-slate-800 shadow-sm dark:shadow-black/20 border border-gray-200 dark:border-slate-700 text-slate-800 dark:text-white'}`}
                         aria-label="Filtra calendario"
                         title="Filtra per tipo di evento"
                     >
-                        <FilterIcon className="w-5 h-5"/>
+                        <FilterIcon className="w-4 h-4 sm:w-5 sm:h-5"/>
                     </button>
                     {isFilterOpen && (
                         <div ref={filterPopupRef}>
@@ -175,31 +177,47 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({ view, displayDate, onVi
                 <button 
                     onClick={onOpenImportModal}
                     disabled={isImporting}
-                    className="p-2.5 rounded-lg bg-white dark:bg-slate-800 shadow-sm dark:shadow-black/20 border border-gray-200 dark:border-slate-700 text-slate-800 dark:text-white font-semibold transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-95 disabled:cursor-wait"
+                    className="p-1.5 sm:p-2.5 rounded-lg bg-white dark:bg-slate-800 shadow-sm dark:shadow-black/20 border border-gray-200 dark:border-slate-700 text-slate-800 dark:text-white font-semibold transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-95 disabled:cursor-wait"
                     aria-label="Importa cartellino"
                     title="Importa da immagine cartellino"
                 >
                     {isImporting ? (
-                         <svg className="animate-spin h-5 w-5 text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                         <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5 text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                     ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12" />
                         </svg>
                     )}
                 </button>
                  <button 
                     onClick={onOpenExportModal} 
-                    className="p-2.5 rounded-lg bg-white dark:bg-slate-800 shadow-sm dark:shadow-black/20 border border-gray-200 dark:border-slate-700 text-slate-800 dark:text-white font-semibold transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+                    className="p-1.5 sm:p-2.5 rounded-lg bg-white dark:bg-slate-800 shadow-sm dark:shadow-black/20 border border-gray-200 dark:border-slate-700 text-slate-800 dark:text-white font-semibold transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
                     aria-label="Esporta calendario"
                     title="Esporta calendario (.ics)"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                     </svg>
                 </button>
+                {onToggleSidebar && (
+                    <button 
+                        onClick={onToggleSidebar}
+                        className={`lg:hidden p-1.5 sm:p-2.5 rounded-lg font-semibold transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-95 ${
+                            isSidebarOpen 
+                                ? 'bg-teal-500 text-white' 
+                                : 'bg-white dark:bg-slate-800 shadow-sm dark:shadow-black/20 border border-gray-200 dark:border-slate-700 text-slate-800 dark:text-white'
+                        }`}
+                        aria-label="Dettagli giorno"
+                        title="Visualizza dettagli giorno selezionato"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                        </svg>
+                    </button>
+                )}
             </div>
         </div>
     );
