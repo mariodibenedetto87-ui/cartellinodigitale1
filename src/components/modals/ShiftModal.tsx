@@ -56,7 +56,7 @@ const ShiftModal: React.FC<ShiftModalProps> = ({ shift, onClose, onSave }) => {
     e.preventDefault();
     setError(''); // Clear previous errors
 
-    if (!formData.name || formData.startHour === null || formData.endHour === null || formData.startHour === '' || formData.endHour === '') {
+    if (!formData.name || formData.startHour === null || formData.endHour === null || formData.startHour === undefined || formData.endHour === undefined) {
         setError('Per favore, compila tutti i campi.');
         return;
     }

@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
-import { AllTimeLogs, AllDayInfo, ShiftType, LeaveType, StatusItem, WorkSettings } from '../../types';
+import { AllTimeLogs, AllDayInfo, LeaveType, StatusItem, WorkSettings } from '../../types';
 import { formatDateKey, startOfMonth, startOfWeek, addDays, isSameDay, isSameMonth, getShiftDetails } from '../../utils/timeUtils';
 import { getStatusItemDetails } from '../../utils/leaveUtils';
-import { MorningIcon, AfternoonIcon, RestIcon, PhoneIcon } from '../ShiftIcons';
+import { PhoneIcon } from '../ShiftIcons';
 
 
 interface MonthViewProps {
@@ -18,7 +18,7 @@ interface MonthViewProps {
   activeFilter: string | null;
 }
 
-const MonthView: React.FC<MonthViewProps> = ({ allLogs, allDayInfo, selectedDate, displayDate, statusItems, workSettings, onDateSelect, onOpenRangePlanner, onOpenQuickLeaveModal, activeFilter }) => {
+const MonthView: React.FC<MonthViewProps> = ({ allLogs, allDayInfo, selectedDate, displayDate, statusItems, workSettings, onDateSelect, onOpenQuickLeaveModal, activeFilter }) => {
   const daysInMonth = useMemo(() => {
     const monthStart = startOfMonth(displayDate);
     const startDate = startOfWeek(monthStart);
@@ -36,21 +36,36 @@ const MonthView: React.FC<MonthViewProps> = ({ allLogs, allDayInfo, selectedDate
   const getDayIcon = (info: AllDayInfo[string]) => {
     if (info?.leave?.type) {
         const details = getStatusItemDetails(info.leave.type, statusItems);
-        return <details.Icon className="w-6 h-6" title={details.label} />;
-    }
-    if (info?.shift) {
-        // FIX: Use getShiftDetails with shifts from workSettings.
-        const details = getShiftDetails(info.shift, workSettings.shifts);
-        if(!details) return null;
-        // The specific icons are kept for the default shifts for better visuals.
-        switch(info.shift) {
-            case 'morning': return <MorningIcon className="w-6 h-6" title={details.label} />;
-            case 'afternoon': return <AfternoonIcon className="w-6 h-6" title={details.label} />;
-            case 'rest': return <RestIcon className="w-6 h-6" title={details.label} />;
-            default: return <div className={`w-6 h-6 rounded-full ${details.bgColor}`} title={details.label}></div>
-        }
+        return <details.Icon className="w-5 h-5" title={details.label} />;
     }
     return null;
+  };
+
+  const getShiftBadge = (info: AllDayInfo[string]) => {
+    if (!info?.shift) return null;
+    
+    const details = getShiftDetails(info.shift, workSettings.shifts);
+    if (!details) return null;
+
+    // Abbreviazioni per i turni
+    const shiftLabels: Record<string, string> = {
+      'morning': 'MAT',
+      'afternoon': 'POM',
+      'evening': 'SER',
+      'night': 'NOT',
+      'rest': 'RIP'
+    };
+
+    const label = shiftLabels[info.shift] || details.label.substring(0, 3).toUpperCase();
+
+    return (
+      <div 
+        className={`px-2 py-0.5 rounded text-xs font-semibold ${details.textColor} ${details.bgColor} shadow-sm`}
+        title={details.label}
+      >
+        {label}
+      </div>
+    );
   };
 
   const handleDayOptionsClick = (e: React.MouseEvent, date: Date) => {
@@ -109,19 +124,18 @@ const MonthView: React.FC<MonthViewProps> = ({ allLogs, allDayInfo, selectedDate
                     {hasLog && <div className="w-2 h-2 bg-teal-400 rounded-full mt-1.5 mr-1.5"></div>}
                      {isCurrentMonth && (
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={(e) => handleDayOptionsClick(e, day)} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600 -mr-1 -mt-1" aria-label="Opzioni giorno">
+                            <div onClick={(e) => handleDayOptionsClick(e, day)} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600 -mr-1 -mt-1 cursor-pointer" aria-label="Opzioni giorno">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 text-gray-500 dark:text-slate-400">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
                                 </svg>
-                            </button>
+                            </div>
                         </div>
                      )}
                 </div>
               </div>
-              <div className="flex-grow flex items-center justify-center -mt-4">
-                 {iconToShow ? (
-                    <div className="p-1 rounded-full">{iconToShow}</div>
-                ) : <div className="h-8 w-8"></div>}
+              <div className="flex-grow flex flex-col items-center justify-center gap-1 mt-1">
+                 {iconToShow && <div className="p-1 rounded-full">{iconToShow}</div>}
+                 {getShiftBadge(info)}
               </div>
             </button>
           );

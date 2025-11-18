@@ -1,15 +1,7 @@
 const CACHE_NAME = 'timecard-pro-v1';
-// All assets used by the application that need to be cached.
+// Minimal assets to cache - only what's essential
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/index.tsx',
-  '/vite.svg',
-  '/manifest.json',
-  'https://cdn.tailwindcss.com',
-  'https://cdnjs.cloudflare.com/ajax/libs/heroicons/2.1.1/24/outline/esm/index.min.js',
-  'https://aistudiocdn.com/react@^19.2.0',
-  'https://aistudiocdn.com/react-dom@^19.2.0/client'
+  '/'
 ];
 
 // Install a service worker
@@ -19,13 +11,22 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Cache aperta');
-        return cache.addAll(urlsToCache);
+        // Only add essential assets that we know exist
+        return cache.addAll(urlsToCache).catch(err => {
+          console.warn('Cache.addAll failed, continuing anyway:', err);
+        });
       })
+      .then(() => self.skipWaiting())
   );
 });
 
 // Cache and return requests
 self.addEventListener('fetch', event => {
+  // Skip caching for API requests
+  if (event.request.url.includes('supabase') || event.request.url.includes('/api/')) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then(response => {
@@ -33,9 +34,21 @@ self.addEventListener('fetch', event => {
         if (response) {
           return response;
         }
-        return fetch(event.request);
-      }
-    )
+        return fetch(event.request).catch(err => {
+          console.warn('Fetch failed for:', event.request.url, err);
+          // Return a basic offline response or empty response
+          return new Response('Offline - unable to fetch resource', {
+            status: 503,
+            statusText: 'Service Unavailable'
+          });
+        });
+      })
+      .catch(err => {
+        console.error('Cache.match failed:', err);
+        return fetch(event.request).catch(() => {
+          return new Response('Offline', { status: 503 });
+        });
+      })
   );
 });
 
@@ -51,6 +64,6 @@ self.addEventListener('activate', event => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });

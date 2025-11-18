@@ -1,8 +1,7 @@
-
-
 import React, { useMemo } from 'react';
-import { AllTimeLogs, WorkStatus, WorkSettings, AllDayInfo, OfferSettings, StatusItem, DashboardLayout, WidgetVisibility, AllManualOvertime } from '../types';
+import { AllTimeLogs, WorkStatus, WorkSettings, AllDayInfo, OfferSettings, StatusItem, DashboardLayout, WidgetVisibility, AllManualOvertime, AllMealVouchers } from '../types';
 import { formatDateKey, isSameDay, addDays, startOfWeek, calculateWorkSummary } from '../utils/timeUtils';
+import { Session } from '@supabase/supabase-js';
 import NfcScanner from '../components/NfcScanner';
 import Summary from '../components/Summary';
 import WeeklySummary from '../components/WeeklySummary';
@@ -11,11 +10,14 @@ import OfferCard from '../components/OfferCard';
 import WeeklyHoursChart from '../components/WeeklyHoursChart';
 import BalancesSummary from '../components/BalancesSummary';
 import PlannerCard from '../components/PlannerCard';
+import MealVoucherCard from '../components/MealVoucherCard';
 
 interface DashboardPageProps {
+    session: Session | null;
     allLogs: AllTimeLogs;
     allDayInfo: AllDayInfo;
     allManualOvertime: AllManualOvertime;
+    allMealVouchers: AllMealVouchers;
     selectedDate: Date;
     workStatus: WorkStatus;
     currentSessionStart: Date | null;
@@ -35,16 +37,19 @@ interface DashboardPageProps {
     onOpenAddManualEntryModal: (date: Date) => void;
     onDeleteManualOvertime: (dateKey: string, entryId: string) => void;
     onOpenRangePlanner: (options?: { startDate?: Date }) => void;
+    onOpenAddOvertimeModal: (date: Date) => void;
+    onOpenMealVoucherModal: (date: Date) => void;
 }
 
 const DashboardPage: React.FC<DashboardPageProps> = (props) => {
     const { 
-        allLogs, allDayInfo, allManualOvertime, selectedDate, workStatus, 
+        session, allLogs, allDayInfo, allManualOvertime, allMealVouchers, selectedDate, workStatus, 
         currentSessionStart, currentSessionDuration, workSettings, offerSettings,
         statusItems, onToggle,
         onSetSelectedDate, onEditEntry, onDeleteEntry, onOpenAddEntryModal,
         onOpenAddManualEntryModal, onDeleteManualOvertime,
-        dashboardLayout, widgetVisibility, onOpenRangePlanner, onOpenQuickLeaveModal
+        dashboardLayout, widgetVisibility, onOpenRangePlanner, onOpenQuickLeaveModal,
+        onOpenAddOvertimeModal, onOpenMealVoucherModal
     } = props;
     
     const isTodaySelected = isSameDay(selectedDate, new Date());
@@ -56,16 +61,18 @@ const DashboardPage: React.FC<DashboardPageProps> = (props) => {
     const nextDayKey = formatDateKey(nextDay);
     const nextDayInfoForSelectedDate = allDayInfo[nextDayKey];
 
+    // "Ore Lavorate Totali" mostra solo le ore dalle timbrature (SENZA straordinari manuali)
+    // Gli straordinari manuali vengono mostrati separatamente negli appositi widget
     const { summary: summaryForSelectedDate } = useMemo(() => calculateWorkSummary(
         selectedDate,
         entriesForSelectedDate,
         workSettings,
         dayInfoForSelectedDate,
         nextDayInfoForSelectedDate,
-        manualOvertimeForSelectedDate
-    ), [selectedDate, entriesForSelectedDate, workSettings, dayInfoForSelectedDate, nextDayInfoForSelectedDate, manualOvertimeForSelectedDate]);
+        [] // NON includiamo straordinari manuali nel conteggio ore lavorate
+    ), [selectedDate, entriesForSelectedDate, workSettings, dayInfoForSelectedDate, nextDayInfoForSelectedDate]);
 
-    const totalWorkMsForSelectedDate = summaryForSelectedDate.totalWorkMs + summaryForSelectedDate.nullHoursMs;
+    const totalWorkMsForSelectedDate = summaryForSelectedDate.totalWorkMs;
 
     const weeklyData = useMemo(() => {
         let totalWorkMs = 0;
@@ -164,6 +171,7 @@ const DashboardPage: React.FC<DashboardPageProps> = (props) => {
                 onOpenAddManualEntryModal={onOpenAddManualEntryModal}
                 onDeleteManualOvertime={onDeleteManualOvertime}
                 onOpenQuickLeaveModal={(date) => onOpenQuickLeaveModal({ date })}
+                onOpenAddOvertimeModal={onOpenAddOvertimeModal}
             />
         ),
         plannerCard: <PlannerCard onOpen={() => onOpenRangePlanner()} />,
@@ -192,6 +200,15 @@ const DashboardPage: React.FC<DashboardPageProps> = (props) => {
             <WeeklyHoursChart 
                 totalWorkMs={weeklyData.totalWorkMs}
                 totalOvertimeMs={weeklyData.totalOvertimeMs}
+            />
+        ),
+        mealVoucherCard: (
+            <MealVoucherCard
+                date={selectedDate}
+                allLogs={allLogs}
+                allMealVouchers={allMealVouchers}
+                onOpenModal={onOpenMealVoucherModal}
+                session={session}
             />
         ),
     };

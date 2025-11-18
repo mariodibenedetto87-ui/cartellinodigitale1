@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { AllTimeLogs, AllDayInfo, WorkSettings, CalendarView, LeaveType, StatusItem, AllManualOvertime, SavedRotation } from '../types';
 import CalendarHeader from '../components/calendar/CalendarHeader';
 import MonthView from '../components/calendar/MonthView';
@@ -15,6 +15,9 @@ import { generateCSV } from '../utils/csvUtils';
 import { GoogleGenAI, Type } from "@google/genai";
 import ImportStatusToast from '../components/ImportStatusToast';
 import OnCallModal from '../components/modals/OnCallModal';
+
+// Get Google API Key from environment - direct access to VITE_ prefixed variables
+const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY || '';
 
 interface CalendarPageProps {
     allLogs: AllTimeLogs;
@@ -47,21 +50,6 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
     const [importStatus, setImportStatus] = useState<{ message: string; type: 'info' | 'success' | 'error' | '' }>({ message: '', type: '' });
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [activeFilter, setActiveFilter] = useState<string | null>(null);
-    
-    // --- DEBUGGING LOGS FOR MODAL ---
-    console.log('[DEBUG] CalendarPage rendered. Initial isOnCallModalOpen state:', isOnCallModalOpen);
-
-    const debugSetOnCallModalOpen = (value: boolean, caller: string) => {
-        console.log(`[DEBUG] Setting isOnCallModalOpen to: ${value} from "${caller}"`);
-        console.trace("[DEBUG] Call stack:");
-        setOnCallModalOpen(value);
-    };
-
-    useEffect(() => {
-        console.log(`[DEBUG] isOnCallModalOpen state EFFECT TRIGGERED. New value: ${isOnCallModalOpen}`);
-    }, [isOnCallModalOpen]);
-    // --- END DEBUGGING LOGS ---
-
 
     const handleExport = (startDateStr: string, endDateStr: string, format: 'ics' | 'csv') => {
         const [sY, sM, sD] = startDateStr.split('-').map(Number);
@@ -106,11 +94,38 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
         setImportStatus({ message: 'Caricamento e analisi del file in corso...', type: 'info' });
 
         const reader = new FileReader();
-        reader.readAsDataURL(file);
+
+        // helper to convert ArrayBuffer to base64 safely for large files
+        const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
+            const bytes = new Uint8Array(buffer);
+            const chunkSize = 0x8000; // 32KB chunks
+            let binary = '';
+            for (let i = 0; i < bytes.length; i += chunkSize) {
+                const chunk = bytes.subarray(i, i + chunkSize);
+                binary += String.fromCharCode.apply(null, Array.from(chunk) as any);
+            }
+            return btoa(binary);
+        };
+
+        if (file.type === 'application/pdf') {
+            reader.readAsArrayBuffer(file);
+        } else {
+            reader.readAsDataURL(file);
+        }
+
         reader.onload = async () => {
-            const base64Data = (reader.result as string).split(',')[1];
+            let base64Data: string;
+            if (file.type === 'application/pdf') {
+                const buffer = reader.result as ArrayBuffer;
+                base64Data = arrayBufferToBase64(buffer);
+            } else {
+                base64Data = (reader.result as string).split(',')[1];
+            }
             try {
-                const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+                if (!GOOGLE_API_KEY) {
+                    throw new Error("API_KEY_MISSING");
+                }
+                const ai = new GoogleGenAI({ apiKey: GOOGLE_API_KEY });
 
                 const schema = {
                     type: Type.OBJECT,
@@ -122,21 +137,20 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
                                 type: Type.OBJECT,
                                 properties: {
                                     date: { type: Type.STRING, description: 'La data in formato AAAA-MM-GG.' },
-                                    entries: {
-                                        type: Type.ARRAY,
-                                        description: 'Una lista di eventi di timbratura per il giorno.',
-                                        items: {
-                                            type: Type.OBJECT,
-                                            properties: {
-                                                time: { type: Type.STRING, description: 'L\'ora dell\'evento in formato HH:MM.' },
-                                                type: { type: Type.STRING, description: 'Il tipo di evento, "in" o "out".' }
-                                            },
-                                            required: ['time', 'type']
-                                        }
+                                    day_type: { 
+                                        type: Type.STRING, 
+                                        description: 'Il tipo di giorno: "work" per giornate lavorative con timbrature, "leave" per ferie/permessi/malattia, "rest" per riposi/festivi, "absence" per assenze.' 
                                     },
-                                    note: { type: Type.STRING, description: 'Qualsiasi testo speciale o nota associata al giorno.' }
+                                    clock_in: { type: Type.STRING, description: 'Orario della prima timbratura di entrata in formato HH:MM (solo se day_type è "work").' },
+                                    clock_out: { type: Type.STRING, description: 'Orario dell\'ultima timbratura di uscita in formato HH:MM (solo se day_type è "work").' },
+                                    work_code: { type: Type.STRING, description: 'Codice LAV del turno se presente (es. "11" per mattina, "12" per pomeriggio, "13" per sera, "14" per notte, "1023" per riposo).' },
+                                    leave_type: { 
+                                        type: Type.STRING, 
+                                        description: 'Se day_type è "leave", specifica il tipo: "holiday" (ferie), "sick" (malattia), "permit" (permessi), "parental" (parentale).' 
+                                    },
+                                    note: { type: Type.STRING, description: 'Note o descrizioni speciali per il giorno.' }
                                 },
-                                required: ['date', 'entries', 'note']
+                                required: ['date', 'day_type']
                             }
                         }
                     },
@@ -149,25 +163,31 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
 
 1.  **Identifica Mese e Anno:** Trova il mese e l'anno nel documento (es. "OTTOBRE 2025") e usali per costruire una data completa in formato AAAA-MM-GG per ogni giorno.
 
-2.  **PRIORITÀ ASSOLUTA: Distingui tra Orario Programmato e Timbrature Reali.**
-    *   **Orario Programmato (DA IGNORARE SE POSSIBILE):** Colonne con intestazioni come "Orario", "Turno", "Dalle", "Alle" contengono l'orario di lavoro *teorico* (es. 08:00-14:00). **NON devi usare questi dati** se sono presenti le timbrature reali.
-    *   **Timbrature Reali (DA USARE SEMPRE):** Cerca con la massima priorità colonne con intestazioni come **"Timbrature"**, **"Entrata"**, **"Uscita"**, "E/U", "Ent./Usc.", "Entrata Effettiva", "Uscita Effettiva". Queste contengono gli orari in cui la persona ha effettivamente timbrato.
+2.  **Determina il Tipo di Giorno (day_type):**
+    *   Se il giorno ha timbrature reali → day_type = "work"
+    *   Se il giorno ha descrizioni come "FERIE", "PERMESSI" → day_type = "leave"
+    *   Se il giorno ha "RIPOSO", "FESTIVO" → day_type = "rest"
+    *   Se il giorno è vuoto/assenza → day_type = "absence"
 
-3.  **Processa le Timbrature Reali per Ogni Giorno:**
-    *   Un giorno può avere più coppie di timbrature (es. per la pausa pranzo). Estrai **TUTTE** le timbrature presenti, non solo la prima e l'ultima.
-    *   Per ogni orario trovato sotto "Entrata", crea una timbratura di tipo \`'in'\`.
-    *   Per ogni orario trovato sotto "Uscita", crea una timbratura di tipo \`'out'\`.
-    *   **CASO LIMITE (FALLBACK):** Se, e **SOLO SE**, per un giorno non esistono assolutamente colonne o dati di timbratura reale, allora puoi usare gli orari dalle colonne "Dalle"/"Alle". In questo caso, crea una timbratura \`'in'\` per "Dalle" e una \`'out'\` per "Alle".
+3.  **Per Giorni Lavorativi (day_type = "work"):**
+    *   Cerca colonne con intestazioni **"Timbrature"**, **"Entrata"**, **"Uscita"**, "E/U", "Entrata Effettiva", "Uscita Effettiva".
+    *   Estrai la **prima entrata** e mettila in \`clock_in\` (formato HH:MM)
+    *   Estrai l'**ultima uscita** e mettila in \`clock_out\` (formato HH:MM)
+    *   Se trovi un codice LAV (es. "11", "12", "13", "14", "1023"), mettilo in \`work_code\`
 
-4.  **Gestisci Assenze e Note:**
-    *   Se per un giorno non ci sono timbrature ma una descrizione come "FERIE", "RIPOSO", "PERMESSI LEGGE", "MALATTIA", "FESTIVO", allora l'array \`entries\` deve rimanere **VUOTO**.
-    *   Popola il campo \`note\` con la descrizione trovata (es. "FERIE").
-    *   Se un giorno ha sia timbrature che una nota (es. "Lavoro Agile"), estrai entrambe.
+4.  **Per Assenze/Permessi (day_type = "leave"):**
+    *   Se trovi "FERIE" → leave_type = "holiday"
+    *   Se trovi "MALATTIA" → leave_type = "sick"
+    *   Se trovi "PERMESSI" o "PERMESSI LEGGE" → leave_type = "permit"
+    *   Se trovi "PARENTALE" → leave_type = "parental"
 
-5.  **Regole di Formattazione e Esclusione:**
-    *   Ignora completamente le righe di riepilogo o totali.
-    *   Se trovi un intervallo di tempo come "08-14" in una singola cella nella colonna del turno/orario, **NON** devi interpretarlo come due timbrature separate. Ignoralo se sono presenti timbrature reali.
-    *   L'output finale deve essere un oggetto JSON valido con una chiave "days", che contiene l'array di tutti i giorni processati, seguendo scrupolosamente lo schema.`;
+5.  **Note Aggiuntive:**
+    *   Metti nel campo \`note\` qualsiasi informazione extra trovata (es. "BLOCCO DEBITO", "ORDINARIO", "LAVORO AGILE")
+
+6.  **Regole Importanti:**
+    *   Ignora righe di riepilogo o totali
+    *   Ignora orari programmati/teorici se sono presenti timbrature reali
+    *   L'output finale deve essere un oggetto JSON valido con una chiave "days"`;
 
                 const response = await ai.models.generateContent({
                     model: 'gemini-2.5-flash',
@@ -187,7 +207,12 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
                     throw new Error("EmptyApiResponse");
                 }
 
-                const parsedData = JSON.parse(response.text);
+                let parsedData;
+                try {
+                    parsedData = JSON.parse(response.text);
+                } catch (parseError) {
+                    throw new Error("InvalidJsonResponse");
+                }
 
                 if (!parsedData || !Array.isArray(parsedData.days)) {
                     throw new Error("InvalidDataStructure");
@@ -206,14 +231,20 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
                         case "EmptyApiResponse":
                             errorMessage = "Il servizio di analisi non ha fornito una risposta. Riprova con un'immagine diversa.";
                             break;
+                        case "InvalidJsonResponse":
+                            errorMessage = "La risposta del servizio non è valida. Controlla la console (F12) per dettagli e riprova.";
+                            break;
                         case "InvalidDataStructure":
                             errorMessage = "I dati estratti dal file non hanno la struttura corretta. Prova un'immagine più chiara.";
+                            break;
+                        case "API_KEY_MISSING":
+                            errorMessage = "Chiave API Google non configurata. Aggiungi VITE_GOOGLE_API_KEY a .env.local";
                             break;
                         default:
                             if (error.message.toLowerCase().includes('fetch')) {
                                 errorMessage = "Errore di rete. Controlla la connessione e riprova.";
                             } else {
-                                errorMessage = "Errore durante l'analisi del file. Riprova.";
+                                errorMessage = `Errore: ${error.message}`;
                             }
                             break;
                     }
@@ -289,7 +320,8 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
 
     return (
         <main className="flex h-[calc(100vh-81px)]">
-            <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileSelected} className="hidden" />
+            {/* Allow images and PDFs for import */}
+            <input type="file" accept="image/*,application/pdf" ref={fileInputRef} onChange={handleFileSelected} className="hidden" />
             <div className="flex-grow flex flex-col overflow-y-auto">
                 <CalendarHeader 
                     view={view} 
@@ -317,7 +349,7 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
             </div>
             <aside className="w-96 flex-shrink-0 border-l border-gray-200 dark:border-slate-700/50 p-6 overflow-y-auto bg-gray-50 dark:bg-slate-900/50">
                 <div className="flex justify-end mb-4 gap-2">
-                    <button onClick={() => debugSetOnCallModalOpen(true, 'On-Call Button Click')} className="text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all active:scale-95">
+                    <button onClick={() => setOnCallModalOpen(true)} className="text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all active:scale-95">
                       Gestisci Reperibilità
                     </button>
                     <button onClick={() => setPlannerOpen(true)} className="text-sm bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 px-4 rounded-lg transition-all active:scale-95">
@@ -335,8 +367,9 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
                     onEditEntry={onEditEntry}
                     onDeleteEntry={onDeleteEntry}
                     onOpenAddEntryModal={onOpenAddEntryModal}
-                    onOpenAddOvertimeModal={onOpenAddOvertimeModal}
+                    onOpenAddManualEntryModal={() => {}}
                     onDeleteManualOvertime={onDeleteManualOvertime}
+                    onOpenAddOvertimeModal={() => onOpenAddOvertimeModal(selectedDate)}
                     onOpenQuickLeaveModal={(date) => onOpenQuickLeaveModal({ date })}
                 />
             </aside>
@@ -357,10 +390,10 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
             {isOnCallModalOpen && (
                 <OnCallModal
                     initialDayInfo={allDayInfo}
-                    onClose={() => debugSetOnCallModalOpen(false, 'OnCallModal Close')}
+                    onClose={() => setOnCallModalOpen(false)}
                     onSave={(newDayInfo) => {
                         onSetAllDayInfo(newDayInfo);
-                        debugSetOnCallModalOpen(false, 'OnCallModal Save');
+                        setOnCallModalOpen(false);
                     }}
                 />
             )}

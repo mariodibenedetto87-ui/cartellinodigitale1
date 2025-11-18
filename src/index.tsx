@@ -1,13 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import ErrorBoundary from './components/ErrorBoundary';
+import './index.css';
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then(registration => {
-      console.log('Registrazione ServiceWorker riuscita con scope: ', registration.scope);
+    navigator.serviceWorker.register('/sw.js').then(() => {
+      // ServiceWorker registered successfully
     }).catch(error => {
-      console.log('Registrazione ServiceWorker fallita: ', error);
+      console.error('Registrazione ServiceWorker fallita:', error);
     });
   });
 }
@@ -20,6 +22,8 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </React.StrictMode>
 );

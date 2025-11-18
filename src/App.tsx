@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import { Session } from '@supabase/supabase-js';
-import { WorkStatus, AllTimeLogs, TimeEntry, WorkSettings, AllDayInfo, StatusItem, DashboardLayout, WidgetVisibility, AllManualOvertime, ManualOvertimeType, SavedRotation, ManualOvertimeEntry, DayInfo, LeaveType, ShiftType, OfferSettings } from './types';
-import { formatDateKey, formatDuration, isSameDay, addDays, parseDateKey } from './utils/timeUtils';
+import { WorkStatus, AllTimeLogs, TimeEntry, WorkSettings, AllDayInfo, StatusItem, DashboardLayout, WidgetVisibility, AllManualOvertime, ManualOvertimeType, SavedRotation, ManualOvertimeEntry, DayInfo, LeaveType, ShiftType, OfferSettings, AllMealVouchers } from './types';
+import { formatDateKey, formatDuration, addDays, parseDateKey } from './utils/timeUtils';
 import { scheduleReminders, requestNotificationPermission, clearScheduledNotifications } from './utils/notificationUtils';
 import { defaultStatusItems } from './data/statusItems';
 import Auth from './components/Auth';
@@ -15,7 +15,9 @@ import QuickLeaveModal from './components/QuickLeaveModal';
 import Toast from './components/Toast';
 import AddTimeEntryModal from './components/AddTimeEntryModal';
 import AddManualEntryModal from './components/AddManualEntryModal';
+import AddOvertimeModal from './components/AddOvertimeModal';
 import RangePlannerModal from './components/RangePlannerModal';
+import MealVoucherModal from './components/MealVoucherModal';
 
 type Page = 'dashboard' | 'calendar' | 'settings' | 'balances';
 type ToastMessage = { id: number; message: string; type: 'success' | 'error'; };
@@ -40,6 +42,7 @@ const App: React.FC = () => {
     const [allLogs, setAllLogs] = useState<AllTimeLogs>({});
     const [allDayInfo, setAllDayInfo] = useState<AllDayInfo>({});
     const [allManualOvertime, setAllManualOvertime] = useState<AllManualOvertime>({});
+    const [allMealVouchers, setAllMealVouchers] = useState<AllMealVouchers>({});
     const [workStatus, setWorkStatus] = useState<WorkStatus>(WorkStatus.ClockedOut);
     const [currentSessionStart, setCurrentSessionStart] = useState<Date | null>(null);
     const [currentSessionDuration, setCurrentSessionDuration] = useState('00:00:00');
@@ -77,11 +80,11 @@ const App: React.FC = () => {
         statusItems: defaultStatusItems,
         savedRotations: [],
         dashboardLayout: {
-            main: ['nfcScanner', 'summary'],
+            main: ['nfcScanner', 'summary', 'mealVoucherCard'],
             sidebar: ['plannerCard', 'offerCard', 'balancesSummary', 'monthlySummary', 'weeklySummary', 'weeklyHoursChart']
         },
         widgetVisibility: {
-            nfcScanner: true, summary: true, plannerCard: true, offerCard: true,
+            nfcScanner: true, summary: true, mealVoucherCard: true, plannerCard: true, offerCard: true,
             balancesSummary: true, monthlySummary: true, weeklySummary: true,
             weeklyHoursChart: false,
         }
@@ -91,7 +94,13 @@ const App: React.FC = () => {
     const [quickLeaveModalOptions, setQuickLeaveModalOptions] = useState<{date: Date; highlightedLeave?: LeaveType} | null>(null);
     const [addEntryModalDate, setAddEntryModalDate] = useState<Date | null>(null);
     const [addManualEntryModalDate, setAddManualEntryModalDate] = useState<Date | null>(null);
+    const [addOvertimeModalDate, setAddOvertimeModalDate] = useState<Date | null>(null);
+    const [mealVoucherModalDate, setMealVoucherModalDate] = useState<Date | null>(null);
     const [rangePlannerOptions, setRangePlannerOptions] = useState<{isOpen: boolean, startDate?: Date}>({isOpen: false});
+    
+    // ANTI-DUPLICATE FLAGS
+    const [isTogglingRef, setIsTogglingRef] = useState(false);
+    const [isAddingEntryRef, setIsAddingEntryRef] = useState(false);
 
     // TOAST HANDLER
     const showToast = useCallback((message: string, type: 'success' | 'error' = 'success') => {
@@ -122,6 +131,7 @@ const App: React.FC = () => {
                 const { data: settingsData, error: settingsError } = await supabase
                     .from('user_settings')
                     .select('*')
+                    .eq('user_id', session.user.id)
                     .single();
                 
                 if (settingsData) {
@@ -137,6 +147,25 @@ const App: React.FC = () => {
                              }
                         });
 
+                        // Merge dashboard layout: aggiungi nuovi widget ai layout esistenti
+                        const loadedMainLayout = settingsData.dashboard_layout?.main || [];
+                        const defaultMainLayout = prevSettings.dashboardLayout.main;
+                        const mergedMainLayout = [...loadedMainLayout];
+                        defaultMainLayout.forEach((widget: string) => {
+                            if (!mergedMainLayout.includes(widget)) {
+                                mergedMainLayout.push(widget);
+                            }
+                        });
+
+                        const loadedSidebarLayout = settingsData.dashboard_layout?.sidebar || [];
+                        const defaultSidebarLayout = prevSettings.dashboardLayout.sidebar;
+                        const mergedSidebarLayout = [...loadedSidebarLayout];
+                        defaultSidebarLayout.forEach((widget: string) => {
+                            if (!mergedSidebarLayout.includes(widget)) {
+                                mergedSidebarLayout.push(widget);
+                            }
+                        });
+
                         return {
                             workSettings: { 
                                 ...prevSettings.workSettings, 
@@ -144,36 +173,74 @@ const App: React.FC = () => {
                                 shifts: mergedShifts 
                             },
                             offerSettings: { ...prevSettings.offerSettings, ...settingsData.offer_settings },
-                            dashboardLayout: { ...prevSettings.dashboardLayout, ...settingsData.dashboard_layout },
-                            widgetVisibility: { ...prevSettings.widgetVisibility, ...settingsData.widget_visibility },
+                            dashboardLayout: { 
+                                main: mergedMainLayout,
+                                sidebar: mergedSidebarLayout
+                            },
+                            widgetVisibility: { 
+                                ...prevSettings.widgetVisibility, 
+                                ...settingsData.widget_visibility 
+                            },
                             statusItems: settingsData.status_items || prevSettings.statusItems,
                             savedRotations: settingsData.saved_rotations || prevSettings.savedRotations,
                         };
                     });
                 } else if (settingsError && settingsError.code === 'PGRST116') {
-                    const { error: insertError } = await supabase.from('user_settings').insert({ user_id: session.user.id, ...settings });
+                    const { error: insertError } = await supabase.from('user_settings').insert({ 
+                        user_id: session.user.id, 
+                        work_settings: settings.workSettings,
+                        offer_settings: settings.offerSettings,
+                        dashboard_layout: settings.dashboardLayout,
+                        widget_visibility: settings.widgetVisibility,
+                        status_items: settings.statusItems,
+                        saved_rotations: settings.savedRotations,
+                    });
                     if (insertError) showToast(`Errore nel creare le impostazioni: ${insertError.message}`, 'error');
                 }
 
-                const { data: logsData, error: logsError } = await supabase.from('time_logs').select('id, timestamp, type');
+                const { data: logsData, error: logsError } = await supabase.from('time_logs').select('id, timestamp, type').eq('user_id', session.user.id);
                 if (logsData) {
                     const logs: AllTimeLogs = {};
+                    const seenTimestamps = new Map<string, string>(); // timestamp+type -> id
+                    const duplicateIds: string[] = [];
+                    
                     logsData.forEach(log => {
-                        const dateKey = formatDateKey(new Date(log.timestamp));
-                        if (!logs[dateKey]) logs[dateKey] = [];
-                        logs[dateKey].push({ id: log.id, timestamp: new Date(log.timestamp), type: log.type as 'in' | 'out' });
+                        const key = `${log.timestamp}_${log.type}`;
+                        
+                        // Rileva duplicati esatti
+                        if (seenTimestamps.has(key)) {
+                            duplicateIds.push(log.id);
+                        } else {
+                            seenTimestamps.set(key, log.id);
+                            const dateKey = formatDateKey(new Date(log.timestamp));
+                            if (!logs[dateKey]) logs[dateKey] = [];
+                            logs[dateKey].push({ id: log.id, timestamp: new Date(log.timestamp), type: log.type as 'in' | 'out' });
+                        }
                     });
+                    
+                    // Elimina duplicati dal database
+                    if (duplicateIds.length > 0) {
+                        const { error: deleteError } = await supabase
+                            .from('time_logs')
+                            .delete()
+                            .in('id', duplicateIds);
+                        
+                        if (!deleteError) {
+                            showToast(`Rimossi ${duplicateIds.length} duplicati`, 'success');
+                        }
+                    }
+                    
                     setAllLogs(logs);
                 } else if (logsError) showToast(`Errore nel caricare le timbrature: ${logsError.message}`, 'error');
 
-                const { data: dayInfoData, error: dayInfoError } = await supabase.from('day_info').select('date, info');
+                const { data: dayInfoData, error: dayInfoError } = await supabase.from('day_info').select('date, info').eq('user_id', session.user.id);
                 if (dayInfoData) {
                     const dayInfo: AllDayInfo = {};
                     dayInfoData.forEach(d => { dayInfo[d.date] = d.info; });
                     setAllDayInfo(dayInfo);
                 } else if(dayInfoError) showToast(`Errore nel caricare la pianificazione: ${dayInfoError.message}`, 'error');
 
-                const { data: overtimeData, error: overtimeError } = await supabase.from('manual_overtime').select('id, date, entry');
+                const { data: overtimeData, error: overtimeError } = await supabase.from('manual_overtime').select('id, date, entry').eq('user_id', session.user.id);
                 if (overtimeData) {
                     const overtime: AllManualOvertime = {};
                     overtimeData.forEach(o => {
@@ -183,6 +250,15 @@ const App: React.FC = () => {
                     setAllManualOvertime(overtime);
                 } else if(overtimeError) showToast(`Errore nel caricare lo straordinario: ${overtimeError.message}`, 'error');
 
+                const { data: vouchersData, error: vouchersError } = await supabase.from('meal_vouchers').select('id, date, earned, manual, note').eq('user_id', session.user.id);
+                if (vouchersData) {
+                    const vouchers: AllMealVouchers = {};
+                    vouchersData.forEach(v => {
+                        vouchers[v.date] = { id: v.id, date: v.date, earned: v.earned, manual: v.manual, note: v.note || '' };
+                    });
+                    setAllMealVouchers(vouchers);
+                } else if(vouchersError) showToast(`Errore nel caricare i buoni pasto: ${vouchersError.message}`, 'error');
+
                 setLoading(false);
             };
             fetchData();
@@ -190,6 +266,7 @@ const App: React.FC = () => {
             setAllLogs({});
             setAllDayInfo({});
             setAllManualOvertime({});
+            setAllMealVouchers({});
         }
     }, [session, showToast]);
 
@@ -335,6 +412,23 @@ const App: React.FC = () => {
                             });
                         }
                     }
+                } else if (day.day_type === 'leave') {
+                    // Handle leave days (holidays, sick leave, permits, etc.)
+                    const currentInfo = newDayInfo[dateKey] || {};
+                    const leaveTypeMap: Record<string, LeaveType> = {
+                        'holiday': 'holiday',
+                        'sick': 'sick',
+                        'permit': 'permit',
+                        'parental': 'parental'
+                    };
+                    const leave: DayInfo['leave'] = { 
+                        type: leaveTypeMap[day.leave_type] || 'holiday' 
+                    };
+                    newDayInfo[dateKey] = { ...currentInfo, leave };
+                } else if (day.day_type === 'rest') {
+                    // Handle rest days
+                    const currentInfo = newDayInfo[dateKey] || {};
+                    newDayInfo[dateKey] = { ...currentInfo, shift: 'rest' };
                 } else if (day.day_type === 'absence') {
                     if (day.status_code) {
                         const currentInfo = newDayInfo[dateKey] || {};
@@ -356,31 +450,245 @@ const App: React.FC = () => {
             }
         });
 
-        // Merge imported data with existing data and save
-        setAllLogs(prev => ({ ...prev, ...newLogs }));
-        handleSetAllDayInfo({ ...allDayInfo, ...newDayInfo });
-        setAllManualOvertime(prev => ({ ...prev, ...newManualOvertime }));
+        // Merge imported data with existing data and save to database
+        (async () => {
+            if (!session) {
+                showToast("Devi essere autenticato per importare dati", 'error');
+                return;
+            }
 
-        showToast("Dati importati e uniti con successo!");
+            try {
+                // Salvataggio dati nel database
+                
+                // Save time logs to database
+                for (const [dateKey, logs] of Object.entries(newLogs)) {
+                    for (const log of logs) {
+                        const { error } = await supabase.from('time_logs').insert({ 
+                            timestamp: log.timestamp, 
+                            type: log.type 
+                        });
+                        if (error) {
+                            console.error(`Errore salvare timbratura ${dateKey}:`, error);
+                        }
+                    }
+                }
+
+                // Save day info to database
+                for (const [dateKey, info] of Object.entries(newDayInfo)) {
+                    const { error } = await supabase.from('day_info').upsert({ 
+                        date: dateKey, 
+                        info: info 
+                    }, { onConflict: 'user_id,date' });
+                    if (error) {
+                        console.error(`Errore salvare info giorno ${dateKey}:`, error);
+                    }
+                }
+
+                // Save manual overtime to database
+                for (const [dateKey, overtimes] of Object.entries(newManualOvertime)) {
+                    for (const overtime of overtimes) {
+                        const { error } = await supabase.from('manual_overtime').insert({ 
+                            date: dateKey, 
+                            entry: overtime 
+                        });
+                        if (error) {
+                            console.error(`Errore salvare straordinario ${dateKey}:`, error);
+                        }
+                    }
+                }
+
+                // Update local state after successful database save
+                setAllLogs(prev => ({ ...prev, ...newLogs }));
+                handleSetAllDayInfo({ ...allDayInfo, ...newDayInfo });
+                setAllManualOvertime(prev => ({ ...prev, ...newManualOvertime }));
+
+                // Calcola automaticamente i buoni pasto per ogni giorno importato con timbrature
+                for (const [dateKey, logs] of Object.entries(newLogs)) {
+                    if (logs.length > 0) {
+                        await autoCheckMealVoucher(dateKey, logs);
+                    }
+                }
+
+                showToast("Dati importati e salvati con successo!");
+            } catch (error) {
+                console.error("Errore durante il salvataggio:", error);
+                showToast("Errore durante il salvataggio dei dati", 'error');
+            }
+        })();
     };
 
+    // Helper function per auto-calcolo e salvataggio buono pasto
+    const autoCheckMealVoucher = async (dateKey: string, entries: TimeEntry[]) => {
+        if (!session) return;
+        
+        const { calculateMealVoucherEligibility } = await import('./utils/mealVoucherUtils');
+        const isEligible = calculateMealVoucherEligibility(entries);
+        
+        // Se è eligibile e non esiste già un voucher manuale, salvalo automaticamente
+        const existingVoucher = allMealVouchers[dateKey];
+        if (isEligible && !existingVoucher?.manual) {
+            const { error: voucherError } = await supabase
+                .from('meal_vouchers')
+                .upsert({
+                    user_id: session.user.id,
+                    date: dateKey,
+                    earned: true,
+                    manual: false,
+                    note: 'Calcolato automaticamente'
+                }, {
+                    onConflict: 'user_id,date'
+                });
+            
+            if (!voucherError) {
+                setAllMealVouchers(prev => ({
+                    ...prev,
+                    [dateKey]: {
+                        id: prev[dateKey]?.id || '',
+                        date: dateKey,
+                        earned: true,
+                        manual: false,
+                        note: 'Calcolato automaticamente'
+                    }
+                }));
+            }
+        } else if (!isEligible && existingVoucher && !existingVoucher.manual) {
+            // Se non è più eligibile e il voucher era automatico, rimuovilo
+            await supabase.from('meal_vouchers').delete().eq('user_id', session.user.id).eq('date', dateKey);
+            setAllMealVouchers(prev => {
+                const updated = { ...prev };
+                delete updated[dateKey];
+                return updated;
+            });
+        }
+    };
 
     const handleToggle = async () => {
         if (!session) return;
-        const now = new Date();
-        const todayKey = formatDateKey(now);
-        const lastEntry = (allLogs[todayKey] || []).slice(-1)[0];
-        const newType = (!lastEntry || lastEntry.type === 'out') ? 'in' : 'out';
-
-        const { data, error } = await supabase.from('time_logs').insert({ timestamp: now, type: newType }).select().single();
-        if (error || !data) {
-            showToast(`Errore nella timbratura: ${error.message}`, 'error');
+        
+        // Protezione da chiamate concorrenti
+        if (isTogglingRef) {
+            showToast("Timbratura già in corso, attendere...", 'error');
             return;
         }
+        
+        setIsTogglingRef(true);
+        
+        try {
+            const now = new Date();
+            const todayKey = formatDateKey(now);
+            const lastEntry = (allLogs[todayKey] || []).slice(-1)[0];
+            const newType = (!lastEntry || lastEntry.type === 'out') ? 'in' : 'out';
 
-        setAllLogs(prev => ({ ...prev, [todayKey]: [...(prev[todayKey] || []), {id: data.id, timestamp: new Date(data.timestamp), type: data.type as 'in' | 'out'}] }));
-        showToast(`Timbratura di ${newType === 'in' ? 'entrata' : 'uscita'} registrata!`);
+            // Protezione anti-duplicati: verifica se esiste già una timbratura recente (< 5 secondi)
+            const recentEntries = (allLogs[todayKey] || []).filter(entry => {
+                const diff = Math.abs(now.getTime() - entry.timestamp.getTime());
+                return diff < 5000 && entry.type === newType;
+            });
+            
+            if (recentEntries.length > 0) {
+                showToast("Timbratura già registrata pochi secondi fa!", 'error');
+                return;
+            }
+
+            const { data, error } = await supabase.from('time_logs').insert({ timestamp: now, type: newType }).select().single();
+            
+            if (error || !data) {
+                if (error) showToast(`Errore nella timbratura: ${error.message}`, 'error');
+                return;
+            }
+
+            setAllLogs(prev => {
+                const updated = { ...prev };
+                if (!updated[todayKey]) updated[todayKey] = [];
+                
+                // CRITICAL: Verifica che l'ID non esista già (prevenzione duplicati da race condition)
+                const alreadyExists = updated[todayKey].some(entry => entry.id === data.id);
+                if (!alreadyExists) {
+                    updated[todayKey].push({ id: data.id, timestamp: new Date(data.timestamp), type: data.type as 'in' | 'out' });
+                }
+                
+                return updated;
+            });
+            
+            // Auto-calcolo buono pasto dopo timbratura di uscita
+            if (newType === 'out') {
+                const updatedEntries = [...(allLogs[todayKey] || []), { id: data.id, timestamp: new Date(data.timestamp), type: 'out' as const }];
+                autoCheckMealVoucher(todayKey, updatedEntries);
+            }
+            
+            showToast(`Timbratura di ${newType === 'in' ? 'entrata' : 'uscita'} registrata!`);
+        } finally {
+            setTimeout(() => setIsTogglingRef(false), 1000);
+        }
     };
+    
+    // --- NFC/SHORTCUTS URL AUTOMATION ---
+    useEffect(() => {
+        if (!session || loading) return;
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const action = urlParams.get('action');
+        
+        if (action === 'clock-in' || action === 'clock-out') {
+            const today = new Date();
+            const todayKey = formatDateKey(today);
+            
+            // Determine current work status from today's logs
+            const todayEntries = allLogs[todayKey] || [];
+            const sortedEntries = [...todayEntries].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+            const lastEntry = sortedEntries[sortedEntries.length - 1];
+            const currentStatus = !lastEntry || lastEntry.type === 'out' ? WorkStatus.ClockedOut : WorkStatus.ClockedIn;
+            
+            // Determine if we should toggle
+            const shouldToggle = (action === 'clock-in' && currentStatus === WorkStatus.ClockedOut) ||
+                                 (action === 'clock-out' && currentStatus === WorkStatus.ClockedIn);
+            
+            if (shouldToggle) {
+                // Execute toggle directly
+                (async () => {
+                    const now = new Date();
+                    const newType = action === 'clock-in' ? 'in' : 'out';
+                    
+                    // Protezione anti-duplicati: verifica se esiste già una timbratura recente (< 10 secondi per shortcuts)
+                    const recentEntries = todayEntries.filter(entry => {
+                        const diff = Math.abs(now.getTime() - entry.timestamp.getTime());
+                        return diff < 10000 && entry.type === newType; // 10 secondi per shortcuts
+                    });
+                    
+                    if (recentEntries.length > 0) {
+                        showToast("Timbratura già registrata!", 'error');
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                        return;
+                    }
+                    
+                    const { data, error } = await supabase.from('time_logs').insert({ timestamp: now, type: newType }).select().single();
+                    if (error || !data) {
+                        if (error) showToast(`Errore nella timbratura: ${error.message}`, 'error');
+                        return;
+                    }
+                    
+                    setAllLogs(prev => ({ ...prev, [todayKey]: [...(prev[todayKey] || []), {id: data.id, timestamp: new Date(data.timestamp), type: data.type as 'in' | 'out'}] }));
+                    
+                    // Show notification if supported
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        new Notification('Timbratura Registrata', {
+                            body: action === 'clock-in' ? 'Entrata registrata ✅' : 'Uscita registrata ✅',
+                            icon: '/vite.svg',
+                            badge: '/vite.svg'
+                        });
+                    } else if ('Notification' in window && Notification.permission === 'default') {
+                        Notification.requestPermission();
+                    }
+                    
+                    showToast(action === 'clock-in' ? 'Entrata registrata tramite NFC ✅' : 'Uscita registrata tramite NFC ✅');
+                })();
+            }
+            
+            // Clean URL to prevent re-triggering on page refresh
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+    }, [session, loading, allLogs, showToast]);
+
 
     const handleEditEntry = async (dateKey: string, entryId: string, newTimestamp: Date, newType: 'in' | 'out') => {
         if (!session) return;
@@ -389,13 +697,15 @@ const App: React.FC = () => {
             showToast(`Errore nell'aggiornamento: ${error.message}`, 'error');
             return;
         }
+        
+        const newDateKey = formatDateKey(newTimestamp);
+        
         setAllLogs(prev => {
             const updated = { ...prev };
             const entryIndex = updated[dateKey]?.findIndex(e => e.id === entryId);
             if (entryIndex === -1 || typeof entryIndex === 'undefined') return prev;
             
             const entry = updated[dateKey][entryIndex];
-            const newDateKey = formatDateKey(newTimestamp);
 
             updated[dateKey].splice(entryIndex, 1);
             if (updated[dateKey].length === 0) delete updated[dateKey];
@@ -405,6 +715,19 @@ const App: React.FC = () => {
             updated[newDateKey].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
             return updated;
         });
+        
+        // Auto-calcolo buono pasto per il giorno modificato
+        setTimeout(() => {
+            const updatedEntries = allLogs[newDateKey] || [];
+            if (updatedEntries.length > 0) {
+                autoCheckMealVoucher(newDateKey, updatedEntries);
+            }
+            // Se la data è cambiata, ricalcola anche il giorno originale
+            if (dateKey !== newDateKey && allLogs[dateKey]) {
+                autoCheckMealVoucher(dateKey, allLogs[dateKey]);
+            }
+        }, 100);
+        
         showToast("Timbratura aggiornata.");
     };
 
@@ -418,31 +741,95 @@ const App: React.FC = () => {
             if (updated[dateKey].length === 0) delete updated[dateKey];
             return updated;
         });
+        
+        // Auto-calcolo buono pasto dopo eliminazione
+        setTimeout(() => {
+            const remainingEntries = allLogs[dateKey]?.filter(e => e.id !== entryId) || [];
+            if (remainingEntries.length > 0) {
+                autoCheckMealVoucher(dateKey, remainingEntries);
+            } else {
+                // Se non ci sono più timbrature, rimuovi il voucher automatico
+                const existingVoucher = allMealVouchers[dateKey];
+                if (existingVoucher && !existingVoucher.manual) {
+                    supabase.from('meal_vouchers').delete().eq('user_id', session.user.id).eq('date', dateKey);
+                    setAllMealVouchers(prev => {
+                        const updated = { ...prev };
+                        delete updated[dateKey];
+                        return updated;
+                    });
+                }
+            }
+        }, 100);
+        
         showToast("Timbratura eliminata.", 'error');
     };
     
     const handleAddEntry = async (newTimestamp: Date, type: 'in' | 'out') => {
         if (!session) return;
-        const { data, error } = await supabase.from('time_logs').insert({ timestamp: newTimestamp, type }).select().single();
-        if (error || !data) { showToast(`Errore: ${error.message}`, 'error'); return; }
         
-        const dateKey = formatDateKey(newTimestamp);
-        setAllLogs(prev => {
-            const updated = { ...prev };
-            if (!updated[dateKey]) updated[dateKey] = [];
-            updated[dateKey].push({ id: data.id, timestamp: new Date(data.timestamp), type: data.type  as 'in' | 'out' });
-            updated[dateKey].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-            return updated;
-        });
-        setAddEntryModalDate(null);
-        showToast("Timbratura manuale aggiunta.");
+        // Protezione da chiamate concorrenti
+        if (isAddingEntryRef) {
+            showToast("Aggiunta timbratura già in corso, attendere...", 'error');
+            return;
+        }
+        
+        setIsAddingEntryRef(true);
+        
+        try {
+            const dateKey = formatDateKey(newTimestamp);
+            const timestampStr = newTimestamp.toISOString();
+            
+            // Check if this exact entry already exists to prevent duplicates
+            const existingEntries = allLogs[dateKey] || [];
+            const isDuplicate = existingEntries.some(entry => 
+                entry.timestamp.toISOString() === timestampStr && entry.type === type
+            );
+            
+            if (isDuplicate) {
+                showToast("Questa timbratura esiste già!", 'error');
+                setAddEntryModalDate(null);
+                return;
+            }
+            
+            const { data, error } = await supabase.from('time_logs').insert({ timestamp: newTimestamp, type }).select().single();
+            
+            if (error || !data) { 
+                if (error) showToast(`Errore: ${error.message}`, 'error');
+                return; 
+            }
+            
+            setAllLogs(prev => {
+                const updated = { ...prev };
+                if (!updated[dateKey]) updated[dateKey] = [];
+                
+                // CRITICAL: Verifica che l'ID non esista già (prevenzione duplicati da race condition)
+                const alreadyExists = updated[dateKey].some(entry => entry.id === data.id);
+                if (!alreadyExists) {
+                    updated[dateKey].push({ id: data.id, timestamp: new Date(data.timestamp), type: data.type as 'in' | 'out' });
+                    updated[dateKey].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+                }
+                
+                return updated;
+            });
+            
+            // Auto-calcolo buono pasto dopo aggiunta
+            setTimeout(() => {
+                const updatedEntries = [...(allLogs[dateKey] || []), { id: data.id, timestamp: new Date(data.timestamp), type: data.type as 'in' | 'out' }];
+                autoCheckMealVoucher(dateKey, updatedEntries);
+            }, 100);
+            
+            setAddEntryModalDate(null);
+            showToast("Timbratura manuale aggiunta.");
+        } finally {
+            setTimeout(() => setIsAddingEntryRef(false), 500);
+        }
     };
 
     const handleAddOvertime = async (dateKey: string, durationMs: number, type: ManualOvertimeType, note: string) => {
         if (!session) return;
         const newEntry: Omit<ManualOvertimeEntry, 'id'> = { durationMs, type, note };
         const { data, error } = await supabase.from('manual_overtime').insert({ date: dateKey, entry: newEntry }).select().single();
-        if (error || !data) { showToast(`Errore: ${error.message}`, 'error'); return; }
+    if (error || !data) { if (error) showToast(`Errore: ${error.message}`, 'error'); return; }
         setAllManualOvertime(prev => ({ ...prev, [dateKey]: [...(prev[dateKey] || []), { id: data.id, ...data.entry }] }));
         setAddManualEntryModalDate(null);
         showToast("Voce manuale aggiunta.");
@@ -459,6 +846,35 @@ const App: React.FC = () => {
             return updated;
         });
         showToast("Voce manuale eliminata.", "error");
+    };
+
+    const handleSaveMealVoucher = async (dateKey: string, earned: boolean, note: string) => {
+        if (!session) return;
+        
+        // Upsert: inserisce o aggiorna se esiste già
+        const { data, error } = await supabase
+            .from('meal_vouchers')
+            .upsert({ 
+                user_id: session.user.id,
+                date: dateKey, 
+                earned, 
+                manual: true,
+                note 
+            }, { onConflict: 'user_id,date' })
+            .select()
+            .single();
+        
+        if (error || !data) { 
+            if (error) showToast(`Errore: ${error.message}`, 'error'); 
+            return; 
+        }
+        
+        setAllMealVouchers(prev => ({
+            ...prev,
+            [dateKey]: { id: data.id, date: data.date, earned: data.earned, manual: data.manual, note: data.note || '' }
+        }));
+        setMealVoucherModalDate(null);
+        showToast(earned ? "✓ Buono pasto confermato!" : "Buono pasto rimosso.");
     };
 
     const handleSetAllDayInfo = async (newAllDayInfo: AllDayInfo) => {
@@ -512,7 +928,9 @@ const App: React.FC = () => {
         switch(currentPage) {
             case 'dashboard':
                 return <DashboardPage 
+                    session={session}
                     allLogs={allLogs} allDayInfo={allDayInfo} allManualOvertime={allManualOvertime}
+                    allMealVouchers={allMealVouchers}
                     selectedDate={selectedDate} workStatus={workStatus} currentSessionStart={currentSessionStart}
                     currentSessionDuration={currentSessionDuration} workSettings={workSettings}
                     offerSettings={offerSettings} statusItems={statusItems} dashboardLayout={dashboardLayout}
@@ -521,8 +939,11 @@ const App: React.FC = () => {
                     onSetSelectedDate={setSelectedDate} 
                     onEditEntry={(dateKey, index, ts, type) => handleEditEntry(dateKey, allLogs[dateKey][index].id, ts, type)}
                     onDeleteEntry={(dateKey, index) => handleDeleteEntry(dateKey, allLogs[dateKey][index].id)}
-                    onOpenAddEntryModal={setAddEntryModalDate} onOpenAddManualEntryModal={setAddManualEntryModalDate}
-                    onDeleteManualOvertime={handleDeleteManualOvertime} 
+                    onOpenAddEntryModal={setAddEntryModalDate}
+                    onOpenAddManualEntryModal={setAddManualEntryModalDate}
+                    onDeleteManualOvertime={handleDeleteManualOvertime}
+                    onOpenAddOvertimeModal={setAddOvertimeModalDate}
+                    onOpenMealVoucherModal={setMealVoucherModalDate}
                     onOpenRangePlanner={(options) => setRangePlannerOptions({ isOpen: true, startDate: options?.startDate || selectedDate })}
                 />;
             case 'calendar':
@@ -532,14 +953,23 @@ const App: React.FC = () => {
                     onSetAllDayInfo={handleSetAllDayInfo}
                     onEditEntry={(dateKey, index, ts, type) => handleEditEntry(dateKey, allLogs[dateKey][index].id, ts, type)}
                     onDeleteEntry={(dateKey, index) => handleDeleteEntry(dateKey, allLogs[dateKey][index].id)}
-                    onOpenAddEntryModal={setAddEntryModalDate} onOpenAddManualEntryModal={setAddManualEntryModalDate}
+                    onOpenAddEntryModal={setAddEntryModalDate}
+                    onOpenAddOvertimeModal={setAddOvertimeModalDate}
                     onDeleteManualOvertime={handleDeleteManualOvertime} onImportData={handleImportData}
                     onOpenQuickLeaveModal={(options) => setQuickLeaveModalOptions(options)}
                     onSetSavedRotations={(r) => setSettings(s => ({ ...s, savedRotations: r }))}
                     onOpenRangePlanner={(options) => setRangePlannerOptions({isOpen: true, startDate: options.startDate})}
                 />;
             case 'balances':
-                return <BalancesPage allDayInfo={allDayInfo} statusItems={statusItems} allLogs={allLogs} workSettings={workSettings} allManualOvertime={allManualOvertime} />;
+                return <BalancesPage 
+                    allDayInfo={allDayInfo} 
+                    statusItems={statusItems} 
+                    allLogs={allLogs} 
+                    workSettings={workSettings} 
+                    allManualOvertime={allManualOvertime}
+                    allMealVouchers={allMealVouchers}
+                    onOpenAddOvertimeModal={setAddOvertimeModalDate}
+                />;
             case 'settings':
                 return <SettingsPage 
                     workSettings={workSettings} offerSettings={offerSettings} dashboardLayout={dashboardLayout}
@@ -565,18 +995,21 @@ const App: React.FC = () => {
             </div>
             {quickLeaveModalOptions && (
                 <QuickLeaveModal 
-                    date={quickLeaveModalOptions.date} statusItems={statusItems} workSettings={workSettings}
+                    date={quickLeaveModalOptions.date} 
+                    statusItems={settings.statusItems} 
+                    workSettings={settings.workSettings}
+                    allDayInfo={allDayInfo}
                     highlightedLeave={quickLeaveModalOptions.highlightedLeave}
                     onClose={() => setQuickLeaveModalOptions(null)}
-                    onSetLeave={(date, leaveType, hours) => {
+                    onSetLeave={(date: Date, leaveType: string | null, hours?: number) => {
                         const dateKey = formatDateKey(date);
                         const newAllDayInfo = { ...allDayInfo };
                         const currentInfo = newAllDayInfo[dateKey] || {};
                         if (leaveType === null) { delete newAllDayInfo[dateKey]; } 
-                        else { newAllDayInfo[dateKey] = { ...currentInfo, leave: { type: leaveType, hours }, shift: undefined }; }
+                        else { newAllDayInfo[dateKey] = { ...currentInfo, leave: { type: leaveType, hours: hours || 0 }, shift: undefined }; }
                         handleSetAllDayInfo(newAllDayInfo);
                     }}
-                    onSetShift={(date, shift) => {
+                    onSetShift={(date: Date, shift: string | null) => {
                         const dateKey = formatDateKey(date);
                         const newAllDayInfo = { ...allDayInfo };
                         const currentInfo = newAllDayInfo[dateKey] || {};
@@ -594,6 +1027,25 @@ const App: React.FC = () => {
                     statusItems={settings.statusItems}
                     onClose={() => setAddManualEntryModalDate(null)}
                     onSave={handleAddOvertime}
+                />
+            )}
+            {addOvertimeModalDate && (
+                <AddOvertimeModal
+                    date={addOvertimeModalDate}
+                    allLogs={allLogs}
+                    allManualOvertime={allManualOvertime}
+                    statusItems={settings.statusItems}
+                    onClose={() => setAddOvertimeModalDate(null)}
+                    onSave={handleAddOvertime}
+                    onDelete={handleDeleteManualOvertime}
+                />
+            )}
+            {mealVoucherModalDate && (
+                <MealVoucherModal
+                    date={mealVoucherModalDate}
+                    allLogs={allLogs}
+                    onClose={() => setMealVoucherModalDate(null)}
+                    onSave={handleSaveMealVoucher}
                 />
             )}
             <RangePlannerModal

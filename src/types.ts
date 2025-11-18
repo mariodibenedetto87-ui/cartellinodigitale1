@@ -61,6 +61,18 @@ export interface AllManualOvertime {
     [dateKey: string]: ManualOvertimeEntry[];
 }
 
+export interface MealVoucher {
+    id: string;
+    date: string; // YYYY-MM-DD format
+    earned: boolean;
+    manual: boolean;
+    note: string;
+}
+
+export interface AllMealVouchers {
+    [dateKey: string]: MealVoucher;
+}
+
 
 // SETTINGS & CONFIG
 export interface WorkSettings {

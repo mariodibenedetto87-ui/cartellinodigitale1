@@ -17,6 +17,7 @@ const AddTimeEntryModal: React.FC<AddTimeEntryModalProps> = ({ date, onClose, on
     const [year, month, day] = dateValue.split('-').map(Number);
     const [hours, minutes] = timeValue.split(':').map(Number);
     const newTimestamp = new Date(year, month - 1, day, hours, minutes, 0, 0);
+    
     onSave(newTimestamp, type);
     onClose();
   };

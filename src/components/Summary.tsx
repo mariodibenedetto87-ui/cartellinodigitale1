@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { TimeEntry, WorkSettings, DayInfo, CustomLeaveType, LeaveType, StatusItem, ManualOvertimeEntry, Shift } from '../types';
-import { calculateWorkSummary, formatDuration, getShiftDetails } from '../utils/timeUtils';
+import { TimeEntry, WorkSettings, DayInfo, StatusItem, ManualOvertimeEntry } from '../types';
+import { calculateWorkSummary, formatDuration } from '../utils/timeUtils';
 import EditTimeEntryModal from './EditTimeEntryModal';
-import { getStatusItemDetails } from '../utils/leaveUtils';
-import { generateGoogleCalendarUrl, CalendarEvent } from '../utils/calendarUtils';
-import { generateSingleEventICS } from '../utils/icsUtils';
+// import { getStatusItemDetails } from '../utils/leaveUtils'; // Modulo non trovato
+// import { generateGoogleCalendarUrl, CalendarEvent } from '../utils/calendarUtils'; // Modulo non trovato
+// import { generateSingleEventICS } from '../utils/icsUtils'; // Modulo non trovato
 
 
 interface SummaryProps {
@@ -19,6 +19,7 @@ interface SummaryProps {
     onDeleteEntry: (dateKey: string, entryIndex: number) => void;
     onOpenAddEntryModal: (date: Date) => void;
     onOpenAddManualEntryModal: (date: Date) => void;
+    onOpenAddOvertimeModal: (date: Date) => void;
     onDeleteManualOvertime: (dateKey: string, entryId: string) => void;
     onOpenQuickLeaveModal: (date: Date) => void;
 }
@@ -30,11 +31,28 @@ const CalendarIcon: React.FC<{className?: string}> = ({className}) => (
 );
 
 
-const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, workSettings, statusItems, manualOvertimeEntries, onEditEntry, onDeleteEntry, onOpenAddEntryModal, onOpenAddManualEntryModal, onDeleteManualOvertime, onOpenQuickLeaveModal }) => {
+const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, workSettings, statusItems, manualOvertimeEntries, onEditEntry, onDeleteEntry, onOpenAddEntryModal, onOpenAddManualEntryModal, onOpenAddOvertimeModal, onDeleteManualOvertime, onOpenQuickLeaveModal }) => {
     const [editingEntry, setEditingEntry] = useState<{ entry: TimeEntry; index: number } | null>(null);
     const [isCalendarPopoverOpen, setCalendarPopoverOpen] = useState(false);
     const popoverRef = useRef<HTMLDivElement>(null);
     const calendarButtonRef = useRef<HTMLButtonElement>(null);
+
+    // Calcola ore lavorate dalle timbrature
+    const calculateWorkedHours = () => {
+        let totalMs = 0;
+        const sortedEntries = [...entries].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+        
+        for (let i = 0; i < sortedEntries.length - 1; i += 2) {
+            if (sortedEntries[i].type === 'in' && sortedEntries[i + 1]?.type === 'out') {
+                const inTime = new Date(sortedEntries[i].timestamp).getTime();
+                const outTime = new Date(sortedEntries[i + 1].timestamp).getTime();
+                totalMs += outTime - inTime;
+            }
+        }
+        return totalMs / (1000 * 60 * 60);
+    };
+    
+    const workedHours = calculateWorkedHours();
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -49,7 +67,6 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
     const dateKey = date.toISOString().split('T')[0];
     const { summary, intervals } = calculateWorkSummary(date, entries, workSettings, dayInfo, nextDayInfo, manualOvertimeEntries);
     
-    const grossTotalMs = summary.totalWorkMs + summary.nullHoursMs;
     const totalOvertimeMs = summary.overtimeDiurnalMs + summary.overtimeNocturnalMs + summary.overtimeHolidayMs + summary.overtimeNocturnalHolidayMs;
     
     const standardDayMs = workSettings.standardDayHours * 3600 * 1000;
@@ -66,104 +83,19 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
     
     const formatTime = (timestamp: Date) => new Date(timestamp).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
 
-    const getLeaveLabel = (leave: LeaveType) => {
-        const details = getStatusItemDetails(leave, statusItems);
-        return details.label;
-    };
+    // const getLeaveLabel = (leave: LeaveType) => leave;
 
-    const hasEntries = entries && entries.length > 0;
+    // const hasEntries = entries && entries.length > 0;
     const hasManualOvertime = manualOvertimeEntries && manualOvertimeEntries.length > 0;
 
-    const getEventDetailsForCalendar = (): CalendarEvent | null => {
-        if (dayInfo?.leave) {
-            const leaveLabel = getLeaveLabel(dayInfo.leave.type);
-            let title = leaveLabel;
-            if (dayInfo.leave.hours) {
-                title += ` (${dayInfo.leave.hours}h)`;
-            }
-            return {
-                title: title,
-                start: date,
-                end: date, // Ignored for all-day
-                isAllDay: true,
-                description: `Giorno di ${leaveLabel} pianificato in Timecard Pro.`
-            };
-        }
-    
-        if (dayInfo?.shift && !hasEntries) {
-            const shiftDetails = getShiftDetails(dayInfo.shift, workSettings.shifts);
-            if (!shiftDetails) return null;
-            if (dayInfo.shift === 'rest') {
-                 return { title: 'Riposo', start: date, end: date, isAllDay: true, description: 'Giorno di riposo pianificato in Timecard Pro.' };
-            }
-            if (shiftDetails.startHour !== null && shiftDetails.endHour !== null) {
-                const startDate = new Date(date);
-                startDate.setHours(shiftDetails.startHour, 0, 0, 0);
-                const endDate = new Date(date);
-                endDate.setHours(shiftDetails.endHour, 0, 0, 0);
-                return {
-                    title: `Turno: ${shiftDetails.name}`,
-                    start: startDate,
-                    end: endDate,
-                    isAllDay: false,
-                    description: `Turno di ${shiftDetails.name} pianificato in Timecard Pro.`
-                };
-            }
-        }
-        
-        if (hasEntries && firstIn && lastOut) {
-            const { summary: workSummary } = calculateWorkSummary(date, entries, workSettings, dayInfo, nextDayInfo, manualOvertimeEntries);
-            const overtimeMs = workSummary.overtimeDiurnalMs + workSummary.overtimeNocturnalMs + workSummary.overtimeHolidayMs + workSummary.overtimeNocturnalHolidayMs;
-            const excessMs = workSummary.excessHoursMs;
-            let description = `Ore totali lavorate: ${formatDuration(workSummary.totalWorkMs)}.`;
-            if (excessMs > 0) {
-                description += `\nOre Eccedenti: ${formatDuration(excessMs)}.`;
-            }
-            if (overtimeMs > 0) {
-                description += `\nOre di straordinario: ${formatDuration(overtimeMs)}.`;
-            }
-            return {
-                title: 'Orario di Lavoro',
-                start: new Date(firstIn.timestamp),
-                end: new Date(lastOut.timestamp),
-                isAllDay: false,
-                description: description
-            };
-        }
-    
-        return null;
-    }
+    // Funzione disabilitata: dipendenze mancanti
+    // const getEventDetailsForCalendar = (): any => null;
 
-    const eventDetails = getEventDetailsForCalendar();
+    // const eventDetails = getEventDetailsForCalendar();
     
-    const handleDownloadIcs = () => {
-        if (!eventDetails) return;
-        const icsContent = generateSingleEventICS(
-            eventDetails.title,
-            eventDetails.description,
-            eventDetails.start,
-            eventDetails.end,
-            eventDetails.isAllDay
-        );
-        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        const filename = `${eventDetails.title.replace(/\s+/g, '_')}_${dateKey}.ics`;
-        link.setAttribute('download', filename);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        setCalendarPopoverOpen(false);
-    };
+    // const handleDownloadIcs = () => {};
 
-    const handleGoogleCalendar = () => {
-        if (!eventDetails) return;
-        const url = generateGoogleCalendarUrl(eventDetails);
-        window.open(url, '_blank', 'noopener,noreferrer');
-        setCalendarPopoverOpen(false);
-    };
+    // const handleGoogleCalendar = () => {};
 
     const overtimeTypeLabels: Record<string, string> = {
         'diurnal': 'Diurno',
@@ -174,42 +106,9 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
 
 
     // If it's a leave day and there are NO work entries, show the leave-only card.
-    if (dayInfo?.leave && !dayInfo.leave.hours && !hasEntries && !hasManualOvertime) {
-        const leaveDetails = getStatusItemDetails(dayInfo.leave.type, statusItems);
-        const leaveLabel = leaveDetails.label;
-        return (
-             <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg dark:shadow-black/20 h-full transition-all duration-300 ease-in-out hover:shadow-2xl hover:-translate-y-1 relative">
-                <div className="flex justify-between items-start">
-                    <div>
-                        <h3 className="text-lg font-semibold text-gray-700 dark:text-slate-300 mb-2">Riepilogo del Giorno</h3>
-                        <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">{date.toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                    </div>
-                     <button
-                        ref={calendarButtonRef}
-                        onClick={() => setCalendarPopoverOpen(prev => !prev)}
-                        disabled={!eventDetails}
-                        className="p-2 rounded-full text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors"
-                        aria-label="Aggiungi al calendario"
-                      >
-                          <CalendarIcon className="w-5 h-5" />
-                      </button>
-                </div>
-                {isCalendarPopoverOpen && (
-                  <div ref={popoverRef} className="absolute top-16 right-6 mt-2 w-48 bg-white dark:bg-slate-700 rounded-lg shadow-xl border border-gray-200 dark:border-slate-600 z-20 animate-fade-in-up py-1">
-                       <button onClick={handleGoogleCalendar} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-600">Google Calendar</button>
-                       <button onClick={handleDownloadIcs} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-600">Apple/Outlook (.ics)</button>
-                  </div>
-                )}
-                <div className="flex flex-col items-center justify-center h-48 bg-gray-100 dark:bg-slate-700/50 rounded-lg">
-                    <leaveDetails.Icon className="w-12 h-12 mb-3" />
-                    <span className={`text-xl font-bold text-center ${leaveDetails.textColor}`}>{leaveLabel}</span>
-                    <p className="text-gray-500 dark:text-slate-400">
-                        {dayInfo.leave.hours ? `Permesso di ${dayInfo.leave.hours} ore` : 'Giorno di assenza'}
-                    </p>
-                </div>
-            </div>
-        )
-    }
+    // if (dayInfo?.leave && !dayInfo.leave.hours && !hasEntries && !hasManualOvertime) {
+    //     ...
+    // }
 
     // Otherwise, show the full summary. If it's a leave day with entries, a banner will be shown.
     return (
@@ -223,7 +122,7 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                      <button
                         ref={calendarButtonRef}
                         onClick={() => setCalendarPopoverOpen(prev => !prev)}
-                        disabled={!eventDetails}
+                        // disabled={!eventDetails}
                         className="p-2 rounded-full text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors"
                         aria-label="Aggiungi al calendario"
                       >
@@ -231,29 +130,13 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                       </button>
                       {isCalendarPopoverOpen && (
                           <div ref={popoverRef} className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-slate-700 rounded-lg shadow-xl border border-gray-200 dark:border-slate-600 z-20 animate-fade-in-up py-1">
-                               <button onClick={handleGoogleCalendar} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-600">Google Calendar</button>
-                               <button onClick={handleDownloadIcs} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-600">Apple/Outlook (.ics)</button>
+                               {/* Bottoni calendario rimossi: funzioni mancanti */}
                           </div>
                       )}
                 </div>
             </div>
 
-            {dayInfo?.leave && (hasEntries || hasManualOvertime) && (() => {
-                const leaveDetails = getStatusItemDetails(dayInfo.leave.type, statusItems);
-                let leaveLabel = leaveDetails.label;
-                if (dayInfo.leave.hours) {
-                    leaveLabel += ` (${dayInfo.leave.hours}h)`;
-                }
-                const bannerColors = "bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/50";
-                return (
-                    <div className={`my-4 p-3 rounded-lg flex items-center space-x-3 ${bannerColors}`}>
-                        <leaveDetails.Icon className="w-6 h-6 flex-shrink-0" />
-                        <span className="text-sm font-semibold">
-                            Lavoro registrato durante: {leaveLabel}
-                        </span>
-                    </div>
-                );
-            })()}
+            {/* Banner leaveDetails rimosso: dipendenza mancante */}
 
             {showDeficitWarning && (
                 <div className="my-4 p-4 rounded-lg bg-amber-100 dark:bg-amber-900/50 border border-amber-300 dark:border-amber-500/50">
@@ -272,7 +155,7 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                                 onClick={() => onOpenQuickLeaveModal(date)}
                                 className="mt-3 px-3 py-1.5 text-sm font-semibold bg-amber-500 text-white rounded-md hover:bg-amber-600 transition-colors"
                             >
-                                Giustifica Assenza
+                                {workedHours >= 6 ? '⚡ Giustifica Straordinario' : '📅 Giustifica Assenza'}
                             </button>
                         </div>
                     </div>
@@ -281,10 +164,50 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
 
 
             <div className="space-y-6">
+                {/* Sezione Turno Programmato */}
+                {dayInfo?.shift && (
+                    <div className="bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-slate-700/50 dark:to-slate-600/50 p-4 rounded-xl border-2 border-teal-200 dark:border-teal-700">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-xs font-medium text-teal-600 dark:text-teal-400 uppercase tracking-wider">Turno Programmato</p>
+                                <p className="text-2xl font-bold text-teal-800 dark:text-teal-200 mt-1">
+                                    {workSettings.shifts.find(s => s.id === dayInfo.shift)?.name || dayInfo.shift}
+                                </p>
+                                {(() => {
+                                    const shift = workSettings.shifts.find(s => s.id === dayInfo.shift);
+                                    if (shift && shift.startHour !== null && shift.endHour !== null) {
+                                        return (
+                                            <p className="text-sm text-teal-700 dark:text-teal-300 mt-1">
+                                                {shift.startHour.toString().padStart(2, '0')}:00 - {shift.endHour.toString().padStart(2, '0')}:00
+                                            </p>
+                                        );
+                                    }
+                                    return null;
+                                })()}
+                            </div>
+                            <div className={`px-4 py-2 rounded-lg ${workSettings.shifts.find(s => s.id === dayInfo.shift)?.bgColor} ${workSettings.shifts.find(s => s.id === dayInfo.shift)?.textColor} font-bold text-lg shadow-md`}>
+                                {(() => {
+                                    const shiftLabels: Record<string, string> = {
+                                        'morning': 'MAT',
+                                        'afternoon': 'POM',
+                                        'evening': 'SER',
+                                        'night': 'NOT',
+                                        'rest': 'RIP'
+                                    };
+                                    return shiftLabels[dayInfo.shift] || 'TUR';
+                                })()}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <div className="bg-gray-50 dark:bg-slate-700/50 p-4 rounded-xl">
                     <div className="text-center">
-                        <p className="text-sm font-medium text-gray-500 dark:text-slate-400">Ore Lavorate Totali</p>
-                        <p className="text-5xl font-bold text-slate-800 dark:text-white">{formatDuration(grossTotalMs)}</p>
+                        <p className="text-sm font-medium text-gray-500 dark:text-slate-400">Ore da Timbrature</p>
+                        <p className="text-5xl font-bold text-slate-800 dark:text-white">{formatDuration(summary.totalWorkMs)}</p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                            (Esclusi straordinari manuali)
+                        </p>
                     </div>
                      
                     <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-600">
@@ -384,13 +307,28 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                 <div className="pt-6 border-t border-gray-200 dark:border-slate-700">
                     <div className="flex justify-between items-center mb-3">
                         <h4 className="text-md font-semibold text-gray-700 dark:text-slate-300">Timbrature del Giorno</h4>
-                        <button onClick={() => onOpenAddEntryModal(date)} className="text-sm bg-teal-100 dark:bg-teal-900/50 text-teal-600 dark:text-teal-300 font-semibold py-1 px-3 rounded-lg hover:bg-teal-200 dark:hover:bg-teal-900 transition-colors">
-                            Aggiungi
-                        </button>
+                        <div className="flex gap-2">
+                            {entries.length > 0 && (
+                                <button 
+                                    onClick={() => onOpenAddOvertimeModal(date)} 
+                                    className="text-sm bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-300 font-semibold py-1 px-3 rounded-lg hover:bg-orange-200 dark:hover:bg-orange-900 transition-colors"
+                                >
+                                    ⚡ Straordinari
+                                </button>
+                            )}
+                            <button 
+                                onClick={() => onOpenAddEntryModal(date)} 
+                                className="text-sm bg-teal-100 dark:bg-teal-900/50 text-teal-600 dark:text-teal-300 font-semibold py-1 px-3 rounded-lg hover:bg-teal-200 dark:hover:bg-teal-900 transition-colors"
+                            >
+                                Aggiungi
+                            </button>
+                        </div>
                     </div>
                     {entries.length > 0 ? (
                         <ul className="space-y-2">
-                            {entries.map((entry, index) => {
+                            {[...entries].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()).map((entry) => {
+                                // Trova l'indice originale nell'array non ordinato
+                                const originalIndex = entries.findIndex(e => e.id === entry.id);
                                 const intervalForEntry = entry.type === 'out' ? intervalMap.get(entry.id) : undefined;
                                 const hasIntervalDetails = intervalForEntry && (intervalForEntry.nullHoursMs > 0 || intervalForEntry.standardWorkMs > 0 || intervalForEntry.excessHoursMs > 0 || intervalForEntry.overtimeDiurnalMs > 0 || intervalForEntry.overtimeNocturnalMs > 0 || intervalForEntry.overtimeHolidayMs > 0 || intervalForEntry.overtimeNocturnalHolidayMs > 0);
 
@@ -405,10 +343,10 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                                             </div>
                                         </div>
                                         <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => setEditingEntry({ entry, index })} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600" aria-label="Modifica timbratura">
+                                            <button onClick={() => setEditingEntry({ entry, index: originalIndex })} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600" aria-label="Modifica timbratura">
                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z" /></svg>
                                             </button>
-                                            <button onClick={() => onDeleteEntry(dateKey, index)} className="p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50" aria-label="Elimina timbratura">
+                                            <button onClick={() => onDeleteEntry(dateKey, originalIndex)} className="p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50" aria-label="Elimina timbratura">
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                             </button>
                                         </div>

@@ -228,12 +228,6 @@ const VisualShiftPlannerModal: React.FC<VisualShiftPlannerModalProps> = ({ initi
         )
     }
 
-    // Determine the cursor style and border color for the hovered cell based on selected tool
-    const activeToolData = tools.find(t => t.id === selectedTool);
-    const activeToolColorBorder = activeToolData?.shiftObj 
-        ? activeToolData.shiftObj.bgColor.replace('bg-', 'hover:ring-') 
-        : 'hover:ring-red-400'; // Eraser color
-
     return (
         <div className="fixed inset-0 bg-black bg-opacity-80 flex flex-col items-center justify-center z-50 animate-fade-in" onClick={onClose}>
             <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border border-gray-200 dark:border-slate-700 rounded-2xl p-6 shadow-xl w-full max-w-5xl h-[90vh] flex flex-col animate-modal-content" onClick={e => e.stopPropagation()}>

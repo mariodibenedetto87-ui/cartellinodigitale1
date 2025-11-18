@@ -19,10 +19,10 @@ const AddManualEntryModal: React.FC<AddManualEntryModalProps> = ({ date, statusI
     const h = parseInt(hours, 10) || 0;
     const m = parseInt(minutes, 10) || 0;
     
-    if (h === 0 && m === 0) {
-        alert("Per favore, inserisci una durata valida.");
-        return;
-    }
+  if (h === 0 && m === 0) {
+    alert("Per favore, inserisci una durata valida.");
+    return;
+  }
 
     const durationMs = (h * 3600 + m * 60) * 1000;
     const dateKey = formatDateKey(date);

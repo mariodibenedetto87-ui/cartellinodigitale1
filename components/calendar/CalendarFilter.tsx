@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatusItem, ShiftType, WorkSettings } from '../../types';
+import { StatusItem, WorkSettings } from '../../types';
 import { getShiftDetails } from '../../utils/timeUtils';
 import { getStatusItemDetails } from '../../utils/leaveUtils';
 import { MorningIcon, AfternoonIcon, RestIcon, PhoneIcon } from '../ShiftIcons';

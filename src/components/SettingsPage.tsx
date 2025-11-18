@@ -1,7 +1,7 @@
 
 
 import React, { useState, useRef, useEffect } from 'react';
-import { WorkSettings, OfferSettings, DashboardLayout, WidgetVisibility, SavedRotation, ShiftType, StatusItem, AllDayInfo, Shift } from '../types';
+import { WorkSettings, OfferSettings, DashboardLayout, WidgetVisibility, SavedRotation, StatusItem, AllDayInfo, Shift } from '../types';
 import { calculateStatusUsage } from '../utils/statusUtils';
 import StatusItemModal from './modals/StatusItemModal';
 import ShiftModal from './modals/ShiftModal';

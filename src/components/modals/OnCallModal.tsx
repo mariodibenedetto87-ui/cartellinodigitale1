@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { AllDayInfo, DayInfo } from '../../types';
-import { formatDateKey, addMonths, startOfWeek, addDays, isSameMonth } from '../../utils/timeUtils';
+import { formatDateKey, addMonths, startOfWeek, addDays } from '../../utils/timeUtils';
 import { PhoneIcon } from '../ShiftIcons';
 
 interface OnCallModalProps {

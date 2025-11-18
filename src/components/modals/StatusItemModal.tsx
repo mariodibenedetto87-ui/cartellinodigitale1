@@ -24,7 +24,7 @@ const StatusItemModal: React.FC<StatusItemModalProps> = ({ item, onClose, onSave
   useEffect(() => {
     if (item && Object.keys(item).length > 0) {
       const fullItemData = {
-          category: 'leave-day',
+          category: ('leave-day' as const),
           entitlement: 0,
           ...item,
       };
@@ -72,7 +72,14 @@ const StatusItemModal: React.FC<StatusItemModalProps> = ({ item, onClose, onSave
     }
     
     if (formData.code && formData.description && formData.class && formData.category) {
-      onSave({ ...formData, entitlement: finalEntitlement } as StatusItem);
+      onSave({
+          code: formData.code,
+          description: formData.description,
+          year: formData.year || new Date().getFullYear(),
+          class: formData.class,
+          entitlement: finalEntitlement,
+          category: formData.category as 'leave-day' | 'leave-hours' | 'overtime' | 'balance' | 'info',
+      });
     } else {
       alert('Per favore, compila tutti i campi obbligatori (Codice, Descrizione, Classe, Categoria).');
     }

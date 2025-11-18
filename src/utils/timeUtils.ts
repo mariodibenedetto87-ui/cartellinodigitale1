@@ -139,7 +139,7 @@ export const calculateWorkSummary = (
     entries: TimeEntry[],
     workSettings: WorkSettings,
     dayInfo?: DayInfo,
-    nextDayInfo?: DayInfo,
+    _nextDayInfo?: DayInfo,
     manualOvertimeEntries: ManualOvertimeEntry[] = [],
 ): { summary: WorkDaySummary, intervals: WorkIntervalSummary[] } => {
     const summary: WorkDaySummary = {
