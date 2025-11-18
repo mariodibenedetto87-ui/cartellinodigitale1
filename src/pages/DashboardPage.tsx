@@ -214,9 +214,9 @@ const DashboardPage: React.FC<DashboardPageProps> = (props) => {
     };
 
     return (
-        <main className="container mx-auto px-4 py-8 md:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                <div className="lg:col-span-3 space-y-8">
+        <main className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 md:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8">
+                <div className="lg:col-span-3 space-y-4 sm:space-y-6 lg:space-y-8">
                     {dashboardLayout.main.map(widgetId =>
                         widgetVisibility[widgetId] && widgetComponents[widgetId]
                             ? <div key={widgetId}>{widgetComponents[widgetId]}</div>
@@ -224,7 +224,7 @@ const DashboardPage: React.FC<DashboardPageProps> = (props) => {
                     )}
                 </div>
                 
-                <div className="lg:col-span-2 space-y-8">
+                <div className="lg:col-span-2 space-y-4 sm:space-y-6 lg:space-y-8">
                     {dashboardLayout.sidebar.map(widgetId =>
                         widgetVisibility[widgetId] && widgetComponents[widgetId]
                             ? <div key={widgetId}>{widgetComponents[widgetId]}</div>

@@ -112,11 +112,11 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
 
     // Otherwise, show the full summary. If it's a leave day with entries, a banner will be shown.
     return (
-        <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg dark:shadow-black/20 h-full transition-all duration-300 ease-in-out hover:shadow-2xl hover:-translate-y-1">
-            <div className="flex justify-between items-start mb-2">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-6 shadow-lg dark:shadow-black/20 h-full transition-all duration-300 ease-in-out hover:shadow-2xl hover:-translate-y-1">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
                 <div>
-                    <h3 className="text-lg font-semibold text-gray-700 dark:text-slate-300">Riepilogo del Giorno</h3>
-                    <p className="text-sm text-gray-500 dark:text-slate-400">{date.toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-700 dark:text-slate-300">Riepilogo del Giorno</h3>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">{date.toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 </div>
                 <div className="relative">
                      <button
@@ -201,18 +201,18 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                     </div>
                 )}
 
-                <div className="bg-gray-50 dark:bg-slate-700/50 p-4 rounded-xl">
+                <div className="bg-gray-50 dark:bg-slate-700/50 p-3 sm:p-4 rounded-xl">
                     <div className="text-center">
-                        <p className="text-sm font-medium text-gray-500 dark:text-slate-400">Ore da Timbrature</p>
-                        <p className="text-5xl font-bold text-slate-800 dark:text-white">{formatDuration(summary.totalWorkMs)}</p>
+                        <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-slate-400">Ore da Timbrature</p>
+                        <p className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-800 dark:text-white">{formatDuration(summary.totalWorkMs)}</p>
                         <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
                             (Esclusi straordinari manuali)
                         </p>
                     </div>
                      
                     <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-600">
-                        <h4 className="text-sm font-semibold text-center text-gray-600 dark:text-slate-300 mb-3">Riepilogo Ore</h4>
-                        <div className="space-y-1.5 text-sm">
+                        <h4 className="text-xs sm:text-sm font-semibold text-center text-gray-600 dark:text-slate-300 mb-3">Riepilogo Ore</h4>
+                        <div className="space-y-1.5 text-xs sm:text-sm">
                             <div className="flex justify-between text-xs text-gray-500 dark:text-slate-400">
                                 <span>Primo Ingresso</span>
                                 <span className="font-semibold text-right text-slate-700 dark:text-slate-300">{firstIn ? formatTime(firstIn.timestamp) : 'N/D'}</span>

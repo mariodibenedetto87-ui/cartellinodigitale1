@@ -17,6 +17,18 @@ const MoonIcon: React.FC<{className?: string}> = ({className}) => (
     </svg>
 );
 
+const MenuIcon: React.FC<{className?: string}> = ({className}) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+    </svg>
+);
+
+const CloseIcon: React.FC<{className?: string}> = ({className}) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+);
+
 const SettingsIcon: React.FC<{className?: string}> = ({className}) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.43.992a6.759 6.759 0 010 1.255c-.008.378.137.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.333.183-.582.495-.645.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 01-1.37-.49l-1.296-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.759 6.759 0 010-1.255c.008-.378-.137-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.49l1.217.456c.355.133.75.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.645-.869l.213-1.28z" />
@@ -31,6 +43,7 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
         }
         return (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
     });
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         if (isDarkMode) {
@@ -49,12 +62,15 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
     return (
         <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-slate-700/50 sticky top-0 z-40">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-20">
-                    <div className="flex items-center space-x-4">
-                         <img src="/vite.svg" alt="Timecard Pro Logo" className="h-10 w-auto" />
-                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Timecard Pro</h1>
+                <div className="flex items-center justify-between h-16 md:h-20">
+                    {/* Logo */}
+                    <div className="flex items-center space-x-2 md:space-x-4">
+                         <img src="/vite.svg" alt="Timecard Pro Logo" className="h-8 md:h-10 w-auto" />
+                        <h1 className="text-lg md:text-2xl font-bold text-slate-800 dark:text-white">Timecard Pro</h1>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    
+                    {/* Desktop Navigation */}
+                    <div className="hidden md:flex items-center space-x-2">
                         <nav className="bg-gray-200 dark:bg-slate-800 p-1 rounded-lg flex space-x-1">
                            <button onClick={() => onNavigate('dashboard')} className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${currentPage === 'dashboard' ? 'bg-teal-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-700'}`}>Dashboard</button>
                            <button onClick={() => onNavigate('calendar')} className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${currentPage === 'calendar' ? 'bg-teal-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-700'}`}>Calendario</button>
@@ -67,7 +83,49 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
                             <SettingsIcon className="w-5 h-5" />
                         </button>
                     </div>
+
+                    {/* Mobile Controls */}
+                    <div className="flex md:hidden items-center space-x-2">
+                        <button onClick={toggleTheme} className="p-2 rounded-lg bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-slate-800 dark:text-white transition-colors" aria-label="Toggle theme">
+                            {isDarkMode ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
+                        </button>
+                        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 rounded-lg bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-slate-800 dark:text-white transition-colors" aria-label="Menu">
+                            {mobileMenuOpen ? <CloseIcon className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
+                        </button>
+                    </div>
                 </div>
+
+                {/* Mobile Menu */}
+                {mobileMenuOpen && (
+                    <div className="md:hidden py-4 border-t border-gray-200 dark:border-slate-700">
+                        <nav className="flex flex-col space-y-2">
+                            <button 
+                                onClick={() => { onNavigate('dashboard'); setMobileMenuOpen(false); }} 
+                                className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition-colors ${currentPage === 'dashboard' ? 'bg-teal-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-800'}`}
+                            >
+                                Dashboard
+                            </button>
+                            <button 
+                                onClick={() => { onNavigate('calendar'); setMobileMenuOpen(false); }} 
+                                className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition-colors ${currentPage === 'calendar' ? 'bg-teal-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-800'}`}
+                            >
+                                Calendario
+                            </button>
+                            <button 
+                                onClick={() => { onNavigate('balances'); setMobileMenuOpen(false); }} 
+                                className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition-colors ${currentPage === 'balances' ? 'bg-teal-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-800'}`}
+                            >
+                                Saldi
+                            </button>
+                            <button 
+                                onClick={() => { onNavigate('settings'); setMobileMenuOpen(false); }} 
+                                className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition-colors ${currentPage === 'settings' ? 'bg-teal-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-800'}`}
+                            >
+                                Impostazioni
+                            </button>
+                        </nav>
+                    </div>
+                )}
             </div>
         </header>
     );

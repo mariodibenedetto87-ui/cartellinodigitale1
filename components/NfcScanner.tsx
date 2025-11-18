@@ -169,9 +169,9 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
   return (
     <div className={`${cardBaseClasses} ${cardColorClasses} ${cardAnimationClasses}`}>
         <div>
-            <div className="flex justify-between items-start mb-4">
-                <div>
-                    <h2 className={`text-2xl font-bold ${isClockedIn ? 'text-white' : 'text-slate-800 dark:text-white'}`}>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
+                <div className="flex-1">
+                    <h2 className={`text-xl md:text-2xl font-bold ${isClockedIn ? 'text-white' : 'text-slate-800 dark:text-white'}`}>
                         {disabled ? 'Visualizzazione Storico' : 'Controllo Presenze'}
                     </h2>
                      <div className="flex items-center space-x-2 mt-2">
@@ -180,7 +180,7 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
                             </svg>
                         </button>
-                        <p className={`text-sm font-semibold w-64 text-center ${isClockedIn ? 'text-white/90' : 'text-gray-600 dark:text-slate-300'}`}>
+                        <p className={`text-xs sm:text-sm font-semibold flex-1 text-center ${isClockedIn ? 'text-white/90' : 'text-gray-600 dark:text-slate-300'}`}>
                             {selectedDate.toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                         </p>
                         <button onClick={() => handleDateNavigation(1)} className={`p-1.5 rounded-full transition-colors ${isClockedIn ? 'hover:bg-white/10' : 'hover:bg-gray-200 dark:hover:bg-slate-700'}`} aria-label="Giorno successivo">
@@ -195,20 +195,20 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
                         {isClockedIn && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75"></span>}
                         <span className={`relative inline-flex rounded-full h-3 w-3 ${isClockedIn ? 'bg-green-300' : 'bg-red-500'}`}></span>
                     </div>
-                    <span className={`text-sm font-semibold ${statusTextColor}`}>{statusText}</span>
+                    <span className={`text-xs sm:text-sm font-semibold ${statusTextColor}`}>{statusText}</span>
                 </div>
             </div>
 
             <div className="my-6 text-center" style={{minHeight: '92px'}}>
                 {isClockedIn ? (
                     <div className="animate-fade-in-up">
-                        <p className="text-sm text-white/80">Durata Sessione Corrente</p>
+                        <p className="text-xs sm:text-sm text-white/80">Durata Sessione Corrente</p>
                         <div className="flex items-center justify-center space-x-3 mt-1">
-                            <ClockIcon className="w-8 h-8 text-white/90" />
+                            <ClockIcon className="w-6 sm:w-8 h-6 sm:h-8 text-white/90" />
                             <div className="text-left">
-                                <p className="text-5xl font-mono tracking-wider text-white">{currentSessionDuration}</p>
+                                <p className="text-3xl sm:text-5xl font-mono tracking-wider text-white">{currentSessionDuration}</p>
                                 {currentSessionStart && (
-                                    <p className="text-sm text-white/80 -mt-1">
+                                    <p className="text-xs sm:text-sm text-white/80 -mt-1">
                                         Iniziato alle {new Date(currentSessionStart).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
                                     </p>
                                 )}
@@ -218,11 +218,11 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
                 ) : (
                     (dayTotalWorkMs ?? 0) > 0 ? (
                         <div className="animate-fade-in-up">
-                            <p className="text-sm text-gray-500 dark:text-slate-400">Ore Lavorate Totali</p>
+                            <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">Ore Lavorate Totali</p>
                             <div className="flex items-center justify-center space-x-3 mt-1">
-                                <ClockIcon className="w-8 h-8 text-slate-700 dark:text-slate-300" />
+                                <ClockIcon className="w-6 sm:w-8 h-6 sm:h-8 text-slate-700 dark:text-slate-300" />
                                 <div className="text-left">
-                                    <p className="text-5xl font-mono tracking-wider text-slate-800 dark:text-white">
+                                    <p className="text-3xl sm:text-5xl font-mono tracking-wider text-slate-800 dark:text-white">
                                         {formatDuration(dayTotalWorkMs!)}
                                     </p>
                                 </div>
@@ -230,7 +230,7 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
                         </div>
                     ) : (
                         <div className="animate-fade-in-up flex items-center justify-center h-full">
-                             <p className="text-gray-500 dark:text-slate-400">Nessuna attività registrata.</p>
+                             <p className="text-sm text-gray-500 dark:text-slate-400">Nessuna attività registrata.</p>
                         </div>
                     )
                 )}
@@ -238,11 +238,11 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
         </div>
         
         <div className="text-center mt-auto">
-             <p className={`h-10 mb-4 mt-2 ${isClockedIn ? 'text-white/80' : 'text-gray-500 dark:text-slate-400'}`}>
+             <p className={`h-10 mb-4 mt-2 text-xs sm:text-sm ${isClockedIn ? 'text-white/80' : 'text-gray-500 dark:text-slate-400'}`}>
                 {getInstructionalText()}
             </p>
              {isClockedIn ? (
-                <div className="relative w-48 h-48 flex items-center justify-center mx-auto">
+                <div className="relative w-40 h-40 sm:w-48 sm:h-48 flex items-center justify-center mx-auto">
                     <svg className="absolute inset-0 w-full h-full" viewBox="0 0 120 120">
                         <defs>
                             <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -273,11 +273,11 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
                         className={`${circularButtonClasses} ${buttonColorClasses}`}
                         aria-label={isAnimating ? 'Registrato' : actionText}
                     >
-                        <div className="relative w-10 h-10 flex items-center justify-center">
-                            <FingerprintIcon className={`absolute w-10 h-10 ${isAnimating ? 'animate-fingerprint-fade-out' : 'opacity-100'}`} />
-                            <CheckmarkIcon className={`absolute w-10 h-10 ${isAnimating ? 'animate-checkmark-pop' : 'opacity-0'}`} />
+                        <div className="relative w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center">
+                            <FingerprintIcon className={`absolute w-8 h-8 sm:w-10 sm:h-10 ${isAnimating ? 'animate-fingerprint-fade-out' : 'opacity-100'}`} />
+                            <CheckmarkIcon className={`absolute w-8 h-8 sm:w-10 sm:h-10 ${isAnimating ? 'animate-checkmark-pop' : 'opacity-0'}`} />
                         </div>
-                        <span className="text-base font-semibold">{isAnimating ? 'Registrato!' : actionText}</span>
+                        <span className="text-sm sm:text-base font-semibold">{isAnimating ? 'Registrato!' : actionText}</span>
                     </button>
                 </div>
             ) : (
@@ -287,11 +287,11 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
                     className={`${buttonBaseClasses} ${buttonColorClasses}`}
                     aria-label={disabled ? 'Timbratura disabilitata' : (isAnimating ? 'Registrato' : actionText)}
                 >
-                    <div className="relative w-6 h-6 flex items-center justify-center">
+                    <div className="relative w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center">
                         <FingerprintIcon className={`absolute ${isAnimating ? 'animate-fingerprint-fade-out' : 'opacity-100'}`} />
                         <CheckmarkIcon className={`absolute ${isAnimating ? 'animate-checkmark-pop' : 'opacity-0'}`} />
                     </div>
-                    <span>{isAnimating ? 'Registrato!' : (nfcSupported && !disabled ? 'Scansiona Tag NFC' : actionText)}</span>
+                    <span className="text-sm sm:text-base">{isAnimating ? 'Registrato!' : (nfcSupported && !disabled ? 'Scansiona Tag NFC' : actionText)}</span>
                 </button>
             )}
         </div>
