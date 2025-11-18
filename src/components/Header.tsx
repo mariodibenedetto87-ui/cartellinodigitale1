@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 interface HeaderProps {
     currentPage: 'dashboard' | 'calendar' | 'settings' | 'balances';
     onNavigate: (page: 'dashboard' | 'calendar' | 'settings' | 'balances') => void;
+    onOpenSearch?: () => void;
 }
 
 const SunIcon: React.FC<{className?: string}> = ({className}) => (
@@ -36,7 +37,7 @@ const SettingsIcon: React.FC<{className?: string}> = ({className}) => (
     </svg>
 );
 
-const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
+const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate, onOpenSearch }) => {
     const [isDarkMode, setIsDarkMode] = useState(() => {
         if (localStorage.theme === 'dark') {
             return true;
@@ -54,6 +55,18 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
             localStorage.theme = 'light';
         }
     }, [isDarkMode]);
+
+    // Handle Ctrl+K shortcut
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                onOpenSearch?.();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onOpenSearch]);
 
     const toggleTheme = () => {
         setIsDarkMode(!isDarkMode);
@@ -76,6 +89,19 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
                            <button onClick={() => onNavigate('calendar')} className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${currentPage === 'calendar' ? 'bg-teal-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-700'}`}>Calendario</button>
                            <button onClick={() => onNavigate('balances')} className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${currentPage === 'balances' ? 'bg-teal-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-700'}`}>Saldi</button>
                         </nav>
+                        {onOpenSearch && (
+                            <button
+                                onClick={onOpenSearch}
+                                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors group"
+                                title="Ricerca Globale (Ctrl+K)"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                <span className="text-xs font-medium hidden lg:inline">Cerca</span>
+                                <kbd className="hidden lg:inline px-1.5 py-0.5 text-xs bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded">⌘K</kbd>
+                            </button>
+                        )}
                         <button onClick={toggleTheme} className="p-2.5 rounded-lg bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-semibold transition-colors" aria-label="Toggle theme">
                             {isDarkMode ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
                         </button>
@@ -86,6 +112,17 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
 
                     {/* Mobile Controls */}
                     <div className="flex md:hidden items-center space-x-2">
+                        {onOpenSearch && (
+                            <button
+                                onClick={onOpenSearch}
+                                className="p-2 rounded-lg bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-slate-800 dark:text-white transition-colors"
+                                aria-label="Cerca"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </button>
+                        )}
                         <button onClick={toggleTheme} className="p-2 rounded-lg bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-slate-800 dark:text-white transition-colors" aria-label="Toggle theme">
                             {isDarkMode ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
                         </button>

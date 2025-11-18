@@ -23,6 +23,7 @@ import MealVoucherModal from './components/MealVoucherModal';
 import Onboarding from './components/Onboarding';
 import QuickActionsFAB from './components/QuickActionsFAB';
 import ConnectionStatus from './components/ConnectionStatus';
+import GlobalSearch from './components/GlobalSearch';
 import { offlineManager } from './utils/offlineManager';
 import { syncWithDatabase } from './utils/syncManager';
 
@@ -111,6 +112,7 @@ const App: React.FC = () => {
     const [addOvertimeModalDate, setAddOvertimeModalDate] = useState<Date | null>(null);
     const [mealVoucherModalDate, setMealVoucherModalDate] = useState<Date | null>(null);
     const [rangePlannerOptions, setRangePlannerOptions] = useState<{isOpen: boolean, startDate?: Date}>({isOpen: false});
+    const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
     
     // ANTI-DUPLICATE FLAGS
     const [isTogglingRef, setIsTogglingRef] = useState(false);
@@ -1191,7 +1193,7 @@ const App: React.FC = () => {
                     }} 
                 />
             )}
-            <Header currentPage={currentPage} onNavigate={setCurrentPage} />
+            <Header currentPage={currentPage} onNavigate={setCurrentPage} onOpenSearch={() => setIsGlobalSearchOpen(true)} />
             <div className="flex-grow overflow-y-auto bg-gray-100 dark:bg-slate-900">
               {renderPage()}
             </div>
@@ -1273,6 +1275,20 @@ const App: React.FC = () => {
             </div>
             {session && !isInitializingOffline && (
                 <ConnectionStatus onSyncRequest={handleSyncRequest} />
+            )}
+            {isGlobalSearchOpen && (
+                <GlobalSearch
+                    allLogs={allLogs}
+                    allDayInfo={allDayInfo}
+                    allManualOvertime={allManualOvertime}
+                    statusItems={settings.statusItems}
+                    shifts={settings.workSettings.shifts}
+                    onClose={() => setIsGlobalSearchOpen(false)}
+                    onSelectDate={(date) => {
+                        setSelectedDate(date);
+                        setCurrentPage('calendar');
+                    }}
+                />
             )}
         </div>
     );

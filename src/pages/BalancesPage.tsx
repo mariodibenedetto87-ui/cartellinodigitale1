@@ -4,6 +4,7 @@ import { calculateStatusUsage } from '../utils/statusUtils';
 import LeaveDonutChart from '../components/charts/LeaveDonutChart';
 import { getStatusItemDetails } from '../utils/leaveUtils';
 import AnnualSummary from '../components/AnnualSummary';
+import ComparativeStats from '../components/ComparativeStats';
 
 interface BalancesPageProps {
   statusItems: StatusItem[];
@@ -44,6 +45,16 @@ const BalancesPage: React.FC<BalancesPageProps> = ({ statusItems, allDayInfo, al
         workSettings={workSettings}
         allManualOvertime={allManualOvertime}
       />
+
+      {/* Comparative Statistics Section */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">📊 Statistiche Comparative</h2>
+        <ComparativeStats
+          allLogs={allLogs}
+          allManualOvertime={allManualOvertime}
+          workSettings={workSettings}
+        />
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         <div className="lg:col-span-1">
