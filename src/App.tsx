@@ -627,9 +627,71 @@ const App: React.FC = () => {
         if (!session || loading) return;
         
         const urlParams = new URLSearchParams(window.location.search);
-        const action = urlParams.get('action');
+        const nfcTrigger = urlParams.get('nfc'); // Nuovo sistema intelligente: ?nfc=true
+        const action = urlParams.get('action'); // Vecchio sistema retrocompatibile: ?action=clock-in/out
         
-        if (action === 'clock-in' || action === 'clock-out') {
+        // Sistema intelligente: se arriva ?nfc=true, rileva automaticamente lo stato e timbra
+        if (nfcTrigger === 'true') {
+            const today = new Date();
+            const todayKey = formatDateKey(today);
+            
+            // Determine current work status from today's logs
+            const todayEntries = allLogs[todayKey] || [];
+            const sortedEntries = [...todayEntries].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+            const lastEntry = sortedEntries[sortedEntries.length - 1];
+            const currentStatus = !lastEntry || lastEntry.type === 'out' ? WorkStatus.ClockedOut : WorkStatus.ClockedIn;
+            
+            // Determina automaticamente l'azione in base allo stato corrente
+            const autoAction = currentStatus === WorkStatus.ClockedOut ? 'clock-in' : 'clock-out';
+            
+            // Execute toggle directly
+            (async () => {
+                const now = new Date();
+                const newType = autoAction === 'clock-in' ? 'in' : 'out';
+                
+                // Protezione anti-duplicati: verifica se esiste già una timbratura recente (< 10 secondi)
+                const recentEntries = todayEntries.filter(entry => {
+                    const diff = Math.abs(now.getTime() - entry.timestamp.getTime());
+                    return diff < 10000 && entry.type === newType;
+                });
+                
+                if (recentEntries.length > 0) {
+                    showToast("Timbratura già registrata!", 'error');
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    return;
+                }
+                
+                const { data, error } = await supabase.from('time_logs').insert({ timestamp: now, type: newType }).select().single();
+                if (error || !data) {
+                    if (error) showToast(`Errore nella timbratura: ${error.message}`, 'error');
+                    return;
+                }
+                
+                setAllLogs(prev => ({ ...prev, [todayKey]: [...(prev[todayKey] || []), {id: data.id, timestamp: new Date(data.timestamp), type: data.type as 'in' | 'out'}] }));
+                
+                // Show notification if supported (non disponibile su Safari iOS)
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification('Timbratura Registrata', {
+                        body: autoAction === 'clock-in' ? 'Entrata registrata ✅' : 'Uscita registrata ✅',
+                        icon: '/vite.svg',
+                        badge: '/vite.svg'
+                    });
+                } else if ('Notification' in window && Notification.permission === 'default') {
+                    Notification.requestPermission();
+                }
+                
+                // Feedback visivo + vibrazione (funziona anche su Safari iOS)
+                showToast(autoAction === 'clock-in' ? 'Entrata registrata tramite NFC ✅' : 'Uscita registrata tramite NFC ✅');
+                if ('vibrate' in navigator) {
+                    navigator.vibrate([200, 100, 200]); // Doppia vibrazione per conferma
+                }
+            })();
+            
+            // Clean URL to prevent re-triggering on page refresh
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+        // Supporto retrocompatibile per vecchio sistema con parametri espliciti
+        else if (action === 'clock-in' || action === 'clock-out') {
             const today = new Date();
             const todayKey = formatDateKey(today);
             
@@ -669,7 +731,7 @@ const App: React.FC = () => {
                     
                     setAllLogs(prev => ({ ...prev, [todayKey]: [...(prev[todayKey] || []), {id: data.id, timestamp: new Date(data.timestamp), type: data.type as 'in' | 'out'}] }));
                     
-                    // Show notification if supported
+                    // Show notification if supported (non disponibile su Safari iOS)
                     if ('Notification' in window && Notification.permission === 'granted') {
                         new Notification('Timbratura Registrata', {
                             body: action === 'clock-in' ? 'Entrata registrata ✅' : 'Uscita registrata ✅',
@@ -680,7 +742,11 @@ const App: React.FC = () => {
                         Notification.requestPermission();
                     }
                     
+                    // Feedback visivo + vibrazione (funziona anche su Safari iOS)
                     showToast(action === 'clock-in' ? 'Entrata registrata tramite NFC ✅' : 'Uscita registrata tramite NFC ✅');
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate([200, 100, 200]); // Doppia vibrazione per conferma
+                    }
                 })();
             }
             

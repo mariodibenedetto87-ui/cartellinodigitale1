@@ -15,8 +15,9 @@ import { DayInfo, WorkSettings } from '../types';
  * @returns {Promise<boolean>} A promise that resolves to true if permission is granted, false otherwise.
  */
 export const requestNotificationPermission = async (): Promise<boolean> => {
+  // Safari iOS non supporta le notifiche desktop - silenziosamente ritorna false
   if (!('Notification' in window)) {
-    alert('Questo browser non supporta le notifiche desktop.');
+    console.log('Le notifiche desktop non sono supportate su questo browser (es. Safari iOS)');
     return false;
   }
   

@@ -13,11 +13,13 @@ Questa guida ti mostrerà come configurare tag NFC con l'app **Comandi** di iPho
 
 ---
 
-## 🏷️ Fase 1: Preparare i Tag NFC
+## 🏷️ Fase 1: Preparare il Tag NFC
 
 ### Cosa Serve
-- **2 Tag NFC**: uno per l'entrata, uno per l'uscita
-- **App NFC Tools** (download gratuito dall'App Store) per scrivere i tag
+- **1 Tag NFC** (NTAG213, NTAG215, NTAG216 o compatibili)
+- **App NFC Tools** (download gratuito dall'App Store) per scrivere il tag
+
+💡 **Nota**: Con un solo tag, l'app rileva automaticamente se sei in entrata o uscita e fa il toggle dello stato!
 
 ### Procedura di Scrittura Tag
 
@@ -26,7 +28,7 @@ Questa guida ti mostrerà come configurare tag NFC con l'app **Comandi** di iPho
    - Cerca "NFC Tools"
    - Scarica e installa l'app
 
-2. **Scrivi il Tag per ENTRATA**
+2. **Scrivi il Tag Universale**
    - Apri NFC Tools
    - Tocca **"SCRITTURA"**
    - Seleziona **"Aggiungi record"**
@@ -36,12 +38,19 @@ Questa guida ti mostrerà come configurare tag NFC con l'app **Comandi** di iPho
    - Tocca **"Scrivi"**
    - Avvicina il tag NFC al retro dell'iPhone (vicino alla fotocamera)
    - Attendi conferma di scrittura ✅
-   - **Etichetta il tag**: "ENTRATA" con un adesivo
+   - **Etichetta il tag**: "TIMBRATURA" o "⏰ BADGE"
 
-3. **Scrivi il Tag per USCITA**
-   - Ripeti gli stessi passaggi con un secondo tag
-   - Scrivi sempre: `toggle`
-   - **Etichetta il tag**: "USCITA" con un adesivo
+### ✨ Vantaggi del Tag Singolo
+- ✅ **Più semplice**: un solo tag da gestire
+- ✅ **Intelligente**: l'app sa automaticamente se timbrare entrata o uscita
+- ✅ **Comodo**: puoi posizionarlo ovunque (ingresso, scrivania, ecc.)
+- ✅ **Economico**: serve solo 1 tag invece di 2
+
+### 🎯 Come Funziona
+L'app controlla lo stato attuale:
+- **Non timbrato** → Registra **ENTRATA** ✅
+- **Già in entrata** → Registra **USCITA** ✅
+- Tutto automatico, zero errori!
 
 ---
 
@@ -53,48 +62,44 @@ Questa guida ti mostrerà come configurare tag NFC con l'app **Comandi** di iPho
 - ✅ **Nessuna conferma richiesta** (se configurato correttamente)
 - ✅ **Feedback istantaneo** con notifica
 
-### Passo 1: Creare l'Automazione NFC per l'ENTRATA
+### Passo 1: Creare l'Automazione NFC Universale
 
 1. **Apri l'app Comandi**
 2. Vai alla scheda **"Automazione"** in basso
 3. Tocca **"+"** in alto a destra
 4. Seleziona **"Crea automazione personale"**
 5. Scorri e seleziona **"NFC"**
-6. Tocca **"Scansiona"** e avvicina il tag **ENTRATA** al retro dell'iPhone
-7. Dai un nome al tag: **"Entrata Ufficio"**
+6. Tocca **"Scansiona"** e avvicina il tag NFC al retro dell'iPhone
+7. Dai un nome al tag: **"Timbratura Badge"** o **"⏰ Clock"**
 8. Tocca **"Avanti"**
 
 9. **Aggiungi le seguenti azioni in sequenza:**
 
    **Azione 1: Apri URL**
    - Cerca e aggiungi **"Apri URL"**
-   - Inserisci: `https://tuodominio.com/?action=clock-in`
-   - ⚠️ **Sostituisci** `tuodominio.com` con il tuo dominio reale
+   - Inserisci: `https://cartellinodigitale1.vercel.app/?nfc=true`
 
    **Azione 2: Mostra Notifica** (opzionale ma consigliata)
    - Cerca e aggiungi **"Mostra notifica"**
-   - Titolo: `Timbratura Entrata`
-   - Corpo: `Entrata registrata con successo ✅`
+   - Titolo: `Timbratura Registrata`
+   - Corpo: `Badge rilevato! ✅`
 
 10. Tocca **"Avanti"**
 11. **🔴 CRITICO**: Disabilita **"Chiedi prima di eseguire"**
 12. **🔴 CRITICO**: Abilita **"Notifica quando viene eseguita"** (per feedback)
 13. Tocca **"Fine"**
 
-### Passo 2: Creare l'Automazione NFC per l'USCITA
+✨ **Fatto!** Ora quando avvicini il tag, l'app si apre e:
+- Se non sei timbrato → registra **ENTRATA** automaticamente
+- Se sei già in entrata → registra **USCITA** automaticamente
 
-Ripeti lo stesso processo per il tag USCITA:
+### 🎯 Perché Funziona con Parametro ?nfc=true?
 
-1. Crea nuova automazione → **"Automazione"** → **"+"**
-2. Seleziona **"NFC"**
-3. Scansiona il tag **USCITA**
-4. Dai un nome: **"Uscita Ufficio"**
-5. Aggiungi azioni:
-   - **Apri URL**: `https://tuodominio.com/?action=clock-out`
-   - **Mostra notifica**: Titolo `Timbratura Uscita`, Corpo `Uscita registrata ✅`
-6. **Disabilita** "Chiedi prima di eseguire"
-7. **Abilita** "Notifica quando viene eseguita"
-8. Salva
+L'app Timecard Pro è intelligente:
+- Il parametro `?nfc=true` segnala che stai usando l'automazione NFC
+- L'app rileva automaticamente il tuo stato attuale (in/out)
+- Esegue il **toggle** automatico dello stato
+- Nessun bisogno di specificare entrata o uscita! 🚀
 
 ### 🎯 Configurazione Avanzata per Background Puro
 
@@ -102,7 +107,7 @@ Per un'esperienza ancora più fluida, aggiungi queste azioni **prima** di "Apri 
 
 1. **Imposta variabile** (opzionale)
    - Nome: `TimbratureURL`
-   - Valore: `https://tuodominio.com/?action=clock-in`
+   - Valore: `https://cartellinodigitale1.vercel.app/?nfc=true`
 
 2. **Attendi** 0.1 secondi (previene errori di timing)
 
@@ -116,67 +121,58 @@ Questo chiuderà automaticamente Safari dopo la timbratura!
 
 ---
 
-## 🌐 Fase 3: Configurare l'App per Ricevere i Parametri URL
+## 🌐 Fase 3: L'App Gestisce Automaticamente Entrata/Uscita
 
-Per far funzionare l'automazione, l'app deve gestire i parametri URL `action=clock-in` e `action=clock-out`.
+L'app Timecard Pro è già configurata per gestire il toggle automatico:
 
-### Modifica il Codice (per Sviluppatori)
+### Come Funziona il Sistema Intelligente
 
-Aggiungi questo codice nel file `src/App.tsx`:
+Quando apri l'app tramite NFC, il sistema:
 
-```typescript
-useEffect(() => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const action = urlParams.get('action');
-  
-  if (action === 'clock-in' || action === 'clock-out') {
-    // Verifica che sia oggi
-    const isTodaySelected = isSameDay(selectedDate, new Date());
-    if (isTodaySelected) {
-      // Esegui timbratura automatica
-      handleToggle();
-      
-      // Mostra notifica di successo
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('Timbratura Registrata', {
-          body: action === 'clock-in' ? 'Entrata registrata ✅' : 'Uscita registrata ✅',
-          icon: '/vite.svg'
-        });
-      }
-      
-      // Pulisci URL per evitare riattivazioni
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-  }
-}, [selectedDate]);
-```
+1. **Controlla lo stato corrente** dell'utente
+2. **Se non timbrato** (o ultima timbratura = OUT):
+   - 🟢 Registra **ENTRATA**
+   - Mostra notifica: "Entrata registrata ✅"
+   - Avvia il timer della sessione
+3. **Se già timbrato** (ultima timbratura = IN):
+   - 🔴 Registra **USCITA**
+   - Mostra notifica: "Uscita registrata ✅"
+   - Ferma il timer e calcola ore lavorate
+
+### ✨ Vantaggi del Sistema Automatico
+
+- ✅ **Zero configurazione** lato codice
+- ✅ **Nessun parametro URL** da ricordare
+- ✅ **Impossibile sbagliare** la timbratura
+- ✅ **Funziona anche offline** con sincronizzazione successiva
+- ✅ **Feedback visivo** immediato nell'app
 
 ---
 
 ## 🎯 Fase 4: Testare il Sistema Background
 
-### Test Entrata (Background Automatico)
+### Test Sistema Automatico (Un Solo Tag)
 1. **Blocca l'iPhone** (schermo spento o home screen)
-2. Avvicina il tag **ENTRATA** al retro dell'iPhone
-3. **Sentirai una vibrazione** e vedrai una notifica
-4. Safari si aprirà brevemente in background
-5. Riceverai notifica: **"Entrata registrata ✅"**
-6. ✅ **Fatto! Non hai aperto manualmente nulla**
-
-### Test Uscita (Background Automatico)
-1. **Schermo bloccato o home screen**
-2. Avvicina il tag **USCITA** al retro dell'iPhone
-3. Vibrazione + notifica automatica
-4. Timbratura registrata in background ✅
+2. **Prima scansione**: Avvicina il tag NFC al retro dell'iPhone
+   - 🟢 **Sentirai una vibrazione** e vedrai notifica
+   - Safari si aprirà brevemente
+   - Notifica: **"Entrata registrata ✅"**
+   - Timer inizia a contare
+3. **Seconda scansione** (dopo qualche ora): Avvicina di nuovo lo stesso tag
+   - 🔴 **Vibrazione**
+   - Notifica: **"Uscita registrata ✅"**
+   - Ore lavorate calcolate automaticamente
+4. ✅ **Sistema funzionante!** Un solo tag gestisce tutto
 
 ### 🔍 Verifica Funzionamento Corretto
 
-**Scenario Ideale (Background):**
+**Scenario Ideale (Tag Singolo Automatico):**
 ```
 1. Avvicini tag → Vibrazione immediata
-2. Notifica banner: "Timbratura Entrata"
+2. Notifica banner: "Timbratura Registrata"
 3. Safari si apre/chiude in <1 secondo
-4. Notifica: "Entrata registrata ✅"
+4. App rileva stato e registra IN o OUT automaticamente
+5. Notifica conferma: "Entrata ✅" o "Uscita ✅"
 ```
 
 **Se richiede conferma (NON ideale):**
@@ -205,9 +201,10 @@ useEffect(() => {
 
 #### ❌ Safari si apre ma non registra la timbratura
 **Soluzioni:**
-- Verifica URL sia corretto: `https://tuodominio.com/?action=clock-in`
+- Verifica URL sia corretto: `https://cartellinodigitale1.vercel.app/?nfc=true`
 - Controlla che l'app sia raggiungibile online (non localhost)
-- Apri Safari manualmente e testa l'URL
+- Apri Safari manualmente e testa l'URL con il parametro `?nfc=true`
+- Verifica che il pulsante NFC nella dashboard funzioni manualmente
 - Verifica console JavaScript per errori
 
 #### ❌ Funziona solo con schermo sbloccato
@@ -255,22 +252,24 @@ Per un'integrazione più profonda, puoi usare **URL scheme personalizzati**:
 
 ---
 
-## 📍 Posizionamento dei Tag
+## 📍 Posizionamento del Tag
 
 ### Suggerimenti
-- **Entrata ufficio**: Attacca il tag ENTRATA vicino alla porta d'ingresso
-- **Uscita ufficio**: Attacca il tag USCITA vicino all'uscita o alla scrivania
+- **Ingresso ufficio**: Attacca il tag vicino alla porta d'ingresso (comodo sia per entrare che uscire)
+- **Sulla scrivania**: Se lavori sempre dalla stessa postazione
 - **Altezza consigliata**: 1,20-1,40 metri (comoda per avvicinare l'iPhone)
-- **Protezione**: Usa custodie adesive trasparenti per proteggere i tag
+- **Protezione**: Usa custodie adesive trasparenti per proteggere il tag
+- **Accessibilità**: Posizionalo dove passi sempre (eviti di dimenticare la timbratura)
+
+💡 **Consiglio**: Con un solo tag, il posto migliore è vicino alla porta d'ingresso - lo usi naturalmente sia entrando che uscendo!
 
 ---
 
 ## 🎨 Personalizzazioni
 
 ### Icone e Colori nei Comandi
-- **Entrata**: 🟢 Verde
-- **Uscita**: 🔴 Rosso
-- **Pausa**: 🟡 Giallo (se usi un terzo tag)
+- **Tag Universale**: ⏰ o 🔄 (rappresenta il toggle automatico)
+- Oppure usa colori neutri come 🔵 Blu o ⚪ Bianco
 
 ### Feedback Visivo
 L'app Timecard Pro mostrerà:
@@ -305,7 +304,7 @@ R: **NO!** Se configurato correttamente (iOS 14+, "Chiedi prima di eseguire" dis
 R: **SÌ** (iOS 14+). Avvicina il tag, senti vibrazione, e l'automazione parte. Potrebbe richiedere Face ID/Touch ID la prima volta, poi funziona sempre in background.
 
 **D: Posso usare lo stesso tag per entrata e uscita?**  
-R: Sì, il sistema rileva automaticamente lo stato attuale. Ma è **consigliato usare 2 tag separati** per evitare errori e avere feedback chiaro.
+R: **SÌ! È il metodo consigliato!** L'app rileva automaticamente lo stato attuale e fa il toggle. Un solo tag è più semplice, economico e impossibile da sbagliare.
 
 **D: Quanto è veloce la timbratura?**  
 R: Con iOS 16+: **<1 secondo** dal momento in cui avvicini il tag. Con iOS 14-15: 1-3 secondi.
