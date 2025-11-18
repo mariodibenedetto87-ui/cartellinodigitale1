@@ -70,6 +70,8 @@ const DayView: React.FC<DayViewProps> = ({ allLogs, allDayInfo, selectedDate, st
         };
     }
     
+    const leaveDetails = dayInfo?.leave?.type ? getStatusItemDetails(dayInfo.leave.type, statusItems) : null;
+    
     if (activeFilter && !isMatch) {
         return (
             <div className="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-slate-800/50 text-center p-4">
@@ -80,13 +82,13 @@ const DayView: React.FC<DayViewProps> = ({ allLogs, allDayInfo, selectedDate, st
     }
 
     if (dayInfo?.leave && workBlocks.length === 0) {
-        const leaveDetails = getStatusItemDetails(dayInfo.leave.type, statusItems);
         return (
             <div className="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-slate-800/50 p-4">
                 <div className="text-center bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-lg">
-                    <leaveDetails.Icon className={`w-16 h-16 ${leaveDetails.textColor} mx-auto`} />
-                    <h3 className={`mt-4 text-2xl font-bold ${leaveDetails.textColor}`}>{leaveDetails.label}</h3>
-                    <p className="text-gray-500 dark:text-slate-400">{dayInfo.leave.hours ? `Permesso di ${dayInfo.leave.hours} ore` : 'Giorno di assenza pianificato'}</p>
+                    <div className={`inline-block px-6 py-3 rounded-lg text-2xl font-bold ${leaveDetails!.textColor} ${leaveDetails!.bgColor} mb-4`}>
+                        {leaveDetails!.label}
+                    </div>
+                    <p className="text-gray-500 dark:text-slate-400 mt-4">{dayInfo.leave.hours ? `Permesso di ${dayInfo.leave.hours} ore` : 'Giorno di assenza pianificato'}</p>
                 </div>
             </div>
         );

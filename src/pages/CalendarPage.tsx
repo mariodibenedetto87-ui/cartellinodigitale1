@@ -321,7 +321,7 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
                 />;
             case 'week':
                 // FIX: Pass workSettings prop to WeekView.
-                return <WeekView allLogs={allLogs} allDayInfo={allDayInfo} selectedDate={selectedDate} displayDate={displayDate} workSettings={workSettings} onDateSelect={setSelectedDate} activeFilter={activeFilter} />;
+                return <WeekView allLogs={allLogs} allDayInfo={allDayInfo} selectedDate={selectedDate} displayDate={displayDate} workSettings={workSettings} statusItems={statusItems} onDateSelect={setSelectedDate} activeFilter={activeFilter} />;
             case 'month':
                 return <MonthView 
                             allLogs={allLogs} 

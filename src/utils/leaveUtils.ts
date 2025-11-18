@@ -35,17 +35,60 @@ export const getStatusItemDetails = (leaveType: LeaveType, allStatusItems: Statu
     const item = allStatusItems.find(i => i.code === code);
     if (!item) return { ...defaultDetails, label: `Sconosciuto (${code})` };
 
-    // Assign icons based on codes or keywords in description for better visuals
+    // Assign icons and colors based on codes with more variety
     let Icon = CustomLeaveIcon;
-    let textColor = 'text-gray-500';
+    let textColor = 'text-white';
     let bgColor = 'bg-gray-500';
 
-    if ([15, 16].includes(code)) { Icon = VacationIcon; textColor = 'text-sky-500'; bgColor = 'bg-sky-500'; }
-    else if (code === 8) { Icon = CompTimeIcon; textColor = 'text-green-500'; bgColor = 'bg-green-500'; }
-    else if (code === 10) { Icon = HolidayIcon; textColor = 'text-orange-500'; bgColor = 'bg-orange-500'; }
-    else if (code === 32) { Icon = MedicalIcon; textColor = 'text-red-500'; bgColor = 'bg-red-500'; }
-    else if (item.category === 'leave-hours') { Icon = PermitArt32Icon; textColor = 'text-purple-500'; bgColor = 'bg-purple-500'; }
-    else if (item.category === 'leave-day') { Icon = Law104Icon; textColor = 'text-blue-600'; bgColor = 'bg-blue-600'; }
+    // Ferie (15, 16) - Blue variants
+    if (code === 15) { Icon = VacationIcon; textColor = 'text-white'; bgColor = 'bg-blue-500'; }
+    else if (code === 16) { Icon = VacationIcon; textColor = 'text-white'; bgColor = 'bg-blue-600'; }
+    
+    // Recupero ore (8) - Green
+    else if (code === 8) { Icon = CompTimeIcon; textColor = 'text-white'; bgColor = 'bg-green-500'; }
+    
+    // Festività (10) - Orange
+    else if (code === 10) { Icon = HolidayIcon; textColor = 'text-white'; bgColor = 'bg-orange-500'; }
+    
+    // Malattia (32) - Red
+    else if (code === 32) { Icon = MedicalIcon; textColor = 'text-white'; bgColor = 'bg-red-500'; }
+    
+    // Permessi orari - Purple variants
+    else if (item.category === 'leave-hours') { 
+        Icon = PermitArt32Icon; 
+        // Assign different purple shades based on code
+        if (code % 3 === 0) { textColor = 'text-white'; bgColor = 'bg-purple-500'; }
+        else if (code % 3 === 1) { textColor = 'text-white'; bgColor = 'bg-violet-500'; }
+        else { textColor = 'text-white'; bgColor = 'bg-indigo-500'; }
+    }
+    
+    // Permessi giornalieri - Teal/Cyan variants
+    else if (item.category === 'leave-day') { 
+        Icon = Law104Icon;
+        // Assign different teal shades based on code
+        if (code % 4 === 0) { textColor = 'text-white'; bgColor = 'bg-teal-500'; }
+        else if (code % 4 === 1) { textColor = 'text-white'; bgColor = 'bg-cyan-500'; }
+        else if (code % 4 === 2) { textColor = 'text-white'; bgColor = 'bg-sky-600'; }
+        else { textColor = 'text-white'; bgColor = 'bg-blue-400'; }
+    }
+    
+    // Fallback con colori variati
+    else {
+        // Use code to generate varied colors
+        const colorIndex = code % 8;
+        const colors = [
+            { text: 'text-white', bg: 'bg-pink-500' },
+            { text: 'text-white', bg: 'bg-rose-500' },
+            { text: 'text-white', bg: 'bg-amber-500' },
+            { text: 'text-white', bg: 'bg-lime-500' },
+            { text: 'text-white', bg: 'bg-emerald-500' },
+            { text: 'text-white', bg: 'bg-slate-500' },
+            { text: 'text-white', bg: 'bg-fuchsia-500' },
+            { text: 'text-white', bg: 'bg-yellow-500' },
+        ];
+        textColor = colors[colorIndex].text;
+        bgColor = colors[colorIndex].bg;
+    }
     
     return { label: item.description, Icon, textColor, bgColor };
 };

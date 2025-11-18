@@ -33,12 +33,21 @@ const MonthView: React.FC<MonthViewProps> = ({ allLogs, allDayInfo, selectedDate
 
   const weekDays = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
 
-  const getDayIcon = (info: AllDayInfo[string]) => {
-    if (info?.leave?.type) {
-        const details = getStatusItemDetails(info.leave.type, statusItems);
-        return <details.Icon className="w-5 h-5" title={details.label} />;
-    }
-    return null;
+  const getLeaveBadge = (info: AllDayInfo[string]) => {
+    if (!info?.leave?.type) return null;
+    
+    const details = getStatusItemDetails(info.leave.type, statusItems);
+    const hours = info.leave.hours || 0;
+    const label = hours > 0 ? `${details.label} (${hours}h)` : details.label;
+    
+    return (
+      <div 
+        className={`px-2 py-1 rounded text-xs font-semibold ${details.textColor} ${details.bgColor} shadow-sm text-center leading-tight`}
+        title={label}
+      >
+        {details.label}
+      </div>
+    );
   };
 
   const getShiftBadge = (info: AllDayInfo[string]) => {
@@ -113,7 +122,7 @@ const MonthView: React.FC<MonthViewProps> = ({ allLogs, allDayInfo, selectedDate
             dayClasses += ` opacity-30 hover:opacity-100`;
           }
           
-          const iconToShow = getDayIcon(info);
+          const leaveBadge = getLeaveBadge(info);
 
           return (
             <button key={index} className={dayClasses} onClick={() => isCurrentMonth && onDateSelect(day)} disabled={!isCurrentMonth} aria-label={`Seleziona ${day.toLocaleDateString('it-IT')}`}>
@@ -134,7 +143,7 @@ const MonthView: React.FC<MonthViewProps> = ({ allLogs, allDayInfo, selectedDate
                 </div>
               </div>
               <div className="flex-grow flex flex-col items-center justify-center gap-1 mt-1">
-                 {iconToShow && <div className="p-1 rounded-full">{iconToShow}</div>}
+                 {leaveBadge}
                  {getShiftBadge(info)}
               </div>
             </button>

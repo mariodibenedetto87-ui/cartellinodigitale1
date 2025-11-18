@@ -1,7 +1,8 @@
 import React, { useRef, useEffect } from 'react';
-import { AllTimeLogs, AllDayInfo, TimeEntry, WorkSettings } from '../../types';
+import { AllTimeLogs, AllDayInfo, TimeEntry, WorkSettings, StatusItem } from '../../types';
 import { startOfWeek, addDays, formatDateKey, isSameDay, getShiftDetails } from '../../utils/timeUtils';
 import { PhoneIcon } from '../ShiftIcons';
+import { getStatusItemDetails } from '../../utils/leaveUtils';
 
 interface WeekViewProps {
     allLogs: AllTimeLogs;
@@ -9,11 +10,12 @@ interface WeekViewProps {
     selectedDate: Date;
     displayDate: Date;
     workSettings: WorkSettings;
+    statusItems: StatusItem[];
     onDateSelect: (date: Date) => void;
     activeFilter: string | null;
 }
 
-const WeekView: React.FC<WeekViewProps> = ({ allLogs, allDayInfo, selectedDate, displayDate, workSettings, onDateSelect, activeFilter }) => {
+const WeekView: React.FC<WeekViewProps> = ({ allLogs, allDayInfo, selectedDate, displayDate, workSettings, statusItems, onDateSelect, activeFilter }) => {
     const weekStart = startOfWeek(displayDate);
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
     const hours = Array.from({ length: 24 }, (_, i) => i);
@@ -96,11 +98,18 @@ const WeekView: React.FC<WeekViewProps> = ({ allLogs, allDayInfo, selectedDate, 
                     return (
                         <div key={dateKey} className={`border-r border-gray-200 dark:border-slate-700/50 relative ${activeFilter && !isMatch ? 'opacity-20' : ''}`} onClick={() => onDateSelect(day)}>
                             <div className={`text-center py-2 border-b border-gray-200 dark:border-slate-700/50 sticky top-0 z-10 transition-colors ${isSelected ? 'bg-teal-100 dark:bg-teal-900/50' : 'bg-white dark:bg-slate-900'}`}>
-                                <div className="flex items-center justify-center space-x-2">
-                                    {dayInfo?.onCall && <PhoneIcon className="w-4 h-4 text-blue-500" title="Reperibilità" />}
-                                    <p className={`text-sm ${isToday ? 'text-teal-500 dark:text-teal-400' : 'text-gray-500 dark:text-slate-400'}`}>{day.toLocaleDateString('it-IT', { weekday: 'short' })}</p>
+                                <div className="flex flex-col items-center space-y-1">
+                                    <div className="flex items-center space-x-2">
+                                        {dayInfo?.onCall && <PhoneIcon className="w-4 h-4 text-blue-500" title="Reperibilità" />}
+                                        <p className={`text-sm ${isToday ? 'text-teal-500 dark:text-teal-400' : 'text-gray-500 dark:text-slate-400'}`}>{day.toLocaleDateString('it-IT', { weekday: 'short' })}</p>
+                                    </div>
+                                    {dayInfo?.leave?.type && (
+                                        <div className={`px-2 py-0.5 rounded text-xs font-semibold ${getStatusItemDetails(dayInfo.leave.type, statusItems).textColor} ${getStatusItemDetails(dayInfo.leave.type, statusItems).bgColor}`}>
+                                            {getStatusItemDetails(dayInfo.leave.type, statusItems).label}
+                                        </div>
+                                    )}
+                                    <p className={`text-lg font-semibold ${isToday ? 'text-teal-500 dark:text-teal-400' : 'text-slate-800 dark:text-white'}`}>{day.getDate()}</p>
                                 </div>
-                                <p className={`text-lg font-semibold ${isToday ? 'text-teal-500 dark:text-teal-400' : 'text-slate-800 dark:text-white'}`}>{day.getDate()}</p>
                             </div>
                             <div className="relative" style={{ height: `${timelineHeightRem}rem` }}>
                                 {hours.map(hour => (
