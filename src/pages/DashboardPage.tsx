@@ -36,8 +36,8 @@ interface DashboardPageProps {
     onOpenQuickLeaveModal: (options: { date: Date }) => void;
     onSetSelectedDate: (date: Date) => void;
     onDismissNotification: (id: string) => void;
-    onEditEntry: (dateKey: string, entryIndex: number, newTimestamp: Date, newType: 'in' | 'out') => void;
-    onDeleteEntry: (dateKey: string, entryIndex: number) => void;
+    onEditEntry: (dateKey: string, entryId: string, newTimestamp: Date, newType: 'in' | 'out') => void;
+    onDeleteEntry: (dateKey: string, entryId: string) => void;
     onOpenAddEntryModal: (date: Date) => void;
     onOpenAddManualEntryModal: (date: Date) => void;
     onDeleteManualOvertime: (dateKey: string, entryId: string) => void;
