@@ -415,6 +415,7 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
                     </button>
                 </div>
                 <Summary
+                    key={`summary-${selectedDateKey}-${(allLogs[selectedDateKey] || []).length}`}
                     date={selectedDate}
                     entries={allLogs[selectedDateKey] || []}
                     dayInfo={allDayInfo[selectedDateKey]}
@@ -475,6 +476,7 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
                                 </button>
                             </div>
                             <Summary
+                                key={`summary-mobile-${selectedDateKey}-${(allLogs[selectedDateKey] || []).length}`}
                                 date={selectedDate}
                                 entries={allLogs[selectedDateKey] || []}
                                 dayInfo={allDayInfo[selectedDateKey]}
