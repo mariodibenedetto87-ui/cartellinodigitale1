@@ -632,28 +632,44 @@ const App: React.FC = () => {
         
         // Sistema intelligente: se arriva ?nfc=true, rileva automaticamente lo stato e timbra
         if (nfcTrigger === 'true') {
-            const today = new Date();
-            const todayKey = formatDateKey(today);
-            
-            // Determine current work status from today's logs
-            const todayEntries = allLogs[todayKey] || [];
-            const sortedEntries = [...todayEntries].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-            const lastEntry = sortedEntries[sortedEntries.length - 1];
-            const currentStatus = !lastEntry || lastEntry.type === 'out' ? WorkStatus.ClockedOut : WorkStatus.ClockedIn;
-            
-            // Determina automaticamente l'azione in base allo stato corrente
-            const autoAction = currentStatus === WorkStatus.ClockedOut ? 'clock-in' : 'clock-out';
-            
             // Execute toggle directly
             (async () => {
+                const today = new Date();
+                const todayKey = formatDateKey(today);
                 const now = new Date();
+                
+                // IMPORTANTE: Interroga il database direttamente per avere lo stato aggiornato in tempo reale
+                const startOfDay = new Date(today);
+                startOfDay.setHours(0, 0, 0, 0);
+                const endOfDay = new Date(today);
+                endOfDay.setHours(23, 59, 59, 999);
+                
+                const { data: todayLogs, error: fetchError } = await supabase
+                    .from('time_logs')
+                    .select('*')
+                    .gte('timestamp', startOfDay.toISOString())
+                    .lte('timestamp', endOfDay.toISOString())
+                    .order('timestamp', { ascending: true });
+                
+                if (fetchError) {
+                    showToast(`Errore nel recupero stato: ${fetchError.message}`, 'error');
+                    return;
+                }
+                
+                // Determina lo stato corrente dall'ultima entry del database
+                const lastEntry = todayLogs && todayLogs.length > 0 ? todayLogs[todayLogs.length - 1] : null;
+                const currentStatus = !lastEntry || lastEntry.type === 'out' ? WorkStatus.ClockedOut : WorkStatus.ClockedIn;
+                
+                // Determina automaticamente l'azione in base allo stato corrente
+                const autoAction = currentStatus === WorkStatus.ClockedOut ? 'clock-in' : 'clock-out';
                 const newType = autoAction === 'clock-in' ? 'in' : 'out';
                 
                 // Protezione anti-duplicati: verifica se esiste già una timbratura recente (< 10 secondi)
-                const recentEntries = todayEntries.filter(entry => {
-                    const diff = Math.abs(now.getTime() - entry.timestamp.getTime());
+                const recentEntries = todayLogs?.filter(entry => {
+                    const entryTime = new Date(entry.timestamp).getTime();
+                    const diff = Math.abs(now.getTime() - entryTime);
                     return diff < 10000 && entry.type === newType;
-                });
+                }) || [];
                 
                 if (recentEntries.length > 0) {
                     showToast("Timbratura già registrata!", 'error');
