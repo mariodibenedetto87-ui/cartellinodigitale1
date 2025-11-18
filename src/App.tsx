@@ -18,6 +18,8 @@ import AddManualEntryModal from './components/AddManualEntryModal';
 import AddOvertimeModal from './components/AddOvertimeModal';
 import RangePlannerModal from './components/RangePlannerModal';
 import MealVoucherModal from './components/MealVoucherModal';
+import Onboarding from './components/Onboarding';
+import QuickActionsFAB from './components/QuickActionsFAB';
 
 type Page = 'dashboard' | 'calendar' | 'settings' | 'balances';
 type ToastMessage = { id: number; message: string; type: 'success' | 'error'; };
@@ -36,6 +38,9 @@ const App: React.FC = () => {
     // AUTH & LOADING STATE
     const [session, setSession] = useState<Session | null>(null);
     const [loading, setLoading] = useState(true);
+
+    // ONBOARDING STATE
+    const [showOnboarding, setShowOnboarding] = useState(false);
 
     // GLOBAL APP STATE
     const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -115,6 +120,11 @@ const App: React.FC = () => {
             const { data: { session } } = await supabase.auth.getSession();
             setSession(session);
             setLoading(false);
+            
+            // Check if first time user
+            if (session && !localStorage.getItem('onboarding_completed')) {
+                setShowOnboarding(true);
+            }
         };
         fetchSession();
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -1071,10 +1081,28 @@ const App: React.FC = () => {
 
     return (
         <div className="flex flex-col h-screen font-sans">
+            {showOnboarding && (
+                <Onboarding 
+                    onComplete={() => {
+                        setShowOnboarding(false);
+                        localStorage.setItem('onboarding_completed', 'true');
+                    }} 
+                />
+            )}
             <Header currentPage={currentPage} onNavigate={setCurrentPage} />
             <div className="flex-grow overflow-y-auto bg-gray-100 dark:bg-slate-900">
               {renderPage()}
             </div>
+            {!showOnboarding && (
+                <QuickActionsFAB
+                    workStatus={workStatus}
+                    onToggleWork={handleToggle}
+                    onAddLeave={() => setQuickLeaveModalOptions({ date: new Date() })}
+                    onOpenNFC={() => showToast('Apri l\'app Shortcuts e usa il tag NFC!')}
+                    onAddNote={() => setAddManualEntryModalDate(new Date())}
+                    disabled={loading}
+                />
+            )}
             {quickLeaveModalOptions && (
                 <QuickLeaveModal 
                     date={quickLeaveModalOptions.date} 
