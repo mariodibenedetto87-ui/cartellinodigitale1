@@ -94,6 +94,11 @@ export interface OfferSettings {
     imageUrl: string;
 }
 
+export interface ThemeSettings {
+    accentColor: string; // e.g., 'teal', 'blue', 'purple', 'orange', 'green'
+    primaryShade: string; // e.g., '500', '600'
+}
+
 export interface StatusItem {
     code: number;
     description: string;

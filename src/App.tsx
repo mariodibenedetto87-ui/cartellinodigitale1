@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import { Session } from '@supabase/supabase-js';
-import { WorkStatus, AllTimeLogs, TimeEntry, WorkSettings, AllDayInfo, StatusItem, DashboardLayout, WidgetVisibility, AllManualOvertime, ManualOvertimeType, SavedRotation, ManualOvertimeEntry, DayInfo, LeaveType, ShiftType, OfferSettings, AllMealVouchers } from './types';
+import { WorkStatus, AllTimeLogs, TimeEntry, WorkSettings, AllDayInfo, StatusItem, DashboardLayout, WidgetVisibility, AllManualOvertime, ManualOvertimeType, SavedRotation, ManualOvertimeEntry, DayInfo, LeaveType, ShiftType, OfferSettings, AllMealVouchers, ThemeSettings } from './types';
 import { formatDateKey, formatDuration, addDays, parseDateKey } from './utils/timeUtils';
 import { scheduleReminders, requestNotificationPermission, clearScheduledNotifications } from './utils/notificationUtils';
+import { generateSmartNotifications, SmartNotification } from './utils/smartNotifications';
 import { defaultStatusItems } from './data/statusItems';
 import Auth from './components/Auth';
 import Header from './components/Header';
@@ -53,11 +54,13 @@ const App: React.FC = () => {
     const [currentSessionDuration, setCurrentSessionDuration] = useState('00:00:00');
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [toasts, setToasts] = useState<ToastMessage[]>([]);
+    const [smartNotifications, setSmartNotifications] = useState<SmartNotification[]>([]);
     
     // All settings are now grouped into one state for easier Supabase management
     const [settings, setSettings] = useState<{
         workSettings: WorkSettings;
         offerSettings: OfferSettings;
+        themeSettings: ThemeSettings;
         statusItems: StatusItem[];
         savedRotations: SavedRotation[];
         dashboardLayout: DashboardLayout;
@@ -82,14 +85,16 @@ const App: React.FC = () => {
             ],
         },
         offerSettings: { title: '', description: '', imageUrl: '' },
+        themeSettings: { accentColor: 'teal', primaryShade: '500' },
         statusItems: defaultStatusItems,
         savedRotations: [],
         dashboardLayout: {
-            main: ['nfcScanner', 'summary', 'mealVoucherCard'],
+            main: ['smartNotifications', 'nfcScanner', 'summary', 'dashboardInsights', 'mealVoucherCard'],
             sidebar: ['plannerCard', 'offerCard', 'balancesSummary', 'monthlySummary', 'weeklySummary', 'weeklyHoursChart']
         },
         widgetVisibility: {
-            nfcScanner: true, summary: true, mealVoucherCard: true, plannerCard: true, offerCard: true,
+            smartNotifications: true, nfcScanner: true, summary: true, dashboardInsights: true,
+            mealVoucherCard: true, plannerCard: true, offerCard: true,
             balancesSummary: true, monthlySummary: true, weeklySummary: true,
             weeklyHoursChart: false,
         }
@@ -183,6 +188,7 @@ const App: React.FC = () => {
                                 shifts: mergedShifts 
                             },
                             offerSettings: { ...prevSettings.offerSettings, ...settingsData.offer_settings },
+                            themeSettings: { ...prevSettings.themeSettings, ...settingsData.theme_settings },
                             dashboardLayout: { 
                                 main: mergedMainLayout,
                                 sidebar: mergedSidebarLayout
@@ -200,6 +206,7 @@ const App: React.FC = () => {
                         user_id: session.user.id, 
                         work_settings: settings.workSettings,
                         offer_settings: settings.offerSettings,
+                        theme_settings: settings.themeSettings,
                         dashboard_layout: settings.dashboardLayout,
                         widget_visibility: settings.widgetVisibility,
                         status_items: settings.statusItems,
@@ -286,6 +293,7 @@ const App: React.FC = () => {
         const { error } = await supabase.from('user_settings').update({
             work_settings: newSettings.workSettings,
             offer_settings: newSettings.offerSettings,
+            theme_settings: newSettings.themeSettings,
             dashboard_layout: newSettings.dashboardLayout,
             widget_visibility: newSettings.widgetVisibility,
             status_items: newSettings.statusItems,
@@ -338,6 +346,27 @@ const App: React.FC = () => {
             })();
         }
     }, [session, settings.workSettings, allDayInfo]);
+
+    // SMART NOTIFICATIONS - Genera notifiche intelligenti ogni 5 minuti
+    useEffect(() => {
+        if (session && !loading) {
+            const updateNotifications = () => {
+                const notifications = generateSmartNotifications(
+                    workStatus,
+                    allLogs,
+                    allDayInfo,
+                    allManualOvertime,
+                    settings.workSettings,
+                    currentSessionStart
+                );
+                setSmartNotifications(notifications);
+            };
+
+            updateNotifications(); // Primo caricamento
+            const interval = window.setInterval(updateNotifications, 5 * 60 * 1000); // Ogni 5 min
+            return () => clearInterval(interval);
+        }
+    }, [session, loading, workStatus, allLogs, allDayInfo, allManualOvertime, settings.workSettings, currentSessionStart]);
 
     // --- CORE LOGIC HANDLERS ---
     const handleImportData = (importedDays: any[]) => {
@@ -1025,10 +1054,13 @@ const App: React.FC = () => {
                     allMealVouchers={allMealVouchers}
                     selectedDate={selectedDate} workStatus={workStatus} currentSessionStart={currentSessionStart}
                     currentSessionDuration={currentSessionDuration} workSettings={workSettings}
-                    offerSettings={offerSettings} statusItems={statusItems} dashboardLayout={dashboardLayout}
+                    offerSettings={offerSettings} statusItems={statusItems} 
+                    smartNotifications={smartNotifications}
+                    dashboardLayout={dashboardLayout}
                     widgetVisibility={widgetVisibility} onNavigateToCalendar={() => setCurrentPage('calendar')}
                     onToggle={handleToggle} onOpenQuickLeaveModal={(options) => setQuickLeaveModalOptions(options)}
-                    onSetSelectedDate={setSelectedDate} 
+                    onSetSelectedDate={setSelectedDate}
+                    onDismissNotification={(id) => setSmartNotifications(prev => prev.filter(n => n.id !== id))}
                     onEditEntry={(dateKey, index, ts, type) => handleEditEntry(dateKey, allLogs[dateKey][index].id, ts, type)}
                     onDeleteEntry={(dateKey, index) => handleDeleteEntry(dateKey, allLogs[dateKey][index].id)}
                     onOpenAddEntryModal={setAddEntryModalDate}
@@ -1064,11 +1096,13 @@ const App: React.FC = () => {
                 />;
             case 'settings':
                 return <SettingsPage 
-                    workSettings={workSettings} offerSettings={offerSettings} dashboardLayout={dashboardLayout}
+                    workSettings={workSettings} offerSettings={offerSettings} themeSettings={settings.themeSettings}
+                    dashboardLayout={dashboardLayout}
                     widgetVisibility={widgetVisibility} savedRotations={savedRotations} statusItems={statusItems}
                     allDayInfo={allDayInfo}
                     onSaveWorkSettings={(s) => setSettings(prev => ({...prev, workSettings: s}))}
                     onSaveOfferSettings={(s) => setSettings(prev => ({...prev, offerSettings: s}))}
+                    onSaveThemeSettings={(s) => setSettings(prev => ({...prev, themeSettings: s}))}
                     onSaveDashboardLayout={(l) => setSettings(prev => ({...prev, dashboardLayout: l}))}
                     onSaveWidgetVisibility={(v) => setSettings(prev => ({...prev, widgetVisibility: v}))}
                     onSaveSavedRotations={(r) => setSettings(prev => ({...prev, savedRotations: r}))}

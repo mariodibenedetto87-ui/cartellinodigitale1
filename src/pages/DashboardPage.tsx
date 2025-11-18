@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { AllTimeLogs, WorkStatus, WorkSettings, AllDayInfo, OfferSettings, StatusItem, DashboardLayout, WidgetVisibility, AllManualOvertime, AllMealVouchers } from '../types';
 import { formatDateKey, isSameDay, addDays, startOfWeek, calculateWorkSummary } from '../utils/timeUtils';
 import { Session } from '@supabase/supabase-js';
+import { SmartNotification } from '../utils/smartNotifications';
 import NfcScanner from '../components/NfcScanner';
 import Summary from '../components/Summary';
 import WeeklySummary from '../components/WeeklySummary';
@@ -11,6 +12,8 @@ import WeeklyHoursChart from '../components/WeeklyHoursChart';
 import BalancesSummary from '../components/BalancesSummary';
 import PlannerCard from '../components/PlannerCard';
 import MealVoucherCard from '../components/MealVoucherCard';
+import SmartNotificationsPanel from '../components/SmartNotificationsPanel';
+import DashboardInsights from '../components/DashboardInsights';
 
 interface DashboardPageProps {
     session: Session | null;
@@ -25,12 +28,14 @@ interface DashboardPageProps {
     workSettings: WorkSettings;
     offerSettings: OfferSettings;
     statusItems: StatusItem[];
+    smartNotifications: SmartNotification[];
     dashboardLayout: DashboardLayout;
     widgetVisibility: WidgetVisibility;
     onNavigateToCalendar: () => void;
     onToggle: () => void;
     onOpenQuickLeaveModal: (options: { date: Date }) => void;
     onSetSelectedDate: (date: Date) => void;
+    onDismissNotification: (id: string) => void;
     onEditEntry: (dateKey: string, entryIndex: number, newTimestamp: Date, newType: 'in' | 'out') => void;
     onDeleteEntry: (dateKey: string, entryIndex: number) => void;
     onOpenAddEntryModal: (date: Date) => void;
@@ -45,9 +50,9 @@ const DashboardPage: React.FC<DashboardPageProps> = (props) => {
     const { 
         session, allLogs, allDayInfo, allManualOvertime, allMealVouchers, selectedDate, workStatus, 
         currentSessionStart, currentSessionDuration, workSettings, offerSettings,
-        statusItems, onToggle,
+        statusItems, smartNotifications, onToggle,
         onSetSelectedDate, onEditEntry, onDeleteEntry, onOpenAddEntryModal,
-        onOpenAddManualEntryModal, onDeleteManualOvertime,
+        onOpenAddManualEntryModal, onDeleteManualOvertime, onDismissNotification,
         dashboardLayout, widgetVisibility, onOpenRangePlanner, onOpenQuickLeaveModal,
         onOpenAddOvertimeModal, onOpenMealVoucherModal
     } = props;
@@ -209,6 +214,27 @@ const DashboardPage: React.FC<DashboardPageProps> = (props) => {
                 allMealVouchers={allMealVouchers}
                 onOpenModal={onOpenMealVoucherModal}
                 session={session}
+            />
+        ),
+        smartNotifications: (
+            <SmartNotificationsPanel
+                notifications={smartNotifications}
+                onDismiss={onDismissNotification}
+                onAction={(id) => {
+                    const notification = smartNotifications.find(n => n.id === id);
+                    if (notification?.id === 'forgot-clock-in') {
+                        onToggle();
+                    }
+                    onDismissNotification(id);
+                }}
+            />
+        ),
+        dashboardInsights: (
+            <DashboardInsights
+                allLogs={allLogs}
+                allDayInfo={allDayInfo}
+                allManualOvertime={allManualOvertime}
+                workSettings={workSettings}
             />
         ),
     };

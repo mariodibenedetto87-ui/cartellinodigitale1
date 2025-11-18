@@ -1,15 +1,17 @@
 
 
 import React, { useState, useRef, useEffect } from 'react';
-import { WorkSettings, OfferSettings, DashboardLayout, WidgetVisibility, SavedRotation, StatusItem, AllDayInfo, Shift } from '../types';
+import { WorkSettings, OfferSettings, DashboardLayout, WidgetVisibility, SavedRotation, StatusItem, AllDayInfo, Shift, ThemeSettings } from '../types';
 import { calculateStatusUsage } from '../utils/statusUtils';
 import StatusItemModal from './modals/StatusItemModal';
 import ShiftModal from './modals/ShiftModal';
+import ThemeColorPicker from './ThemeColorPicker';
 import { formatHoursDecimal } from '../utils/timeUtils';
 
 interface SettingsPageProps {
   workSettings: WorkSettings;
   offerSettings: OfferSettings;
+  themeSettings: ThemeSettings;
   dashboardLayout: DashboardLayout;
   widgetVisibility: WidgetVisibility;
   savedRotations: SavedRotation[];
@@ -17,6 +19,7 @@ interface SettingsPageProps {
   allDayInfo: AllDayInfo;
   onSaveWorkSettings: (settings: WorkSettings) => void;
   onSaveOfferSettings: (settings: OfferSettings) => void;
+  onSaveThemeSettings: (settings: ThemeSettings) => void;
   onSaveDashboardLayout: (layout: DashboardLayout) => void;
   onSaveWidgetVisibility: (visibility: WidgetVisibility) => void;
   onSaveSavedRotations: (rotations: SavedRotation[]) => void;
@@ -41,6 +44,7 @@ const DeleteIcon: React.FC<{className?: string}> = ({className}) => (
 const SettingsPage: React.FC<SettingsPageProps> = ({
   workSettings,
   offerSettings,
+  themeSettings,
   dashboardLayout,
   widgetVisibility,
   savedRotations,
@@ -48,6 +52,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   allDayInfo,
   onSaveWorkSettings,
   onSaveOfferSettings,
+  onSaveThemeSettings,
   onSaveDashboardLayout,
   onSaveWidgetVisibility,
   onSaveSavedRotations,
@@ -333,6 +338,12 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   return (
     <main className="container mx-auto px-4 py-8 md:px-8">
       <div className="max-w-4xl mx-auto space-y-8">
+        
+        {/* Theme Color Picker */}
+        <ThemeColorPicker
+          currentTheme={themeSettings}
+          onSave={onSaveThemeSettings}
+        />
         
         {/* Dashboard Settings */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg dark:shadow-black/20">
