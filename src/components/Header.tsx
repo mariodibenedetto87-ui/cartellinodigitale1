@@ -4,6 +4,7 @@ interface HeaderProps {
     currentPage: 'dashboard' | 'calendar' | 'settings' | 'balances';
     onNavigate: (page: 'dashboard' | 'calendar' | 'settings' | 'balances') => void;
     onOpenSearch?: () => void;
+    onLogout?: () => void;
 }
 
 const SunIcon: React.FC<{className?: string}> = ({className}) => (
@@ -37,7 +38,13 @@ const SettingsIcon: React.FC<{className?: string}> = ({className}) => (
     </svg>
 );
 
-const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate, onOpenSearch }) => {
+const LogoutIcon: React.FC<{className?: string}> = ({className}) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M18 12l3 0m0 0l-3-3m3 3l-3 3" />
+    </svg>
+);
+
+const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate, onOpenSearch, onLogout }) => {
     const [isDarkMode, setIsDarkMode] = useState(() => {
         if (localStorage.theme === 'dark') {
             return true;
@@ -108,6 +115,11 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate, onOpenSearch }
                          <button onClick={() => onNavigate('settings')} className={`p-2.5 rounded-lg font-semibold transition-colors ${currentPage === 'settings' ? 'bg-teal-500 text-white' : 'bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-slate-800 dark:text-white'}`} aria-label="Settings">
                             <SettingsIcon className="w-5 h-5" />
                         </button>
+                        {onLogout && (
+                            <button onClick={onLogout} className="p-2.5 rounded-lg bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 font-semibold transition-colors" aria-label="Logout" title="Esci">
+                                <LogoutIcon className="w-5 h-5" />
+                            </button>
+                        )}
                     </div>
 
                     {/* Mobile Controls */}
@@ -160,6 +172,14 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate, onOpenSearch }
                             >
                                 Impostazioni
                             </button>
+                            {onLogout && (
+                                <button 
+                                    onClick={() => { onLogout(); setMobileMenuOpen(false); }} 
+                                    className="w-full text-left px-4 py-3 rounded-lg font-semibold transition-colors bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400"
+                                >
+                                    Esci
+                                </button>
+                            )}
                         </nav>
                     </div>
                 )}

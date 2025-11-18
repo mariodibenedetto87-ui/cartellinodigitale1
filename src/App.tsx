@@ -1110,6 +1110,27 @@ const App: React.FC = () => {
         showToast('Intervallo di date aggiornato!');
     }, [allDayInfo, showToast]);
 
+    const handleLogout = async () => {
+        try {
+            const { error } = await supabase.auth.signOut();
+            if (error) {
+                console.error('Logout error:', error);
+                showToast('Errore durante il logout');
+            } else {
+                // Reset local state
+                setSession(null);
+                setAllLogs({});
+                setAllDayInfo({});
+                setAllManualOvertime({});
+                setAllMealVouchers({});
+                showToast('Logout effettuato con successo');
+            }
+        } catch (err) {
+            console.error('Logout exception:', err);
+            showToast('Errore durante il logout');
+        }
+    };
+
     if (loading) {
         return <div className="h-screen w-screen flex items-center justify-center bg-gray-100 dark:bg-slate-900"><div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-teal-500"></div></div>;
     }
@@ -1197,7 +1218,7 @@ const App: React.FC = () => {
                     }} 
                 />
             )}
-            <Header currentPage={currentPage} onNavigate={setCurrentPage} onOpenSearch={() => setIsGlobalSearchOpen(true)} />
+            <Header currentPage={currentPage} onNavigate={setCurrentPage} onOpenSearch={() => setIsGlobalSearchOpen(true)} onLogout={handleLogout} />
             <div className="flex-grow overflow-y-auto bg-gray-100 dark:bg-slate-900">
               {renderPage()}
             </div>
