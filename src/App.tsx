@@ -887,6 +887,7 @@ const App: React.FC = () => {
 
     const handleEditEntry = async (dateKey: string, entryId: string, newTimestamp: Date, newType: 'in' | 'out') => {
         if (!session) return;
+        
         const { error } = await supabase.from('time_logs').update({ timestamp: newTimestamp, type: newType }).eq('id', entryId);
         if (error) {
             showToast(`Errore nell'aggiornamento: ${error.message}`, 'error');
@@ -902,9 +903,11 @@ const App: React.FC = () => {
             
             const entry = updated[dateKey][entryIndex];
 
+            // Rimuovi dalla vecchia posizione
             updated[dateKey].splice(entryIndex, 1);
             if (updated[dateKey].length === 0) delete updated[dateKey];
             
+            // Aggiungi alla nuova posizione
             if (!updated[newDateKey]) updated[newDateKey] = [];
             updated[newDateKey].push({ ...entry, timestamp: newTimestamp, type: newType });
             updated[newDateKey].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
@@ -913,14 +916,23 @@ const App: React.FC = () => {
         
         // Auto-calcolo buono pasto per il giorno modificato
         setTimeout(() => {
-            const updatedEntries = allLogs[newDateKey] || [];
-            if (updatedEntries.length > 0) {
-                autoCheckMealVoucher(newDateKey, updatedEntries);
-            }
-            // Se la data è cambiata, ricalcola anche il giorno originale
-            if (dateKey !== newDateKey && allLogs[dateKey]) {
-                autoCheckMealVoucher(dateKey, allLogs[dateKey]);
-            }
+            // Per il nuovo giorno, usa le entries aggiornate (closure problem fixed)
+            setAllLogs(currentLogs => {
+                const updatedEntries = currentLogs[newDateKey] || [];
+                if (updatedEntries.length > 0) {
+                    autoCheckMealVoucher(newDateKey, updatedEntries);
+                }
+                
+                // Se la data è cambiata, ricalcola anche il giorno originale
+                if (dateKey !== newDateKey) {
+                    const oldDayUpdatedEntries = currentLogs[dateKey] || [];
+                    if (oldDayUpdatedEntries.length > 0) {
+                        autoCheckMealVoucher(dateKey, oldDayUpdatedEntries);
+                    }
+                }
+                
+                return currentLogs; // Non modificare lo state, solo leggi
+            });
         }, 100);
         
         showToast("Timbratura aggiornata.");
@@ -928,18 +940,31 @@ const App: React.FC = () => {
 
     const handleDeleteEntry = async (dateKey: string, entryId: string) => {
         if (!session) return;
+        
+        // Prima salva le entries prima dell'eliminazione per il calcolo voucher
+        const entriesBeforeDelete = allLogs[dateKey] || [];
+        
         const { error } = await supabase.from('time_logs').delete().eq('id', entryId);
-        if (error) { showToast(`Errore nell'eliminazione: ${error.message}`, 'error'); return; }
+        if (error) { 
+            showToast(`Errore nell'eliminazione: ${error.message}`, 'error'); 
+            return; 
+        }
+        
+        // Aggiorna lo stato locale
         setAllLogs(prev => {
             const updated = { ...prev };
-            updated[dateKey] = updated[dateKey].filter(e => e.id !== entryId);
-            if (updated[dateKey].length === 0) delete updated[dateKey];
+            if (updated[dateKey]) {
+                updated[dateKey] = updated[dateKey].filter(e => e.id !== entryId);
+                if (updated[dateKey].length === 0) {
+                    delete updated[dateKey];
+                }
+            }
             return updated;
         });
         
         // Auto-calcolo buono pasto dopo eliminazione
+        const remainingEntries = entriesBeforeDelete.filter(e => e.id !== entryId);
         setTimeout(() => {
-            const remainingEntries = allLogs[dateKey]?.filter(e => e.id !== entryId) || [];
             if (remainingEntries.length > 0) {
                 autoCheckMealVoucher(dateKey, remainingEntries);
             } else {
