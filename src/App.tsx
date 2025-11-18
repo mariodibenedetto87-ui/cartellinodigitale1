@@ -897,21 +897,41 @@ const App: React.FC = () => {
         const newDateKey = formatDateKey(newTimestamp);
         
         setAllLogs(prev => {
-            const updated = { ...prev };
-            const entryIndex = updated[dateKey]?.findIndex(e => e.id === entryId);
+            // Create completely new object structure to force React re-render
+            const newLogs: AllTimeLogs = {};
+            
+            const entryIndex = prev[dateKey]?.findIndex(e => e.id === entryId);
             if (entryIndex === -1 || typeof entryIndex === 'undefined') return prev;
             
-            const entry = updated[dateKey][entryIndex];
+            const entry = prev[dateKey][entryIndex];
 
-            // Rimuovi dalla vecchia posizione
-            updated[dateKey].splice(entryIndex, 1);
-            if (updated[dateKey].length === 0) delete updated[dateKey];
-            
-            // Aggiungi alla nuova posizione
-            if (!updated[newDateKey]) updated[newDateKey] = [];
-            updated[newDateKey].push({ ...entry, timestamp: newTimestamp, type: newType });
-            updated[newDateKey].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-            return updated;
+            // Rebuild the entire object
+            Object.keys(prev).forEach(key => {
+                if (key === dateKey) {
+                    // Remove from old position
+                    const filtered = prev[key].filter((_, idx) => idx !== entryIndex);
+                    if (filtered.length > 0) {
+                        newLogs[key] = [...filtered];
+                    }
+                } else if (key === newDateKey) {
+                    // If target date already has entries, add the modified entry
+                    const updatedEntry = { ...entry, timestamp: newTimestamp, type: newType };
+                    newLogs[key] = [...prev[key], updatedEntry].sort((a, b) => 
+                        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+                    );
+                } else {
+                    // Copy all other dates
+                    newLogs[key] = [...prev[key]];
+                }
+            });
+
+            // If newDateKey didn't exist before, create it
+            if (!prev[newDateKey] && dateKey !== newDateKey) {
+                const updatedEntry = { ...entry, timestamp: newTimestamp, type: newType };
+                newLogs[newDateKey] = [updatedEntry];
+            }
+
+            return newLogs;
         });
         
         // Auto-calcolo buono pasto per il giorno modificato
@@ -952,13 +972,24 @@ const App: React.FC = () => {
         
         // Aggiorna lo stato locale
         setAllLogs(prev => {
-            const updated = { ...prev };
-            if (updated[dateKey]) {
-                updated[dateKey] = updated[dateKey].filter(e => e.id !== entryId);
-                if (updated[dateKey].length === 0) {
-                    delete updated[dateKey];
+            // Crea un nuovo oggetto invece di modificare quello esistente
+            const updated: AllTimeLogs = {};
+            
+            // Copia tutte le date tranne quella che stiamo modificando
+            Object.keys(prev).forEach(key => {
+                if (key !== dateKey) {
+                    updated[key] = prev[key];
+                }
+            });
+            
+            // Aggiungi la data modificata (se ci sono ancora entries)
+            if (prev[dateKey]) {
+                const filteredEntries = prev[dateKey].filter(e => e.id !== entryId);
+                if (filteredEntries.length > 0) {
+                    updated[dateKey] = filteredEntries;
                 }
             }
+            
             return updated;
         });
         
