@@ -190,19 +190,46 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
     *   Ignora orari programmati/teorici se sono presenti timbrature reali
     *   L'output finale deve essere un oggetto JSON valido con una chiave "days"`;
 
-                const response = await ai.models.generateContent({
-                    model: 'gemini-2.5-flash',
-                    contents: {
-                        parts: [
-                            { inlineData: { mimeType: file.type, data: base64Data } },
-                            { text: prompt }
-                        ]
-                    },
-                    config: {
-                        responseMimeType: "application/json",
-                        responseSchema: schema,
-                    },
-                });
+                // Retry logic for API overload (503 errors)
+                const maxRetries = 3;
+                const retryDelay = 2000; // 2 seconds
+                
+                const attemptGeneration = async (retryCount: number): Promise<any> => {
+                    try {
+                        const response = await ai.models.generateContent({
+                            model: 'gemini-2.5-flash',
+                            contents: {
+                                parts: [
+                                    { inlineData: { mimeType: file.type, data: base64Data } },
+                                    { text: prompt }
+                                ]
+                            },
+                            config: {
+                                responseMimeType: "application/json",
+                                responseSchema: schema,
+                            },
+                        });
+                        return response;
+                    } catch (error: any) {
+                        const errorMsg = error.message || JSON.stringify(error);
+                        const isOverloaded = errorMsg.includes('503') || 
+                                           errorMsg.includes('overloaded') || 
+                                           errorMsg.includes('UNAVAILABLE') ||
+                                           errorMsg.includes('Model is overloaded');
+                        
+                        if (isOverloaded && retryCount < maxRetries) {
+                            setImportStatus({ 
+                                message: `Servizio AI temporaneamente sovraccarico. Tentativo ${retryCount + 1}/${maxRetries}... Attendi.`, 
+                                type: 'info' 
+                            });
+                            await new Promise(resolve => setTimeout(resolve, retryDelay * (retryCount + 1)));
+                            return attemptGeneration(retryCount + 1);
+                        }
+                        throw error;
+                    }
+                };
+
+                const response = await attemptGeneration(0);
                 
                 if (!response.text || response.text.trim() === '') {
                     throw new Error("EmptyApiResponse");
@@ -228,26 +255,36 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
                 if (error instanceof SyntaxError) {
                     errorMessage = "L'analisi ha prodotto un risultato non valido. L'immagine potrebbe non essere chiara o il formato non è riconosciuto.";
                 } else if (error instanceof Error) {
-                    switch(error.message) {
-                        case "EmptyApiResponse":
-                            errorMessage = "Il servizio di analisi non ha fornito una risposta. Riprova con un'immagine diversa.";
-                            break;
-                        case "InvalidJsonResponse":
-                            errorMessage = "La risposta del servizio non è valida. Controlla la console (F12) per dettagli e riprova.";
-                            break;
-                        case "InvalidDataStructure":
-                            errorMessage = "I dati estratti dal file non hanno la struttura corretta. Prova un'immagine più chiara.";
-                            break;
-                        case "API_KEY_MISSING":
-                            errorMessage = "Chiave API Google non configurata. Aggiungi VITE_GOOGLE_API_KEY a .env.local";
-                            break;
-                        default:
-                            if (error.message.toLowerCase().includes('fetch')) {
-                                errorMessage = "Errore di rete. Controlla la connessione e riprova.";
-                            } else {
-                                errorMessage = `Errore: ${error.message}`;
-                            }
-                            break;
+                    const errorMsg = error.message || '';
+                    const isOverloaded = errorMsg.includes('503') || 
+                                       errorMsg.includes('overloaded') || 
+                                       errorMsg.includes('UNAVAILABLE') ||
+                                       errorMsg.includes('Model is overloaded');
+                    
+                    if (isOverloaded) {
+                        errorMessage = "⚠️ Il servizio AI di Google è temporaneamente sovraccarico. Riprova tra qualche minuto. Se il problema persiste, carica il file in un momento di minor traffico.";
+                    } else {
+                        switch(error.message) {
+                            case "EmptyApiResponse":
+                                errorMessage = "Il servizio di analisi non ha fornito una risposta. Riprova con un'immagine diversa.";
+                                break;
+                            case "InvalidJsonResponse":
+                                errorMessage = "La risposta del servizio non è valida. Controlla la console (F12) per dettagli e riprova.";
+                                break;
+                            case "InvalidDataStructure":
+                                errorMessage = "I dati estratti dal file non hanno la struttura corretta. Prova un'immagine più chiara.";
+                                break;
+                            case "API_KEY_MISSING":
+                                errorMessage = "Chiave API Google non configurata. Aggiungi VITE_GOOGLE_API_KEY a .env.local";
+                                break;
+                            default:
+                                if (error.message.toLowerCase().includes('fetch')) {
+                                    errorMessage = "Errore di rete. Controlla la connessione e riprova.";
+                                } else {
+                                    errorMessage = `Errore: ${error.message}`;
+                                }
+                                break;
+                        }
                     }
                 }
                 setImportStatus({ message: errorMessage, type: 'error' });
