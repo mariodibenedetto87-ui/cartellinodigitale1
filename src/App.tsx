@@ -1112,35 +1112,51 @@ const App: React.FC = () => {
 
     const handleLogout = async () => {
         try {
-            // Logout da Supabase con redirect esplicito
+            // Prima cancella la sessione dal localStorage
+            localStorage.removeItem('supabase.auth.token');
+            
+            // Poi fa il logout da Supabase (scope: 'global' per cancellare ovunque)
             const { error } = await supabase.auth.signOut({
-                scope: 'local'
+                scope: 'global'
             });
             
             if (error) {
                 console.error('Logout error:', error);
-                showToast('Errore durante il logout');
-            } else {
-                // Reset local state
-                setSession(null);
-                setAllLogs({});
-                setAllDayInfo({});
-                setAllManualOvertime({});
-                setAllMealVouchers({});
-                
-                // Clear localStorage
-                localStorage.clear();
-                
-                // Force reload to clear all state
-                window.location.href = window.location.origin;
             }
+            
+            // Reset local state indipendentemente dall'errore
+            setSession(null);
+            setAllLogs({});
+            setAllDayInfo({});
+            setAllManualOvertime({});
+            setAllMealVouchers({});
+            
+            // Cancella solo i dati di autenticazione, mantieni le preferenze
+            const keysToKeep = ['theme'];
+            const storageBackup: Record<string, string> = {};
+            keysToKeep.forEach(key => {
+                const value = localStorage.getItem(key);
+                if (value) storageBackup[key] = value;
+            });
+            
+            // Clear tutto
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Ripristina le preferenze
+            Object.entries(storageBackup).forEach(([key, value]) => {
+                localStorage.setItem(key, value);
+            });
+            
+            // Force reload immediato
+            window.location.replace(window.location.origin);
+            
         } catch (err) {
             console.error('Logout exception:', err);
-            showToast('Errore durante il logout');
             // Force reload anche in caso di errore
-            setTimeout(() => {
-                window.location.href = window.location.origin;
-            }, 1000);
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.replace(window.location.origin);
         }
     };
 
