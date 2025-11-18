@@ -1112,7 +1112,11 @@ const App: React.FC = () => {
 
     const handleLogout = async () => {
         try {
-            const { error } = await supabase.auth.signOut();
+            // Logout da Supabase con redirect esplicito
+            const { error } = await supabase.auth.signOut({
+                scope: 'local'
+            });
+            
             if (error) {
                 console.error('Logout error:', error);
                 showToast('Errore durante il logout');
@@ -1123,11 +1127,20 @@ const App: React.FC = () => {
                 setAllDayInfo({});
                 setAllManualOvertime({});
                 setAllMealVouchers({});
-                showToast('Logout effettuato con successo');
+                
+                // Clear localStorage
+                localStorage.clear();
+                
+                // Force reload to clear all state
+                window.location.href = window.location.origin;
             }
         } catch (err) {
             console.error('Logout exception:', err);
             showToast('Errore durante il logout');
+            // Force reload anche in caso di errore
+            setTimeout(() => {
+                window.location.href = window.location.origin;
+            }, 1000);
         }
     };
 
