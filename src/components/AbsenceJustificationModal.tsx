@@ -35,39 +35,8 @@ const AbsenceJustificationModal: React.FC<AbsenceJustificationModalProps> = ({
   const [note, setNote] = useState('');
   const [selectedLogIndices, setSelectedLogIndices] = useState<number[]>([]);
 
-  // Auto-seleziona timbrature mancanti all'apertura del modal
-  React.useEffect(() => {
-    if (dayLogs.length >= 2 && selectedLogIndices.length === 0) {
-      // Ordina le timbrature per timestamp
-      const sortedLogsWithIndices = dayLogs
-        .map((log, index) => ({ log, index }))
-        .sort((a, b) => new Date(a.log.timestamp).getTime() - new Date(b.log.timestamp).getTime());
-      
-      // Trova l'ultima USCITA (usando reverse + find invece di findLastIndex)
-      let lastOutIndex = -1;
-      for (let i = sortedLogsWithIndices.length - 1; i >= 0; i--) {
-        if (sortedLogsWithIndices[i].log.type === 'out') {
-          lastOutIndex = i;
-          break;
-        }
-      }
-      
-      if (lastOutIndex !== -1) {
-        // Seleziona automaticamente tutte le timbrature successive all'ultima uscita
-        // per coprire il resto del turno
-        const indicesAfterLastOut = sortedLogsWithIndices
-          .slice(lastOutIndex + 1)
-          .map(item => item.index);
-        
-        if (indicesAfterLastOut.length > 0) {
-          setSelectedLogIndices(indicesAfterLastOut);
-        }
-      }
-    }
-  }, [dayLogs]);
-
-  // Calcola ore lavorate dal log
-  const calculateWorkedHours = useMemo(() => {
+  // Calcola le ore totali coperte dalle timbrature
+  const totalWorkedHours = useMemo(() => {
     if (dayLogs.length < 2) return 0;
     const sortedLogs = [...dayLogs].sort((a, b) => 
       new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
@@ -83,6 +52,20 @@ const AbsenceJustificationModal: React.FC<AbsenceJustificationModalProps> = ({
     }
     return totalMs / (1000 * 60 * 60);
   }, [dayLogs]);
+
+  // Auto-calcola e pre-compila le ore mancanti all'apertura del modal
+  React.useEffect(() => {
+    if (dayLogs.length >= 2 && hours === '') {
+      // Calcola ore mancanti: turno standard 7h - ore già timbrate
+      const standardWorkHours = 7; // turno standard
+      const hoursWorked = totalWorkedHours;
+      const missingHours = Math.max(0, standardWorkHours - hoursWorked);
+      
+      if (missingHours > 0) {
+        setHours(missingHours.toFixed(2));
+      }
+    }
+  }, [dayLogs, totalWorkedHours, hours]);
 
   // Calcola ore dai log selezionati
   const calculateSelectedHours = useMemo(() => {
@@ -215,7 +198,7 @@ const AbsenceJustificationModal: React.FC<AbsenceJustificationModalProps> = ({
                   <span className="text-2xl">⏱️</span>
                   <span className="text-gray-300 font-medium">Ore lavorate oggi:</span>
                 </div>
-                <span className="text-2xl font-bold text-cyan-400">{calculateWorkedHours.toFixed(1)}h</span>
+                <span className="text-2xl font-bold text-cyan-400">{totalWorkedHours.toFixed(1)}h</span>
               </div>
             </div>
           )}
