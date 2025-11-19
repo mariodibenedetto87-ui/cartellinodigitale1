@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AllTimeLogs, AllDayInfo, WorkSettings, CalendarView, LeaveType, StatusItem, AllManualOvertime, SavedRotation } from '../types';
 import CalendarHeader from '../components/calendar/CalendarHeader';
 import MonthView from '../components/calendar/MonthView';
@@ -50,10 +50,16 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
     const [isImporting, setIsImporting] = useState(false);
     const [importStatus, setImportStatus] = useState<{ message: string; type: 'info' | 'success' | 'error' | '' }>({ message: '', type: '' });
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const summaryRenderKey = useRef(0);
     const [activeFilter, setActiveFilter] = useState<string | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isDayEventsModalOpen, setDayEventsModalOpen] = useState(false);
     const [eventsModalDate, setEventsModalDate] = useState<Date>(new Date());
+
+    // Force Summary re-render when allLogs changes
+    useEffect(() => {
+        summaryRenderKey.current += 1;
+    }, [allLogs]);
 
     const handleExport = (startDateStr: string, endDateStr: string, format: 'ics' | 'csv') => {
         const [sY, sM, sD] = startDateStr.split('-').map(Number);
@@ -415,7 +421,7 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
                     </button>
                 </div>
                 <Summary
-                    key={`summary-${selectedDateKey}-${(allLogs[selectedDateKey] || []).length}`}
+                    key={`summary-desktop-${selectedDateKey}-${summaryRenderKey.current}`}
                     date={selectedDate}
                     entries={allLogs[selectedDateKey] || []}
                     dayInfo={allDayInfo[selectedDateKey]}
