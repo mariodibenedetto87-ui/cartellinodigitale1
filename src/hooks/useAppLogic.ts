@@ -11,11 +11,11 @@ import { AllDayInfo, LeaveType, ShiftType, ManualOvertimeType } from '../types';
 export const useAppLogic = () => {
   const {
     session,
-    allLogs,
+    // allLogs, // Non usato qui, disponibile via Context
     setAllLogs,
     allDayInfo,
     setAllDayInfo,
-    allManualOvertime,
+    // allManualOvertime, // Non usato qui, disponibile via Context
     setAllManualOvertime,
     allMealVouchers,
     setAllMealVouchers,
