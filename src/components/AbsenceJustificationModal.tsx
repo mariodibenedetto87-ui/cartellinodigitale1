@@ -25,15 +25,46 @@ const AbsenceJustificationModal: React.FC<AbsenceJustificationModalProps> = ({
   const dayLogs = allLogs[dateKey] || [];
   const dayJustifications = allManualOvertime[dateKey] || [];
   
-  // Filtra solo i permessi/assenze da scalare (GPO)
+  // Filtra permessi/assenze GPO + corsi ACC (RECUPERO ORE, CORSO AGGIORNAMENTO)
   const filteredItems = statusItems.filter(item => 
-    item.category === 'leave-hours' && item.class === 'GPO'
+    item.category === 'leave-hours' && (item.class === 'GPO' || item.class === 'ACC')
   );
 
   const [hours, setHours] = useState('');
   const [selectedType, setSelectedType] = useState<StatusItem | null>(null);
   const [note, setNote] = useState('');
   const [selectedLogIndices, setSelectedLogIndices] = useState<number[]>([]);
+
+  // Auto-seleziona timbrature mancanti all'apertura del modal
+  React.useEffect(() => {
+    if (dayLogs.length >= 2 && selectedLogIndices.length === 0) {
+      // Ordina le timbrature per timestamp
+      const sortedLogsWithIndices = dayLogs
+        .map((log, index) => ({ log, index }))
+        .sort((a, b) => new Date(a.log.timestamp).getTime() - new Date(b.log.timestamp).getTime());
+      
+      // Trova l'ultima USCITA (usando reverse + find invece di findLastIndex)
+      let lastOutIndex = -1;
+      for (let i = sortedLogsWithIndices.length - 1; i >= 0; i--) {
+        if (sortedLogsWithIndices[i].log.type === 'out') {
+          lastOutIndex = i;
+          break;
+        }
+      }
+      
+      if (lastOutIndex !== -1) {
+        // Seleziona automaticamente tutte le timbrature successive all'ultima uscita
+        // per coprire il resto del turno
+        const indicesAfterLastOut = sortedLogsWithIndices
+          .slice(lastOutIndex + 1)
+          .map(item => item.index);
+        
+        if (indicesAfterLastOut.length > 0) {
+          setSelectedLogIndices(indicesAfterLastOut);
+        }
+      }
+    }
+  }, [dayLogs]);
 
   // Calcola ore lavorate dal log
   const calculateWorkedHours = useMemo(() => {
@@ -300,12 +331,18 @@ const AbsenceJustificationModal: React.FC<AbsenceJustificationModalProps> = ({
                     onClick={() => setSelectedType(item)}
                     className={`px-4 py-3 rounded-lg border-2 transition-all text-left ${
                       selectedType?.code === item.code
-                        ? 'bg-cyan-500/20 border-cyan-500 text-cyan-200'
+                        ? item.class === 'ACC'
+                          ? 'bg-orange-500/20 border-orange-500 text-orange-200'
+                          : 'bg-cyan-500/20 border-cyan-500 text-cyan-200'
                         : 'bg-slate-800/50 border-slate-600 text-gray-300 hover:border-slate-500'
                     }`}
                   >
                     <div className="font-medium text-sm mb-1">{item.description}</div>
-                    <div className="text-xs px-2 py-0.5 bg-red-500/20 text-red-300 rounded inline-block border border-red-500/30">
+                    <div className={`text-xs px-2 py-0.5 rounded inline-block border ${
+                      item.class === 'ACC'
+                        ? 'bg-orange-500/20 text-orange-300 border-orange-500/30'
+                        : 'bg-red-500/20 text-red-300 border-red-500/30'
+                    }`}>
                       {item.class}
                     </div>
                   </button>
