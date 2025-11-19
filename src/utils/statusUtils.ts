@@ -39,46 +39,36 @@ export const calculateStatusUsage = (
 
     // Calculate overtime usage from allManualOvertime
     if (allManualOvertime) {
-        console.log('🔍 INIZIO CALCOLO STRAORDINARI');
-        console.log('allManualOvertime keys:', Object.keys(allManualOvertime));
-        
         for (const [dateKey, overtimeEntries] of Object.entries(allManualOvertime)) {
             const dayDate = parseDateKey(dateKey);
-            console.log(`📅 Processando dateKey: ${dateKey}, anno: ${dayDate.getFullYear()}, target year: ${year}`);
             
             if (dayDate.getFullYear() === year) {
-                console.log(`✅ Anno match! Entries:`, overtimeEntries);
-                
                 for (const overtime of overtimeEntries) {
-                    console.log('📝 Overtime entry:', overtime);
-                    
-                    // Trim whitespace and find status item by description
                     const overtimeType = (overtime.type || '').trim();
-                    console.log(`🔎 Cercando match per type: "${overtimeType}"`);
                     
-                    const item = statusItems.find(s => {
-                        const match = s.category === 'overtime' && s.description.trim() === overtimeType;
-                        if (s.category === 'overtime') {
-                            console.log(`  Confronto con code ${s.code}: "${s.description.trim()}" === "${overtimeType}" ? ${match}`);
+                    // Check if type is in code-XXXX format
+                    if (overtimeType.startsWith('code-')) {
+                        const code = parseInt(overtimeType.split('-')[1], 10);
+                        const item = statusMap.get(code);
+                        
+                        if (item) {
+                            const hours = overtime.durationMs / (1000 * 60 * 60);
+                            usage[code] = (usage[code] || 0) + hours;
                         }
-                        return match;
-                    });
-                    
-                    console.log(`Risultato ricerca:`, item);
-                    
-                    if (item) {
-                        const hours = overtime.durationMs / (1000 * 60 * 60);
-                        const oldValue = usage[item.code] || 0;
-                        usage[item.code] = oldValue + hours;
-                        console.log(`✅ Aggiunto ${hours}h al code ${item.code}, era ${oldValue}, ora ${usage[item.code]}`);
                     } else {
-                        console.log(`❌ NESSUN MATCH trovato per "${overtimeType}"`);
+                        // Legacy format: match by description
+                        const item = statusItems.find(s => 
+                            s.category === 'overtime' && s.description.trim() === overtimeType
+                        );
+                        
+                        if (item) {
+                            const hours = overtime.durationMs / (1000 * 60 * 60);
+                            usage[item.code] = (usage[item.code] || 0) + hours;
+                        }
                     }
                 }
             }
         }
-        
-        console.log('🏁 FINE CALCOLO - usage finale:', usage);
     }
 
     return usage;
