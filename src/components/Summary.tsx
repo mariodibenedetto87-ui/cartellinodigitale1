@@ -35,13 +35,6 @@ const CalendarIcon: React.FC<{className?: string}> = ({className}) => (
 const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, workSettings, statusItems, manualOvertimeEntries, onEditEntry, onDeleteEntry, onOpenAddEntryModal, onOpenAddManualEntryModal, onOpenAddOvertimeModal, onOpenHoursMissingModal, onDeleteManualOvertime, onOpenQuickLeaveModal }) => {
     const dateKey = date.toISOString().split('T')[0];
     
-    console.log('🔄 Summary re-render:', { 
-        dateKey, 
-        entriesCount: entries.length,
-        entryIds: entries.map(e => e.id),
-        entryTimes: entries.map(e => new Date(e.timestamp).toLocaleTimeString())
-    });
-    
     const [editingEntry, setEditingEntry] = useState<{ entry: TimeEntry; id: string } | null>(null);
     const [isCalendarPopoverOpen, setCalendarPopoverOpen] = useState(false);
     const popoverRef = useRef<HTMLDivElement>(null);
@@ -365,9 +358,6 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z" /></svg>
                                             </button>
                                             <button onClick={() => {
-                                                console.log('🖱️ Click su elimina nel Summary:', { dateKey, entryId: entry.id, timestamp: entry.timestamp });
-                                                console.log('📋 Entries attuali nel Summary:', entries.map(e => ({ id: e.id, type: e.type, time: new Date(e.timestamp).toLocaleTimeString() })));
-                                                
                                                 if (window.confirm('🗑️ Vuoi eliminare questa timbratura?')) {
                                                     onDeleteEntry(dateKey, entry.id);
                                                 }

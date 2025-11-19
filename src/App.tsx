@@ -1004,14 +1004,7 @@ const App: React.FC = () => {
     const handleDeleteEntry = async (dateKey: string, entryId: string) => {
         if (!session) return;
         
-        console.log('🗑️ handleDeleteEntry chiamato:', { dateKey, entryId });
-        console.log('📊 State prima della delete:', { 
-            allLogsKeys: Object.keys(allLogs),
-            entriesForDate: allLogs[dateKey],
-            totalEntries: allLogs[dateKey]?.length 
-        });
-        
-        // Prima elimina dal database
+        // Elimina dal database
         const { error } = await supabase.from('time_logs').delete().eq('id', entryId);
         if (error) { 
             console.error('❌ Errore eliminazione DB:', error);
@@ -1019,34 +1012,22 @@ const App: React.FC = () => {
             return; 
         }
         
-        console.log('✅ Eliminazione dal DB riuscita');
-        
         // Salva le entries prima dell'eliminazione per il calcolo voucher
         const entriesBeforeDelete = allLogs[dateKey] || [];
         const remainingEntries = entriesBeforeDelete.filter(e => e.id !== entryId);
         
-        console.log('📝 Entries dopo filter:', {
-            prima: entriesBeforeDelete.length,
-            dopo: remainingEntries.length,
-            remainingIds: remainingEntries.map(e => e.id)
-        });
-        
         // Aggiorna immediatamente lo stato locale
         setAllLogs(prev => {
-            console.log('🔄 setAllLogs callback eseguito, prev:', Object.keys(prev));
             const newLogs = { ...prev };
             
             if (remainingEntries.length > 0) {
                 // Se ci sono ancora entries, aggiornale
                 newLogs[dateKey] = [...remainingEntries];
-                console.log('✏️ Aggiornato dateKey con entries rimanenti:', newLogs[dateKey].length);
             } else {
                 // Se non ci sono più entries, rimuovi la chiave
                 delete newLogs[dateKey];
-                console.log('🗑️ Rimossa chiave dateKey (nessuna entry rimasta)');
             }
             
-            console.log('📤 Ritorno nuovo state:', Object.keys(newLogs));
             return newLogs;
         });
         
