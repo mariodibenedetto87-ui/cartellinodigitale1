@@ -73,7 +73,9 @@ const BalanceDetailsModal: React.FC<BalanceDetailsModalProps> = ({
             dayName,
           });
 
-          monthlyTotals[month] = (monthlyTotals[month] || 0) + amount;
+          // Per GPO le ore/giorni vanno sottratti, per ACC aggiunti
+          const multiplier = statusItem.class === 'GPO' ? -1 : 1;
+          monthlyTotals[month] = (monthlyTotals[month] || 0) + (amount * multiplier);
         }
       }
     });
@@ -102,7 +104,9 @@ const BalanceDetailsModal: React.FC<BalanceDetailsModalProps> = ({
                 dayName,
               });
 
-              monthlyTotals[month] = (monthlyTotals[month] || 0) + hours;
+              // Per GPO le ore vanno sottratte, per ACC aggiunte
+              const multiplier = statusItem.class === 'GPO' ? -1 : 1;
+              monthlyTotals[month] = (monthlyTotals[month] || 0) + (hours * multiplier);
             }
           });
         }
@@ -186,12 +190,17 @@ const BalanceDetailsModal: React.FC<BalanceDetailsModalProps> = ({
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {monthNames.map((monthName, index) => {
                 const total = usageDetails.monthlyTotals[index] || 0;
+                const hasActivity = total !== 0;
+                const isPositive = total > 0;
+                
                 return (
                   <div
                     key={index}
                     className={`p-3 rounded-lg border-2 transition-all ${
-                      total > 0
-                        ? 'bg-teal-50 dark:bg-teal-900/20 border-teal-300 dark:border-teal-700'
+                      hasActivity
+                        ? isPositive 
+                          ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700'
+                          : 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700'
                         : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600'
                     }`}
                   >
@@ -199,9 +208,13 @@ const BalanceDetailsModal: React.FC<BalanceDetailsModalProps> = ({
                       {monthName}
                     </p>
                     <p className={`text-lg font-bold ${
-                      total > 0 ? 'text-teal-600 dark:text-teal-400' : 'text-gray-400 dark:text-gray-500'
+                      hasActivity
+                        ? isPositive 
+                          ? 'text-green-600 dark:text-green-400' 
+                          : 'text-red-600 dark:text-red-400'
+                        : 'text-gray-400 dark:text-gray-500'
                     }`}>
-                      {total > 0 ? total : '-'}
+                      {hasActivity ? (isPositive ? '+' : '') + total.toFixed(2) : '-'}
                     </p>
                   </div>
                 );
