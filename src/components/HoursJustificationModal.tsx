@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StatusItem, AllTimeLogs, AllManualOvertime } from '../types';
+import { StatusItem, AllTimeLogs, AllManualOvertime, WorkSettings } from '../types';
 import { formatDateKey } from '../utils/timeUtils';
 
 interface HoursJustificationModalProps {
@@ -7,6 +7,7 @@ interface HoursJustificationModalProps {
   allLogs: AllTimeLogs;
   allManualOvertime: AllManualOvertime;
   statusItems: StatusItem[];
+  workSettings: WorkSettings;
   mode: 'extra' | 'missing'; // 'extra' = ore in più (straordinari, corsi), 'missing' = ore in meno (permessi, assenze)
   onClose: () => void;
   onSave: (dateKey: string, durationMs: number, type: string, note: string, usedEntryIds?: string[]) => void;
@@ -14,7 +15,7 @@ interface HoursJustificationModalProps {
 }
 
 const HoursJustificationModal: React.FC<HoursJustificationModalProps> = ({ 
-  date, allLogs, allManualOvertime, statusItems, mode, onClose, onSave, onDelete 
+  date, allLogs, allManualOvertime, statusItems, workSettings, mode, onClose, onSave, onDelete 
 }) => {
   const [hours, setHours] = useState('');
   const [selectedType, setSelectedType] = useState<StatusItem | null>(null);
@@ -100,23 +101,23 @@ const HoursJustificationModal: React.FC<HoursJustificationModalProps> = ({
   // Auto-calcola ore extra all'apertura del modal (mode === 'extra')
   React.useEffect(() => {
     if (mode === 'extra' && dayLogs.length >= 2 && hours === '') {
-      // Calcola ore extra: ore timbrate - turno standard 7h
-      const standardWorkHours = 7;
+      // Calcola ore extra: ore timbrate - turno standard da impostazioni
+      const standardWorkHours = workSettings.standardDayHours;
       const extraHours = Math.max(0, workedHours - standardWorkHours);
       
       if (extraHours > 0) {
         setHours(extraHours.toFixed(2));
       }
     } else if (mode === 'missing' && dayLogs.length >= 2 && hours === '') {
-      // Calcola ore mancanti: turno standard 7h - ore timbrate
-      const standardWorkHours = 7;
+      // Calcola ore mancanti: turno standard da impostazioni - ore timbrate
+      const standardWorkHours = workSettings.standardDayHours;
       const missingHours = Math.max(0, standardWorkHours - workedHours);
       
       if (missingHours > 0) {
         setHours(missingHours.toFixed(2));
       }
     }
-  }, [mode, dayLogs, workedHours, hours]);
+  }, [mode, dayLogs, workedHours, hours, workSettings.standardDayHours]);
 
   const handleToggleLogSelection = (index: number) => {
     setSelectedLogIndices(prev => {

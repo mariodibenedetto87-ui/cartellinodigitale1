@@ -1441,6 +1441,7 @@ const App: React.FC = () => {
                     allLogs={allLogs}
                     allManualOvertime={allManualOvertime}
                     statusItems={settings.statusItems}
+                    workSettings={settings.workSettings}
                     onClose={() => setHoursJustificationModal(null)}
                     onSave={handleAddOvertime}
                     onDelete={handleDeleteManualOvertime}
@@ -1452,6 +1453,7 @@ const App: React.FC = () => {
                     allLogs={allLogs}
                     allManualOvertime={allManualOvertime}
                     statusItems={settings.statusItems}
+                    workSettings={settings.workSettings}
                     onClose={() => setAbsenceJustificationModalDate(null)}
                     onSave={handleAddOvertime}
                     onDelete={handleDeleteManualOvertime}

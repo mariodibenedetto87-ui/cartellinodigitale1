@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { StatusItem, AllTimeLogs, AllManualOvertime } from '../types';
+import { StatusItem, AllTimeLogs, AllManualOvertime, WorkSettings } from '../types';
 import { formatDateKey } from '../utils/timeUtils';
 
 interface AbsenceJustificationModalProps {
@@ -7,6 +7,7 @@ interface AbsenceJustificationModalProps {
   allLogs: AllTimeLogs;
   allManualOvertime: AllManualOvertime;
   statusItems: StatusItem[];
+  workSettings: WorkSettings;
   onClose: () => void;
   onSave: (dateKey: string, durationMs: number, type: string, note: string, usedEntryIds?: string[]) => void;
   onDelete: (dateKey: string, entryId: string) => void;
@@ -17,6 +18,7 @@ const AbsenceJustificationModal: React.FC<AbsenceJustificationModalProps> = ({
   allLogs, 
   allManualOvertime,
   statusItems,
+  workSettings,
   onClose, 
   onSave, 
   onDelete 
@@ -56,8 +58,8 @@ const AbsenceJustificationModal: React.FC<AbsenceJustificationModalProps> = ({
   // Auto-calcola e pre-compila le ore mancanti all'apertura del modal
   React.useEffect(() => {
     if (dayLogs.length >= 2 && hours === '') {
-      // Calcola ore mancanti: turno standard 7h - ore già timbrate
-      const standardWorkHours = 7; // turno standard
+      // Calcola ore mancanti: turno standard da impostazioni - ore già timbrate
+      const standardWorkHours = workSettings.standardDayHours;
       const hoursWorked = totalWorkedHours;
       const missingHours = Math.max(0, standardWorkHours - hoursWorked);
       
@@ -65,7 +67,7 @@ const AbsenceJustificationModal: React.FC<AbsenceJustificationModalProps> = ({
         setHours(missingHours.toFixed(2));
       }
     }
-  }, [dayLogs, totalWorkedHours, hours]);
+  }, [dayLogs, totalWorkedHours, hours, workSettings.standardDayHours]);
 
   // Calcola ore dai log selezionati
   const calculateSelectedHours = useMemo(() => {
