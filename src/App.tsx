@@ -26,6 +26,7 @@ import QuickActionsFAB from './components/QuickActionsFAB';
 import ConnectionStatus from './components/ConnectionStatus';
 import GlobalSearch from './components/GlobalSearch';
 import InstallPrompt from './components/InstallPrompt';
+import IOSInstallPrompt from './components/IOSInstallPrompt';
 import { offlineManager } from './utils/offlineManager';
 import { syncWithDatabase } from './utils/syncManager';
 import { PageLoader } from './utils/lazyComponents';
@@ -1425,6 +1426,7 @@ const App: React.FC = () => {
             
             {/* Install PWA Prompt */}
             <InstallPrompt />
+            <IOSInstallPrompt />
         </div>
     );
 };

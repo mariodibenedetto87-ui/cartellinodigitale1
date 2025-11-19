@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { WorkStatus, WorkSettings } from '../types';
 import { formatDuration } from '../utils/timeUtils';
+import { haptic, HapticType } from '../utils/haptics';
 
 // Extend window type for NDEFReader
 declare global {
@@ -75,6 +76,9 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
   const handleClick = async () => {
     if (disabled || isAnimating) return;
 
+    // Haptic feedback immediato
+    haptic(HapticType.MEDIUM);
+
     if (nfcSupported) {
       try {
         const ndef = new window.NDEFReader();
@@ -85,6 +89,7 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
 
         ndef.onreadingerror = () => {
           setNfcMessage('Errore di lettura. Riprova.');
+          haptic(HapticType.ERROR);
           controller.abort();
         };
 
@@ -95,7 +100,7 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
               const text = textDecoder.decode(record.data);
               if (text === "toggle") {
                 setNfcMessage("Timbratura registrata con successo!");
-                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                haptic(HapticType.SUCCESS); // Feedback di successo
                 
                 onToggle();
 
@@ -111,15 +116,17 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
             }
           }
           setNfcMessage("Tag non riconosciuto. Assicurati che contenga il testo 'toggle'.");
+          haptic(HapticType.WARNING);
           controller.abort();
         };
 
       } catch (error) {
         console.error("Errore Web NFC:", error);
         setNfcMessage("Errore: Impossibile avviare la scansione NFC.");
+        haptic(HapticType.ERROR);
       }
     } else {
-      if (navigator.vibrate) navigator.vibrate(100);
+      haptic(HapticType.SUCCESS); // Feedback di successo per simulazione
       onToggle();
       
       setIsAnimating(true);
@@ -128,6 +135,7 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
   };
 
   const handleDateNavigation = (days: number) => {
+      haptic(HapticType.LIGHT); // Feedback leggero per navigazione
       const newDate = new Date(selectedDate);
       newDate.setDate(newDate.getDate() + days);
       onDateChange(newDate);

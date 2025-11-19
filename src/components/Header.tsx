@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { haptic, HapticType } from '../utils/haptics';
 
 interface HeaderProps {
     currentPage: 'dashboard' | 'calendar' | 'settings' | 'balances';
@@ -76,6 +77,7 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate, onOpenSearch, 
     }, [onOpenSearch]);
 
     const toggleTheme = () => {
+        haptic(HapticType.LIGHT);
         setIsDarkMode(!isDarkMode);
     };
 
@@ -95,13 +97,13 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate, onOpenSearch, 
                     {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center space-x-2">
                         <nav className="bg-gray-200 dark:bg-slate-800 p-1 rounded-lg flex space-x-1">
-                           <button onClick={() => onNavigate('dashboard')} className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${currentPage === 'dashboard' ? 'bg-teal-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-700'}`}>Dashboard</button>
-                           <button onClick={() => onNavigate('calendar')} className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${currentPage === 'calendar' ? 'bg-teal-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-700'}`}>Calendario</button>
-                           <button onClick={() => onNavigate('balances')} className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${currentPage === 'balances' ? 'bg-teal-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-700'}`}>Saldi</button>
+                           <button onClick={() => { haptic(HapticType.LIGHT); onNavigate('dashboard'); }} className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${currentPage === 'dashboard' ? 'bg-teal-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-700'}`}>Dashboard</button>
+                           <button onClick={() => { haptic(HapticType.LIGHT); onNavigate('calendar'); }} className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${currentPage === 'calendar' ? 'bg-teal-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-700'}`}>Calendario</button>
+                           <button onClick={() => { haptic(HapticType.LIGHT); onNavigate('balances'); }} className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${currentPage === 'balances' ? 'bg-teal-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-700'}`}>Saldi</button>
                         </nav>
                         {onOpenSearch && (
                             <button
-                                onClick={onOpenSearch}
+                                onClick={() => { haptic(HapticType.LIGHT); onOpenSearch(); }}
                                 className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors group"
                                 title="Ricerca Globale (Ctrl+K)"
                             >
@@ -115,11 +117,11 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate, onOpenSearch, 
                         <button onClick={toggleTheme} className="p-2.5 rounded-lg bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-semibold transition-colors" aria-label="Toggle theme">
                             {isDarkMode ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
                         </button>
-                         <button onClick={() => onNavigate('settings')} className={`p-2.5 rounded-lg font-semibold transition-colors ${currentPage === 'settings' ? 'bg-teal-500 text-white' : 'bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-slate-800 dark:text-white'}`} aria-label="Settings">
+                         <button onClick={() => { haptic(HapticType.LIGHT); onNavigate('settings'); }} className={`p-2.5 rounded-lg font-semibold transition-colors ${currentPage === 'settings' ? 'bg-teal-500 text-white' : 'bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-slate-800 dark:text-white'}`} aria-label="Settings">
                             <SettingsIcon className="w-5 h-5" />
                         </button>
                         {onLogout && (
-                            <button onClick={onLogout} className="p-2.5 rounded-lg bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 font-semibold transition-colors" aria-label="Logout" title="Esci">
+                            <button onClick={() => { haptic(HapticType.LIGHT); onLogout(); }} className="p-2.5 rounded-lg bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 font-semibold transition-colors" aria-label="Logout" title="Esci">
                                 <LogoutIcon className="w-5 h-5" />
                             </button>
                         )}
@@ -129,7 +131,7 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate, onOpenSearch, 
                     <div className="flex md:hidden items-center space-x-2">
                         {onOpenSearch && (
                             <button
-                                onClick={onOpenSearch}
+                                onClick={() => { haptic(HapticType.LIGHT); onOpenSearch(); }}
                                 className="p-2 rounded-lg bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-slate-800 dark:text-white transition-colors"
                                 aria-label="Cerca"
                             >
@@ -141,7 +143,7 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate, onOpenSearch, 
                         <button onClick={toggleTheme} className="p-2 rounded-lg bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-slate-800 dark:text-white transition-colors" aria-label="Toggle theme">
                             {isDarkMode ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
                         </button>
-                        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 rounded-lg bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-slate-800 dark:text-white transition-colors" aria-label="Menu">
+                        <button onClick={() => { haptic(HapticType.LIGHT); setMobileMenuOpen(!mobileMenuOpen); }} className="p-2 rounded-lg bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-slate-800 dark:text-white transition-colors" aria-label="Menu">
                             {mobileMenuOpen ? <CloseIcon className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
                         </button>
                     </div>
@@ -152,32 +154,32 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate, onOpenSearch, 
                     <div className="md:hidden py-4 border-t border-gray-200 dark:border-slate-700">
                         <nav className="flex flex-col space-y-2">
                             <button 
-                                onClick={() => { onNavigate('dashboard'); setMobileMenuOpen(false); }} 
+                                onClick={() => { haptic(HapticType.LIGHT); onNavigate('dashboard'); setMobileMenuOpen(false); }} 
                                 className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition-colors ${currentPage === 'dashboard' ? 'bg-teal-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-800'}`}
                             >
                                 Dashboard
                             </button>
                             <button 
-                                onClick={() => { onNavigate('calendar'); setMobileMenuOpen(false); }} 
+                                onClick={() => { haptic(HapticType.LIGHT); onNavigate('calendar'); setMobileMenuOpen(false); }} 
                                 className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition-colors ${currentPage === 'calendar' ? 'bg-teal-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-800'}`}
                             >
                                 Calendario
                             </button>
                             <button 
-                                onClick={() => { onNavigate('balances'); setMobileMenuOpen(false); }} 
+                                onClick={() => { haptic(HapticType.LIGHT); onNavigate('balances'); setMobileMenuOpen(false); }} 
                                 className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition-colors ${currentPage === 'balances' ? 'bg-teal-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-800'}`}
                             >
                                 Saldi
                             </button>
                             <button 
-                                onClick={() => { onNavigate('settings'); setMobileMenuOpen(false); }} 
+                                onClick={() => { haptic(HapticType.LIGHT); onNavigate('settings'); setMobileMenuOpen(false); }} 
                                 className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition-colors ${currentPage === 'settings' ? 'bg-teal-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-800'}`}
                             >
                                 Impostazioni
                             </button>
                             {onLogout && (
                                 <button 
-                                    onClick={() => { onLogout(); setMobileMenuOpen(false); }} 
+                                    onClick={() => { haptic(HapticType.LIGHT); onLogout(); setMobileMenuOpen(false); }} 
                                     className="w-full text-left px-4 py-3 rounded-lg font-semibold transition-colors bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400"
                                 >
                                     Esci
