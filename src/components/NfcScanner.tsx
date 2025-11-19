@@ -181,9 +181,35 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
                             </svg>
                         </button>
-                        <p className={`text-sm font-semibold w-64 text-center ${isClockedIn ? 'text-white/90' : 'text-gray-600 dark:text-slate-300'}`}>
-                            {selectedDate.toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                        </p>
+                        <div className="relative group">
+                            <p className={`text-sm font-semibold w-64 text-center cursor-pointer ${isClockedIn ? 'text-white/90 hover:text-white' : 'text-gray-600 dark:text-slate-300 hover:text-gray-800 dark:hover:text-white'} transition-colors`}>
+                                {selectedDate.toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                            </p>
+                            <input 
+                                type="date" 
+                                value={selectedDate.toISOString().split('T')[0]}
+                                onChange={(e) => {
+                                    if (e.target.value) {
+                                        onDateChange(new Date(e.target.value + 'T12:00:00'));
+                                    }
+                                }}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                title="Seleziona una data"
+                            />
+                        </div>
+                        <button 
+                            onClick={() => {
+                                const input = document.querySelector('input[type="date"]') as HTMLInputElement;
+                                if (input) input.showPicker?.();
+                            }}
+                            className={`p-1.5 rounded-full transition-colors ${isClockedIn ? 'hover:bg-white/10' : 'hover:bg-gray-200 dark:hover:bg-slate-700'}`} 
+                            aria-label="Seleziona data"
+                            title="Seleziona data"
+                        >
+                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-5 h-5 ${isClockedIn ? 'text-white/80' : 'text-gray-500 dark:text-slate-400'}`}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                            </svg>
+                        </button>
                         <button onClick={() => handleDateNavigation(1)} className={`p-1.5 rounded-full transition-colors ${isClockedIn ? 'hover:bg-white/10' : 'hover:bg-gray-200 dark:hover:bg-slate-700'}`} aria-label="Giorno successivo">
                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-5 h-5 ${isClockedIn ? 'text-white/80' : 'text-gray-500 dark:text-slate-400'}`}>
                                <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
