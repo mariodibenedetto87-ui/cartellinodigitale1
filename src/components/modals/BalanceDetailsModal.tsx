@@ -175,9 +175,9 @@ const BalanceDetailsModal: React.FC<BalanceDetailsModalProps> = ({
               </p>
             </div>
             <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Saldo {statusItem.class === 'ACC' ? 'Totale' : 'Residuo'}</p>
-              <p className={`text-2xl font-bold ${(statusItem.class === 'ACC' ? statusItem.entitlement + totalUsed : statusItem.entitlement - totalUsed) < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                {statusItem.class === 'ACC' ? statusItem.entitlement + totalUsed : statusItem.entitlement - totalUsed} {statusItem.category === 'leave-hours' ? 'ore' : 'giorni'}
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Saldo {statusItem.class === 'GPO' ? 'Residuo' : 'Totale'}</p>
+              <p className={`text-2xl font-bold ${(statusItem.class === 'GPO' ? statusItem.entitlement - totalUsed : statusItem.entitlement + totalUsed) < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                {statusItem.class === 'GPO' ? statusItem.entitlement - totalUsed : statusItem.entitlement + totalUsed} {statusItem.category === 'leave-hours' ? 'ore' : 'giorni'}
               </p>
             </div>
           </div>

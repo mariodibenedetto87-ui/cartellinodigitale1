@@ -50,8 +50,11 @@ const BalancesSummary: React.FC<BalancesSummaryProps> = memo(({ allDayInfo, stat
       <div className="space-y-4">
         {balancesToShow.map(item => {
           const used = usageData[item.code] || 0;
-          // Per ACC (accredito) sommare, per GPO (consumo) sottrarre
-          const balance = item.class === 'ACC' ? item.entitlement + used : item.entitlement - used;
+          // GPO: sottrai ore usate (permessi)
+          // ACC/PAG/altri: aggiungi ore (corsi, straordinari)
+          const balance = item.class === 'GPO' 
+            ? item.entitlement - used 
+            : item.entitlement + used;
           const details = getStatusItemDetails(`code-${item.code}`, statusItems);
           const progress = item.entitlement > 0 ? (Math.abs(used) / item.entitlement) * 100 : 0;
           
