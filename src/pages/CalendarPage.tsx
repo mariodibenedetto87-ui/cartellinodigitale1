@@ -59,6 +59,14 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
     // Force Summary re-render when allLogs changes
     useEffect(() => {
         setSummaryRenderKey(prev => prev + 1);
+        
+        // Alert per debug
+        const totalEntries = Object.values(allLogs).reduce((sum, entries) => sum + entries.length, 0);
+        console.log('🔔 allLogs changed!', {
+            totalDays: Object.keys(allLogs).length,
+            totalEntries: totalEntries,
+            days: Object.keys(allLogs)
+        });
     }, [allLogs]);
 
     const handleExport = (startDateStr: string, endDateStr: string, format: 'ics' | 'csv') => {
@@ -318,7 +326,14 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
     
     // Forza un nuovo array reference per far rilevare il cambio a React
     const entriesForSelectedDate = useMemo(() => {
-        return [...(allLogs[selectedDateKey] || [])];
+        const entries = [...(allLogs[selectedDateKey] || [])];
+        console.log('📅 CalendarPage - entriesForSelectedDate:', {
+            selectedDateKey,
+            allLogsKeys: Object.keys(allLogs),
+            entriesCount: entries.length,
+            entries: entries.map(e => ({ id: e.id, type: e.type, time: new Date(e.timestamp).toLocaleTimeString() }))
+        });
+        return entries;
     }, [allLogs, selectedDateKey]);
 
     const renderView = () => {
