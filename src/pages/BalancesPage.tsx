@@ -6,6 +6,7 @@ import { getStatusItemDetails } from '../utils/leaveUtils';
 import AnnualSummary from '../components/AnnualSummary';
 import ComparativeStats from '../components/ComparativeStats';
 import BalanceDetailsModal from '../components/modals/BalanceDetailsModal';
+import MealVouchersDetailsModal from '../components/modals/MealVouchersDetailsModal';
 
 interface BalancesPageProps {
   statusItems: StatusItem[];
@@ -20,6 +21,7 @@ interface BalancesPageProps {
 const BalancesPage: React.FC<BalancesPageProps> = ({ statusItems, allDayInfo, allLogs, workSettings, allManualOvertime, allMealVouchers, onOpenAddOvertimeModal }) => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedStatusItem, setSelectedStatusItem] = useState<StatusItem | null>(null);
+  const [isMealVouchersModalOpen, setIsMealVouchersModalOpen] = useState(false);
   
   const usageData = useMemo(() => {
     return calculateStatusUsage(allDayInfo, selectedYear, statusItems, allManualOvertime);
@@ -69,7 +71,11 @@ const BalancesPage: React.FC<BalancesPageProps> = ({ statusItems, allDayInfo, al
 
           <div className="space-y-4">
             {/* Card Buoni Pasto */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+            <div 
+              className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border-2 border-blue-200 dark:border-blue-800 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all hover:shadow-md"
+              onClick={() => setIsMealVouchersModalOpen(true)}
+              title="Click per vedere i dettagli dei buoni pasto"
+            >
               <div className="flex justify-between items-center mb-2">
                 <div className="flex items-center space-x-3">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 flex-shrink-0 text-blue-600 dark:text-blue-400">
@@ -164,6 +170,15 @@ const BalancesPage: React.FC<BalancesPageProps> = ({ statusItems, allDayInfo, al
           allDayInfo={allDayInfo}
           selectedYear={selectedYear}
           onClose={() => setSelectedStatusItem(null)}
+        />
+      )}
+
+      {/* Meal Vouchers Details Modal */}
+      {isMealVouchersModalOpen && (
+        <MealVouchersDetailsModal
+          allMealVouchers={allMealVouchers}
+          selectedYear={selectedYear}
+          onClose={() => setIsMealVouchersModalOpen(false)}
         />
       )}
     </main>
