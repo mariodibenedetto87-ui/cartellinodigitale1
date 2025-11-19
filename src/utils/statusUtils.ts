@@ -53,7 +53,12 @@ export const calculateStatusUsage = (
                         
                         if (item) {
                             const hours = overtime.durationMs / (1000 * 60 * 60);
-                            usage[code] = (usage[code] || 0) + hours;
+                            
+                            // ACC (accredito) = aggiungi ore (+)
+                            // GPO (giorno permesso ordinario) = sottrai ore (-)
+                            // PAG (pagato) = aggiungi ore (+)
+                            const multiplier = item.class === 'GPO' ? -1 : 1;
+                            usage[code] = (usage[code] || 0) + (hours * multiplier);
                         }
                     } else {
                         // Legacy format: match by description
@@ -63,7 +68,8 @@ export const calculateStatusUsage = (
                         
                         if (item) {
                             const hours = overtime.durationMs / (1000 * 60 * 60);
-                            usage[item.code] = (usage[item.code] || 0) + hours;
+                            const multiplier = item.class === 'GPO' ? -1 : 1;
+                            usage[item.code] = (usage[item.code] || 0) + (hours * multiplier);
                         }
                     }
                 }
