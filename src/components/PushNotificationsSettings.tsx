@@ -10,6 +10,7 @@ import {
   scheduleClockReminder,
   getClockReminders,
 } from '../utils/pushNotifications';
+import { haptic, HapticType } from '../utils/haptics';
 
 interface PushNotificationsSettingsProps {
   onShowToast: (message: string, type?: 'success' | 'error') => void;
@@ -54,20 +55,34 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
   }, []);
 
   const handleRequestPermission = async () => {
+    haptic(HapticType.LIGHT);
     try {
       setIsLoading(true);
+      
+      // Check if already granted
+      if (permission === 'granted') {
+        onShowToast('✅ Le notifiche sono già abilitate!', 'success');
+        setIsLoading(false);
+        return;
+      }
+
       const result = await requestNotificationPermission();
       setPermission(result);
 
       if (result === 'granted') {
+        haptic(HapticType.SUCCESS);
         const subscribed = await subscribeToPushNotifications();
         setIsSubscribed(!!subscribed);
         onShowToast('✅ Notifiche abilitate con successo!', 'success');
+      } else if (result === 'denied') {
+        haptic(HapticType.ERROR);
+        onShowToast('⚠️ Permesso notifiche negato. Controlla le impostazioni del browser.', 'error');
       } else {
-        onShowToast('⚠️ Permesso notifiche negato dal browser', 'error');
+        onShowToast('⚠️ Richiesta annullata', 'error');
       }
     } catch (error) {
       console.error('Error requesting permission:', error);
+      haptic(HapticType.ERROR);
       onShowToast('❌ Errore nell\'abilitare le notifiche', 'error');
     } finally {
       setIsLoading(false);
@@ -75,6 +90,7 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
   };
 
   const handleToggleSubscription = async () => {
+    haptic(HapticType.LIGHT);
     try {
       setIsLoading(true);
 
@@ -83,6 +99,7 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
         const success = await unsubscribeFromPushNotifications();
         if (success) {
           setIsSubscribed(false);
+          haptic(HapticType.WARNING);
           onShowToast('✅ Notifiche disabilitate', 'success');
         }
       } else {
@@ -90,11 +107,13 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
         const subscription = await subscribeToPushNotifications();
         if (subscription) {
           setIsSubscribed(true);
+          haptic(HapticType.SUCCESS);
           onShowToast('✅ Notifiche abilitate', 'success');
         }
       }
     } catch (error) {
       console.error('Error toggling subscription:', error);
+      haptic(HapticType.ERROR);
       onShowToast('❌ Errore nel cambiare le impostazioni', 'error');
     } finally {
       setIsLoading(false);
@@ -102,12 +121,15 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
   };
 
   const handleSendTestNotification = async () => {
+    haptic(HapticType.LIGHT);
     try {
       setIsLoading(true);
       await sendTestNotification();
+      haptic(HapticType.SUCCESS);
       onShowToast('📱 Notifica di test inviata!', 'success');
     } catch (error) {
       console.error('Error sending test notification:', error);
+      haptic(HapticType.ERROR);
       onShowToast('❌ Errore nell\'invio della notifica', 'error');
     } finally {
       setIsLoading(false);
@@ -115,6 +137,7 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
   };
 
   const handleSaveReminders = async () => {
+    haptic(HapticType.LIGHT);
     try {
       setIsLoading(true);
 
@@ -130,9 +153,11 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
         await scheduleClockReminder('out', '', false);
       }
 
+      haptic(HapticType.SUCCESS);
       onShowToast('✅ Promemoria salvati con successo!', 'success');
     } catch (error) {
       console.error('Error saving reminders:', error);
+      haptic(HapticType.ERROR);
       onShowToast('❌ Errore nel salvataggio dei promemoria', 'error');
     } finally {
       setIsLoading(false);
@@ -166,10 +191,10 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
 
       {/* Permission Status */}
       <div className="mb-6 p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg border border-gray-200 dark:border-slate-600">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1">
             <p className="font-semibold text-gray-700 dark:text-slate-300 mb-1">Stato Permessi</p>
-            <p className="text-sm text-gray-600 dark:text-slate-600">
+            <p className="text-sm text-gray-600 dark:text-slate-400">
               {permission === 'granted' && '✅ Notifiche abilitate'}
               {permission === 'denied' && '❌ Permesso negato dal browser'}
               {permission === 'default' && '⚠️ Non ancora concesso'}
@@ -179,12 +204,26 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
             <button
               onClick={handleRequestPermission}
               disabled={isLoading}
-              className="px-4 py-2 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-400 text-white font-semibold rounded-lg transition-colors"
+              className="px-6 py-3 bg-teal-600 hover:bg-teal-700 active:scale-95 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-all shadow-lg hover:shadow-xl"
             >
-              {isLoading ? 'Caricamento...' : 'Abilita'}
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Attendi...
+                </span>
+              ) : (
+                '🔔 Abilita Notifiche'
+              )}
             </button>
           )}
         </div>
+        {permission === 'denied' && (
+          <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <p className="text-sm text-red-600 dark:text-red-400">
+              💡 <strong>Come abilitare:</strong> Clicca sull'icona del lucchetto nella barra degli indirizzi → Impostazioni sito → Notifiche → Consenti
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Subscription Toggle */}
