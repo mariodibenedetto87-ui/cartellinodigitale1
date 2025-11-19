@@ -27,8 +27,11 @@ const HoursJustificationModal: React.FC<HoursJustificationModalProps> = ({
   
   // Filtra gli item in base alla modalità
   const filteredItems = mode === 'extra'
-    ? statusItems.filter(item => item.category === 'overtime') // Straordinari, Corsi, etc.
-    : statusItems.filter(item => item.category === 'leave-hours'); // Permessi ore, Malattia ore, etc.
+    ? statusItems.filter(item => 
+        item.category === 'overtime' || 
+        (item.category === 'leave-hours' && item.class === 'ACC') // Include corsi, recuperi, etc.
+      )
+    : statusItems.filter(item => item.category === 'leave-hours' && item.class !== 'ACC'); // Solo permessi da scalare
 
   // Icone e titoli in base alla modalità
   const config = mode === 'extra' 
