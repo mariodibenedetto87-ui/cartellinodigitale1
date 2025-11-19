@@ -97,6 +97,27 @@ const HoursJustificationModal: React.FC<HoursJustificationModalProps> = ({
 
   const workedHours = calculateWorkedHours();
 
+  // Auto-calcola ore extra all'apertura del modal (mode === 'extra')
+  React.useEffect(() => {
+    if (mode === 'extra' && dayLogs.length >= 2 && hours === '') {
+      // Calcola ore extra: ore timbrate - turno standard 7h
+      const standardWorkHours = 7;
+      const extraHours = Math.max(0, workedHours - standardWorkHours);
+      
+      if (extraHours > 0) {
+        setHours(extraHours.toFixed(2));
+      }
+    } else if (mode === 'missing' && dayLogs.length >= 2 && hours === '') {
+      // Calcola ore mancanti: turno standard 7h - ore timbrate
+      const standardWorkHours = 7;
+      const missingHours = Math.max(0, standardWorkHours - workedHours);
+      
+      if (missingHours > 0) {
+        setHours(missingHours.toFixed(2));
+      }
+    }
+  }, [mode, dayLogs, workedHours, hours]);
+
   const handleToggleLogSelection = (index: number) => {
     setSelectedLogIndices(prev => {
       if (prev.includes(index)) {
