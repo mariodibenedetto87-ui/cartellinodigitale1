@@ -9,7 +9,7 @@ interface HoursJustificationModalProps {
   statusItems: StatusItem[];
   mode: 'extra' | 'missing'; // 'extra' = ore in più (straordinari, corsi), 'missing' = ore in meno (permessi, assenze)
   onClose: () => void;
-  onSave: (dateKey: string, durationMs: number, type: string, note: string) => void;
+  onSave: (dateKey: string, durationMs: number, type: string, note: string, usedEntryIds?: string[]) => void;
   onDelete: (dateKey: string, entryId: string) => void;
 }
 
@@ -132,7 +132,12 @@ const HoursJustificationModal: React.FC<HoursJustificationModalProps> = ({
       saveType = `code-${selectedType.code}`;
     }
     
-    onSave(dateKey, durationMs, saveType, note || selectedType.description);
+    // Ottieni gli ID delle timbrature selezionate
+    const usedEntryIds = selectedLogIndices.length > 0 
+      ? selectedLogIndices.map(i => dayLogs[i]?.id).filter(Boolean) as string[]
+      : undefined;
+    
+    onSave(dateKey, durationMs, saveType, note || selectedType.description, usedEntryIds);
     
     // Reset form
     setHours('');

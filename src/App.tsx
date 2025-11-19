@@ -1133,9 +1133,9 @@ const App: React.FC = () => {
         }
     };
 
-    const handleAddOvertime = async (dateKey: string, durationMs: number, type: ManualOvertimeType, note: string) => {
+    const handleAddOvertime = async (dateKey: string, durationMs: number, type: ManualOvertimeType, note: string, usedEntryIds?: string[]) => {
         if (!session) return;
-        const newEntry: Omit<ManualOvertimeEntry, 'id'> = { durationMs, type, note };
+        const newEntry: Omit<ManualOvertimeEntry, 'id'> = { durationMs, type, note, usedEntryIds };
         const { data, error } = await supabase.from('manual_overtime').insert({ date: dateKey, entry: newEntry }).select().single();
     if (error || !data) { if (error) showToast(`Errore: ${error.message}`, 'error'); return; }
         setAllManualOvertime(prev => ({ ...prev, [dateKey]: [...(prev[dateKey] || []), { id: data.id, ...data.entry }] }));

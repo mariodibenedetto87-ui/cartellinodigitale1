@@ -164,6 +164,13 @@ export const calculateWorkSummary = (
 
     let remainingStandardMs = standardDayMs < 0 ? 0 : standardDayMs;
 
+    // Raccogli gli ID delle timbrature già giustificate manualmente
+    const usedEntryIds = new Set<string>();
+    manualOvertimeEntries.forEach(entry => {
+        if (entry.usedEntryIds) {
+            entry.usedEntryIds.forEach(id => usedEntryIds.add(id));
+        }
+    });
     
     if (processEntries) {
         const sortedEntries = [...entries].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
@@ -171,11 +178,15 @@ export const calculateWorkSummary = (
         const workIntervals: { start: Date, end: Date, closingEntryId?: string }[] = [];
         for (let i = 0; i < sortedEntries.length - 1; i += 2) {
             if (sortedEntries[i]?.type === 'in' && sortedEntries[i+1]?.type === 'out') {
-                workIntervals.push({ 
-                    start: new Date(sortedEntries[i].timestamp), 
-                    end: new Date(sortedEntries[i+1].timestamp), 
-                    closingEntryId: sortedEntries[i+1].id 
-                });
+                // Salta questo intervallo se le timbrature sono già state giustificate manualmente
+                const isUsed = usedEntryIds.has(sortedEntries[i].id) || usedEntryIds.has(sortedEntries[i+1].id);
+                if (!isUsed) {
+                    workIntervals.push({ 
+                        start: new Date(sortedEntries[i].timestamp), 
+                        end: new Date(sortedEntries[i+1].timestamp), 
+                        closingEntryId: sortedEntries[i+1].id 
+                    });
+                }
             }
         }
         

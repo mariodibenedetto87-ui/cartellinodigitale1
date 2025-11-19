@@ -69,6 +69,7 @@ export interface ManualOvertimeEntry {
     durationMs: number;
     type: ManualOvertimeType;
     note: string;
+    usedEntryIds?: string[]; // IDs delle timbrature usate per questa giustificazione
 }
 
 export interface AllManualOvertime {
