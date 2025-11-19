@@ -1138,8 +1138,16 @@ const App: React.FC = () => {
         const newEntry: Omit<ManualOvertimeEntry, 'id'> = { durationMs, type, note, usedEntryIds };
         const { data, error } = await supabase.from('manual_overtime').insert({ date: dateKey, entry: newEntry }).select().single();
     if (error || !data) { if (error) showToast(`Errore: ${error.message}`, 'error'); return; }
-        setAllManualOvertime(prev => ({ ...prev, [dateKey]: [...(prev[dateKey] || []), { id: data.id, ...data.entry }] }));
-        setAddManualEntryModalDate(null);
+        
+        // Crea nuovo oggetto per forzare re-render
+        const updatedEntry = { id: data.id, ...data.entry };
+        setAllManualOvertime(prev => {
+            const newState = { ...prev };
+            newState[dateKey] = [...(prev[dateKey] || []), updatedEntry];
+            return newState;
+        });
+        
+        setHoursJustificationModal(null);
         showToast("Voce manuale aggiunta.");
     };
 
