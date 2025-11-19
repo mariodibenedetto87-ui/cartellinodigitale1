@@ -1004,7 +1004,6 @@ const App: React.FC = () => {
     const handleDeleteEntry = async (dateKey: string, entryId: string) => {
         if (!session) return;
         
-        alert(`handleDeleteEntry chiamato! dateKey: ${dateKey}, entryId: ${entryId}`);
         console.log('🗑️ handleDeleteEntry chiamato:', { dateKey, entryId });
         console.log('📊 State prima della delete:', { 
             allLogsKeys: Object.keys(allLogs),

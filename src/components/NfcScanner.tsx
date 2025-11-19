@@ -76,10 +76,10 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
   const handleClick = async () => {
     if (disabled || isAnimating) return;
 
-    // Haptic feedback immediato
-    haptic(HapticType.MEDIUM);
-
     if (nfcSupported) {
+      // Haptic feedback leggero prima di avviare NFC
+      haptic(HapticType.LIGHT);
+      
       try {
         const ndef = new window.NDEFReader();
         const controller = new AbortController();
@@ -126,7 +126,8 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
         haptic(HapticType.ERROR);
       }
     } else {
-      haptic(HapticType.SUCCESS); // Feedback di successo per simulazione
+      // Simulazione senza NFC - haptic prima di toggle
+      haptic(HapticType.LIGHT);
       onToggle();
       
       setIsAnimating(true);
