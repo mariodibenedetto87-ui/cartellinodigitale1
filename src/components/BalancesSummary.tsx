@@ -1,17 +1,18 @@
 import React, { useMemo, memo } from 'react';
-import { AllDayInfo, StatusItem } from '../types';
+import { AllDayInfo, StatusItem, AllManualOvertime } from '../types';
 import { calculateStatusUsage } from '../utils/statusUtils';
 import { getStatusItemDetails } from '../utils/leaveUtils';
 
 interface BalancesSummaryProps {
   allDayInfo: AllDayInfo;
   statusItems: StatusItem[];
+  allManualOvertime?: AllManualOvertime;
 }
 
-const BalancesSummary: React.FC<BalancesSummaryProps> = memo(({ allDayInfo, statusItems }) => {
+const BalancesSummary: React.FC<BalancesSummaryProps> = memo(({ allDayInfo, statusItems, allManualOvertime }) => {
   const currentYear = new Date().getFullYear();
   // FIX: Added missing `statusItems` argument to the function call and dependency array.
-  const usageData = useMemo(() => calculateStatusUsage(allDayInfo, currentYear, statusItems), [allDayInfo, currentYear, statusItems]);
+  const usageData = useMemo(() => calculateStatusUsage(allDayInfo, currentYear, statusItems, allManualOvertime), [allDayInfo, currentYear, statusItems, allManualOvertime]);
 
   // Select a few key balances to display. E.g., Ferie, Festività, and one with high usage.
   const keyBalanceCodes = useMemo(() => {
@@ -49,9 +50,10 @@ const BalancesSummary: React.FC<BalancesSummaryProps> = memo(({ allDayInfo, stat
       <div className="space-y-4">
         {balancesToShow.map(item => {
           const used = usageData[item.code] || 0;
-          const balance = item.entitlement - used;
+          // Per ACC (accredito) sommare, per GPO (consumo) sottrarre
+          const balance = item.class === 'ACC' ? item.entitlement + used : item.entitlement - used;
           const details = getStatusItemDetails(`code-${item.code}`, statusItems);
-          const progress = item.entitlement > 0 ? (used / item.entitlement) * 100 : 0;
+          const progress = item.entitlement > 0 ? (Math.abs(used) / item.entitlement) * 100 : 0;
           
           return (
             <div key={item.code} className="p-3 rounded-xl bg-white/50 dark:bg-slate-700/30 backdrop-blur-sm border border-gray-200 dark:border-slate-600 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all duration-300">

@@ -191,7 +191,7 @@ const DashboardPage: React.FC<DashboardPageProps> = (props) => {
         ),
         plannerCard: <PlannerCard onOpen={() => onOpenRangePlanner()} />,
         offerCard: <OfferCard settings={offerSettings} />,
-        balancesSummary: <BalancesSummary allDayInfo={allDayInfo} statusItems={statusItems} />,
+        balancesSummary: <BalancesSummary allDayInfo={allDayInfo} statusItems={statusItems} allManualOvertime={allManualOvertime} />,
         monthlySummary: <MonthlySummary allLogs={allLogs} allDayInfo={allDayInfo} workSettings={workSettings} selectedDate={selectedDate} onDateChange={onSetSelectedDate} />,
         weeklySummary: (
             <WeeklySummary 
