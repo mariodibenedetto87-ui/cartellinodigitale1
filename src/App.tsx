@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { supabase } from './supabaseClient';
 import { Session } from '@supabase/supabase-js';
 import { WorkStatus, AllTimeLogs, TimeEntry, WorkSettings, AllDayInfo, StatusItem, DashboardLayout, WidgetVisibility, AllManualOvertime, ManualOvertimeType, SavedRotation, ManualOvertimeEntry, DayInfo, LeaveType, ShiftType, OfferSettings, AllMealVouchers, ThemeSettings } from './types';
@@ -10,9 +10,10 @@ import { defaultStatusItems } from './data/statusItems';
 import Auth from './components/Auth';
 import Header from './components/Header';
 import DashboardPage from './pages/DashboardPage';
-import CalendarPage from './pages/CalendarPage';
-import SettingsPage from './components/SettingsPage';
-import BalancesPage from './pages/BalancesPage';
+// Lazy load pagine pesanti per code splitting
+const CalendarPage = lazy(() => import('./pages/CalendarPage'));
+const SettingsPage = lazy(() => import('./components/SettingsPage'));
+const BalancesPage = lazy(() => import('./pages/BalancesPage'));
 import QuickLeaveModal from './components/QuickLeaveModal';
 import Toast from './components/Toast';
 import AddTimeEntryModal from './components/AddTimeEntryModal';
@@ -27,6 +28,7 @@ import GlobalSearch from './components/GlobalSearch';
 import InstallPrompt from './components/InstallPrompt';
 import { offlineManager } from './utils/offlineManager';
 import { syncWithDatabase } from './utils/syncManager';
+import { PageLoader } from './utils/lazyComponents';
 
 type Page = 'dashboard' | 'calendar' | 'settings' | 'balances';
 type ToastMessage = { id: number; message: string; type: 'success' | 'error'; };
@@ -336,6 +338,7 @@ const App: React.FC = () => {
     }, [session, showToast]);
 
     // --- DATA PERSISTENCE ---
+    // Ottimizzato: debounce aumentato da 2s a 5s per ridurre chiamate al database
     const debouncedSaveSettings = useCallback(debounce(async (newSettings) => {
         if (!session) return;
         
@@ -370,7 +373,7 @@ const App: React.FC = () => {
         } catch (err: any) {
             showToast(`Errore: ${err.message}`, 'error');
         }
-    }, 2000), [session, showToast]);
+    }, 5000), [session, showToast]); // Ottimizzato: da 2000ms a 5000ms
 
     useEffect(() => {
         if (session && !loading) { debouncedSaveSettings(settings); }
@@ -1258,44 +1261,56 @@ const App: React.FC = () => {
                     onOpenRangePlanner={(options) => setRangePlannerOptions({ isOpen: true, startDate: options?.startDate || selectedDate })}
                 />;
             case 'calendar':
-                return <CalendarPage 
-                    allLogs={allLogs} allDayInfo={allDayInfo} allManualOvertime={allManualOvertime}
-                    workSettings={workSettings} statusItems={statusItems} savedRotations={savedRotations}
-                    onSetAllDayInfo={handleSetAllDayInfo}
-                    onEditEntry={(dateKey, entryId, ts, type) => handleEditEntry(dateKey, entryId, ts, type)}
-                    onDeleteEntry={(dateKey, entryId) => handleDeleteEntry(dateKey, entryId)}
-                    onOpenAddEntryModal={setAddEntryModalDate}
-                    onOpenAddOvertimeModal={setAddOvertimeModalDate}
-                    onDeleteManualOvertime={handleDeleteManualOvertime} onImportData={handleImportData}
-                    onOpenQuickLeaveModal={(options) => setQuickLeaveModalOptions(options)}
-                    onSetSavedRotations={(r) => setSettings(s => ({ ...s, savedRotations: r }))}
-                    onOpenRangePlanner={(options) => setRangePlannerOptions({isOpen: true, startDate: options.startDate})}
-                />;
+                return (
+                    <Suspense fallback={<PageLoader />}>
+                        <CalendarPage 
+                            allLogs={allLogs} allDayInfo={allDayInfo} allManualOvertime={allManualOvertime}
+                            workSettings={workSettings} statusItems={statusItems} savedRotations={savedRotations}
+                            onSetAllDayInfo={handleSetAllDayInfo}
+                            onEditEntry={(dateKey, entryId, ts, type) => handleEditEntry(dateKey, entryId, ts, type)}
+                            onDeleteEntry={(dateKey, entryId) => handleDeleteEntry(dateKey, entryId)}
+                            onOpenAddEntryModal={setAddEntryModalDate}
+                            onOpenAddOvertimeModal={setAddOvertimeModalDate}
+                            onDeleteManualOvertime={handleDeleteManualOvertime} onImportData={handleImportData}
+                            onOpenQuickLeaveModal={(options) => setQuickLeaveModalOptions(options)}
+                            onSetSavedRotations={(r) => setSettings(s => ({ ...s, savedRotations: r }))}
+                            onOpenRangePlanner={(options) => setRangePlannerOptions({isOpen: true, startDate: options.startDate})}
+                        />
+                    </Suspense>
+                );
             case 'balances':
-                return <BalancesPage 
-                    allDayInfo={allDayInfo} 
-                    statusItems={statusItems} 
-                    allLogs={allLogs} 
-                    workSettings={workSettings} 
-                    allManualOvertime={allManualOvertime}
-                    allMealVouchers={allMealVouchers}
-                    onOpenAddOvertimeModal={setAddOvertimeModalDate}
-                />;
+                return (
+                    <Suspense fallback={<PageLoader />}>
+                        <BalancesPage 
+                            allDayInfo={allDayInfo} 
+                            statusItems={statusItems} 
+                            allLogs={allLogs} 
+                            workSettings={workSettings} 
+                            allManualOvertime={allManualOvertime}
+                            allMealVouchers={allMealVouchers}
+                            onOpenAddOvertimeModal={setAddOvertimeModalDate}
+                        />
+                    </Suspense>
+                );
             case 'settings':
-                return <SettingsPage 
-                    workSettings={workSettings} offerSettings={offerSettings} themeSettings={settings.themeSettings}
-                    dashboardLayout={dashboardLayout}
-                    widgetVisibility={widgetVisibility} savedRotations={savedRotations} statusItems={statusItems}
-                    allDayInfo={allDayInfo}
-                    onSaveWorkSettings={(s) => setSettings(prev => ({...prev, workSettings: s}))}
-                    onSaveOfferSettings={(s) => setSettings(prev => ({...prev, offerSettings: s}))}
-                    onSaveThemeSettings={(s) => setSettings(prev => ({...prev, themeSettings: s}))}
-                    onSaveDashboardLayout={(l) => setSettings(prev => ({...prev, dashboardLayout: l}))}
-                    onSaveWidgetVisibility={(v) => setSettings(prev => ({...prev, widgetVisibility: v}))}
-                    onSaveSavedRotations={(r) => setSettings(prev => ({...prev, savedRotations: r}))}
-                    onSetStatusItems={(i) => setSettings(prev => ({...prev, statusItems: i}))}
-                    onShowToast={showToast}
-                />;
+                return (
+                    <Suspense fallback={<PageLoader />}>
+                        <SettingsPage 
+                            workSettings={workSettings} offerSettings={offerSettings} themeSettings={settings.themeSettings}
+                            dashboardLayout={dashboardLayout}
+                            widgetVisibility={widgetVisibility} savedRotations={savedRotations} statusItems={statusItems}
+                            allDayInfo={allDayInfo}
+                            onSaveWorkSettings={(s) => setSettings(prev => ({...prev, workSettings: s}))}
+                            onSaveOfferSettings={(s) => setSettings(prev => ({...prev, offerSettings: s}))}
+                            onSaveThemeSettings={(s) => setSettings(prev => ({...prev, themeSettings: s}))}
+                            onSaveDashboardLayout={(l) => setSettings(prev => ({...prev, dashboardLayout: l}))}
+                            onSaveWidgetVisibility={(v) => setSettings(prev => ({...prev, widgetVisibility: v}))}
+                            onSaveSavedRotations={(r) => setSettings(prev => ({...prev, savedRotations: r}))}
+                            onSetStatusItems={(i) => setSettings(prev => ({...prev, statusItems: i}))}
+                            onShowToast={showToast}
+                        />
+                    </Suspense>
+                );
             default: return null;
         }
     };

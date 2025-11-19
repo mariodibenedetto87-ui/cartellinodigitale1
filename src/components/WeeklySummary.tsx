@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { formatDuration, startOfWeek, addDays } from '../utils/timeUtils';
 
 interface WeeklySummaryProps {
@@ -18,22 +18,24 @@ interface WeeklySummaryProps {
   };
 }
 
-const StatBox: React.FC<{label: string, value: number, bgColor: string, textColor: string}> = ({label, value, bgColor, textColor}) => (
+const StatBox: React.FC<{label: string, value: number, bgColor: string, textColor: string}> = memo(({label, value, bgColor, textColor}) => (
     <div className={`${bgColor} p-3 rounded-lg text-center`}>
         <p className={`text-sm font-semibold ${textColor}`}>{label}</p>
         <p className="text-3xl font-bold text-slate-800 dark:text-white">{value}</p>
         <p className={`text-xs ${textColor}`}>Giorni</p>
     </div>
-);
+));
+StatBox.displayName = 'StatBox';
 
-const OvertimeRow: React.FC<{label: string, valueMs: number, color: string}> = ({label, valueMs, color}) => (
+const OvertimeRow: React.FC<{label: string, valueMs: number, color: string}> = memo(({label, valueMs, color}) => (
     <div className="flex justify-between items-center text-sm">
         <span className="text-gray-600 dark:text-slate-400">{label}</span>
         <span className={`font-bold ${color}`}>{formatDuration(valueMs)}</span>
     </div>
-);
+));
+OvertimeRow.displayName = 'OvertimeRow';
 
-const WeeklySummary: React.FC<WeeklySummaryProps> = ({ 
+const WeeklySummary: React.FC<WeeklySummaryProps> = memo(({ 
     selectedDate, onDateChange, workDays, vacationDays, permitDays, restDays, 
     totalWorkMs, excessHoursMs, overtimeDetails 
 }) => {
@@ -102,6 +104,7 @@ const WeeklySummary: React.FC<WeeklySummaryProps> = ({
         </div>
     </div>
   );
-};
+});
+WeeklySummary.displayName = 'WeeklySummary';
 
 export default WeeklySummary;

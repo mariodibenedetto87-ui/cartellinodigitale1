@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, memo } from 'react';
 import { AllDayInfo, StatusItem } from '../types';
 import { calculateStatusUsage } from '../utils/statusUtils';
 import { getStatusItemDetails } from '../utils/leaveUtils';
@@ -8,7 +8,7 @@ interface BalancesSummaryProps {
   statusItems: StatusItem[];
 }
 
-const BalancesSummary: React.FC<BalancesSummaryProps> = ({ allDayInfo, statusItems }) => {
+const BalancesSummary: React.FC<BalancesSummaryProps> = memo(({ allDayInfo, statusItems }) => {
   const currentYear = new Date().getFullYear();
   // FIX: Added missing `statusItems` argument to the function call and dependency array.
   const usageData = useMemo(() => calculateStatusUsage(allDayInfo, currentYear, statusItems), [allDayInfo, currentYear, statusItems]);
@@ -79,6 +79,7 @@ const BalancesSummary: React.FC<BalancesSummaryProps> = ({ allDayInfo, statusIte
       </div>
     </div>
   );
-};
+});
+BalancesSummary.displayName = 'BalancesSummary';
 
 export default BalancesSummary;

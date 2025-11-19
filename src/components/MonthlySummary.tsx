@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, memo } from 'react';
 import { AllTimeLogs, AllDayInfo, WorkSettings } from '../types';
 import { calculateWorkSummary, formatDuration, isSameMonth, addDays, formatDateKey, parseDateKey } from '../utils/timeUtils';
 
@@ -10,15 +10,15 @@ interface MonthlySummaryProps {
   onDateChange: (date: Date) => void;
 }
 
-const StatCard: React.FC<{label: string, value: string | number, colorClasses: string}> = ({label, value, colorClasses}) => (
+const StatCard: React.FC<{label: string, value: string | number, colorClasses: string}> = memo(({label, value, colorClasses}) => (
     <div className={`p-3 rounded-lg ${colorClasses}`}>
         <p className="text-sm font-semibold opacity-80">{label}</p>
         <p className="text-3xl font-bold">{value}</p>
     </div>
-);
+));
+StatCard.displayName = 'StatCard';
 
-
-const MonthlySummary: React.FC<MonthlySummaryProps> = ({ allLogs, allDayInfo, workSettings, selectedDate, onDateChange }) => {
+const MonthlySummary: React.FC<MonthlySummaryProps> = memo(({ allLogs, allDayInfo, workSettings, selectedDate, onDateChange }) => {
   
   const handleMonthNavigation = (months: number) => {
       const newDate = new Date(selectedDate);
@@ -113,6 +113,7 @@ const MonthlySummary: React.FC<MonthlySummaryProps> = ({ allLogs, allDayInfo, wo
         </div>
     </div>
   );
-};
+});
+MonthlySummary.displayName = 'MonthlySummary';
 
 export default MonthlySummary;
