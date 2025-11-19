@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { TimeEntry, WorkSettings, DayInfo, StatusItem, ManualOvertimeEntry } from '../types';
 import { calculateWorkSummary, formatDuration } from '../utils/timeUtils';
 import EditTimeEntryModal from './EditTimeEntryModal';
+import { haptic, HapticType } from '../utils/haptics';
 // import { getStatusItemDetails } from '../utils/leaveUtils'; // Modulo non trovato
 // import { generateGoogleCalendarUrl, CalendarEvent } from '../utils/calendarUtils'; // Modulo non trovato
 // import { generateSingleEventICS } from '../utils/icsUtils'; // Modulo non trovato
@@ -354,11 +355,16 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                                             </div>
                                         </div>
                                         <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => setEditingEntry({ entry, id: entry.id })} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600" aria-label="Modifica timbratura">
+                                            <button onClick={() => {
+                                                haptic(HapticType.LIGHT);
+                                                setEditingEntry({ entry, id: entry.id });
+                                            }} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600" aria-label="Modifica timbratura">
                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z" /></svg>
                                             </button>
                                             <button onClick={() => {
+                                                haptic(HapticType.LIGHT);
                                                 if (window.confirm('🗑️ Vuoi eliminare questa timbratura?')) {
+                                                    haptic(HapticType.WARNING);
                                                     onDeleteEntry(dateKey, entry.id);
                                                 }
                                             }} className="p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50" aria-label="Elimina timbratura">
@@ -417,7 +423,13 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                                             {entry.note && <p className="text-xs text-gray-600 dark:text-slate-600 mt-1 italic">"{entry.note}"</p>}
                                         </div>
                                         <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => onDeleteManualOvertime(dateKey, entry.id)} className="p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50" aria-label="Elimina voce manuale">
+                                            <button onClick={() => {
+                                                haptic(HapticType.LIGHT);
+                                                if (window.confirm('🗑️ Vuoi eliminare questa voce di straordinario?')) {
+                                                    haptic(HapticType.WARNING);
+                                                    onDeleteManualOvertime(dateKey, entry.id);
+                                                }
+                                            }} className="p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50" aria-label="Elimina voce manuale">
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                             </button>
                                         </div>

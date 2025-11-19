@@ -1073,6 +1073,8 @@ const App: React.FC = () => {
             return newLogs;
         });
         
+        // Mostra feedback di successo
+        showToast('✅ Timbratura eliminata con successo', 'success');
         console.log('⏳ State update schedulato');
         
         // Auto-calcolo buono pasto dopo eliminazione (in modo asincrono)
