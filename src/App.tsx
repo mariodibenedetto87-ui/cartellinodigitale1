@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { supabase } from './supabaseClient';
 import { Session } from '@supabase/supabase-js';
-import { WorkStatus, AllTimeLogs, TimeEntry, WorkSettings, AllDayInfo, StatusItem, DashboardLayout, WidgetVisibility, AllManualOvertime, ManualOvertimeType, SavedRotation, ManualOvertimeEntry, DayInfo, LeaveType, ShiftType, OfferSettings, AllMealVouchers, ThemeSettings } from './types';
+import { WorkStatus, AllTimeLogs, TimeEntry, WorkSettings, AllDayInfo, StatusItem, DashboardLayout, WidgetVisibility, AllManualOvertime, ManualOvertimeType, SavedRotation, ManualOvertimeEntry, DayInfo, LeaveType, ShiftType, OfferSettings, AllMealVouchers, ThemeSettings, WorkLocation } from './types';
 import { formatDateKey, formatDuration, addDays, parseDateKey } from './utils/timeUtils';
 import { scheduleReminders, requestNotificationPermission, clearScheduledNotifications } from './utils/notificationUtils';
 import { generateSmartNotifications, SmartNotification } from './utils/smartNotifications';
@@ -28,9 +28,11 @@ import ConnectionStatus from './components/ConnectionStatus';
 import GlobalSearch from './components/GlobalSearch';
 import InstallPrompt from './components/InstallPrompt';
 import IOSInstallPrompt from './components/IOSInstallPrompt';
+import { GeofenceNotification } from './components/GeofenceNotification';
 import { offlineManager } from './utils/offlineManager';
 import { syncWithDatabase } from './utils/syncManager';
 import { PageLoader } from './utils/lazyComponents';
+import { useGeofencing } from './hooks/useGeofencing';
 
 type Page = 'dashboard' | 'calendar' | 'settings' | 'balances';
 type ToastMessage = { id: number; message: string; type: 'success' | 'error'; };
@@ -65,6 +67,10 @@ const App: React.FC = () => {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [toasts, setToasts] = useState<ToastMessage[]>([]);
     const [smartNotifications, setSmartNotifications] = useState<SmartNotification[]>([]);
+    const [workLocation, setWorkLocation] = useState<WorkLocation | null>(() => {
+        const saved = localStorage.getItem('workLocation');
+        return saved ? JSON.parse(saved) : null;
+    });
     
     // All settings are now grouped into one state for easier Supabase management
     const [settings, setSettings] = useState<{
@@ -119,6 +125,7 @@ const App: React.FC = () => {
     const [mealVoucherModalDate, setMealVoucherModalDate] = useState<Date | null>(null);
     const [rangePlannerOptions, setRangePlannerOptions] = useState<{isOpen: boolean, startDate?: Date}>({isOpen: false});
     const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
+    const [geofenceNotification, setGeofenceNotification] = useState<{ distance: number; shiftStartHour?: number } | null>(null);
     
     // ANTI-DUPLICATE FLAGS
     const [isTogglingRef, setIsTogglingRef] = useState(false);
@@ -133,6 +140,41 @@ const App: React.FC = () => {
         setToasts(prev => [...prev, { id, message, type }]);
         setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
     }, []);
+
+    // GEOFENCING - Monitor work location and notify user
+    const todayShift = settings.workSettings.shifts.find(s => {
+        const now = new Date();
+        const currentHour = now.getHours();
+        return s.startHour !== null && currentHour >= s.startHour - 1 && currentHour <= (s.startHour ?? 0) + 1;
+    });
+
+    useGeofencing({
+        workLocation,
+        enabled: !!workLocation && workStatus === WorkStatus.ClockedOut,
+        onEnterWorkZone: (distance) => {
+            // Show notification only if not already shown in last 4 hours
+            const lastShown = localStorage.getItem('lastGeofenceNotification');
+            const hoursSinceLastShown = lastShown 
+                ? (Date.now() - parseInt(lastShown)) / (1000 * 60 * 60)
+                : 999;
+
+            if (hoursSinceLastShown > 4) {
+                setGeofenceNotification({
+                    distance,
+                    shiftStartHour: todayShift?.startHour ?? undefined,
+                });
+                localStorage.setItem('lastGeofenceNotification', Date.now().toString());
+            }
+        },
+        onExitWorkZone: (distance) => {
+            console.log(`Sei uscito dalla zona lavoro (${distance}m)`);
+        },
+        onShiftStartReminder: (shiftStartHour) => {
+            showToast(`⏰ Il tuo turno inizia alle ${shiftStartHour}:00`, 'success');
+        },
+        shiftStartHour: todayShift?.startHour ?? undefined,
+        notifyMinutesBefore: 15,
+    });
 
     // OFFLINE SYNC HANDLER
     const handleSyncRequest = useCallback(async () => {
@@ -1339,6 +1381,7 @@ const App: React.FC = () => {
                             dashboardLayout={dashboardLayout}
                             widgetVisibility={widgetVisibility} savedRotations={savedRotations} statusItems={statusItems}
                             allDayInfo={allDayInfo}
+                            workLocation={workLocation}
                             onSaveWorkSettings={(s) => setSettings(prev => ({...prev, workSettings: s}))}
                             onSaveOfferSettings={(s) => setSettings(prev => ({...prev, offerSettings: s}))}
                             onSaveThemeSettings={(s) => setSettings(prev => ({...prev, themeSettings: s}))}
@@ -1346,6 +1389,14 @@ const App: React.FC = () => {
                             onSaveWidgetVisibility={(v) => setSettings(prev => ({...prev, widgetVisibility: v}))}
                             onSaveSavedRotations={(r) => setSettings(prev => ({...prev, savedRotations: r}))}
                             onSetStatusItems={(i) => setSettings(prev => ({...prev, statusItems: i}))}
+                            onSaveWorkLocation={(location) => {
+                                setWorkLocation(location);
+                                localStorage.setItem('workLocation', JSON.stringify(location));
+                            }}
+                            onRemoveWorkLocation={() => {
+                                setWorkLocation(null);
+                                localStorage.removeItem('workLocation');
+                            }}
                             onShowToast={showToast}
                         />
                     </Suspense>
@@ -1473,6 +1524,21 @@ const App: React.FC = () => {
                         setSelectedDate(date);
                         setCurrentPage('calendar');
                     }}
+                />
+            )}
+            
+            {/* Geofence Notification */}
+            {geofenceNotification && workLocation && (
+                <GeofenceNotification
+                    isOpen={true}
+                    workLocationName={workLocation.name}
+                    distance={geofenceNotification.distance}
+                    shiftStartHour={geofenceNotification.shiftStartHour}
+                    onClockIn={async () => {
+                        setGeofenceNotification(null);
+                        await handleToggle();
+                    }}
+                    onDismiss={() => setGeofenceNotification(null)}
                 />
             )}
             

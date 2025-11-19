@@ -1,13 +1,14 @@
 
 
 import React, { useState, useRef, useEffect } from 'react';
-import { WorkSettings, OfferSettings, DashboardLayout, WidgetVisibility, SavedRotation, StatusItem, AllDayInfo, Shift, ThemeSettings } from '../types';
+import { WorkSettings, OfferSettings, DashboardLayout, WidgetVisibility, SavedRotation, StatusItem, AllDayInfo, Shift, ThemeSettings, WorkLocation } from '../types';
 import { calculateStatusUsage } from '../utils/statusUtils';
 import StatusItemModal from './modals/StatusItemModal';
 import ShiftModal from './modals/ShiftModal';
 import ThemeColorPicker from './ThemeColorPicker';
 import DashboardLayoutEditor from './DashboardLayoutEditor';
 import PushNotificationsSettings from './PushNotificationsSettings';
+import { WorkLocationSettings } from './WorkLocationSettings';
 import { formatHoursDecimal } from '../utils/timeUtils';
 import { useAppContext } from '../contexts/AppContext';
 import { useAppLogic } from '../hooks/useAppLogic';
@@ -21,6 +22,7 @@ interface SettingsPageProps {
   savedRotations?: SavedRotation[];
   statusItems?: StatusItem[];
   allDayInfo?: AllDayInfo;
+  workLocation?: WorkLocation | null;
   onSaveWorkSettings?: (settings: WorkSettings) => void;
   onSaveOfferSettings?: (settings: OfferSettings) => void;
   onSaveThemeSettings?: (settings: ThemeSettings) => void;
@@ -28,6 +30,8 @@ interface SettingsPageProps {
   onSaveWidgetVisibility?: (visibility: WidgetVisibility) => void;
   onSaveSavedRotations?: (rotations: SavedRotation[]) => void;
   onSetStatusItems?: (items: StatusItem[]) => void;
+  onSaveWorkLocation?: (location: WorkLocation) => void;
+  onRemoveWorkLocation?: () => void;
   onShowToast?: (message: string, type?: 'success' | 'error') => void;
 }
 
@@ -616,6 +620,19 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
                 )}
             </div>
         </div>
+
+        {/* Work Location Section */}
+        <WorkLocationSettings
+          workLocation={props.workLocation ?? null}
+          onSave={(location) => {
+            props.onSaveWorkLocation?.(location);
+            onShowToast('Posizione lavoro salvata!', 'success');
+          }}
+          onRemove={() => {
+            props.onRemoveWorkLocation?.();
+            onShowToast('Posizione lavoro rimossa', 'success');
+          }}
+        />
 
         {/* Push Notifications Section */}
         <PushNotificationsSettings onShowToast={onShowToast} />

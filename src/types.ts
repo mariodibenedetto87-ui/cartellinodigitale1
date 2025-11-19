@@ -129,6 +129,13 @@ export interface SavedRotation {
     pattern: ShiftType[];
 }
 
+export interface WorkLocation {
+    latitude: number;
+    longitude: number;
+    radius: number; // meters
+    name: string;
+}
+
 // DASHBOARD
 export interface DashboardLayout {
     main: string[];
