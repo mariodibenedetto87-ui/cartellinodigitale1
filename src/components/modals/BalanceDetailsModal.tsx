@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
-import { StatusItem, AllDayInfo } from '../../types';
+import { StatusItem, AllDayInfo, AllManualOvertime } from '../../types';
 
 interface BalanceDetailsModalProps {
   statusItem: StatusItem;
   allDayInfo: AllDayInfo;
+  allManualOvertime?: AllManualOvertime;
   selectedYear: number;
   onClose: () => void;
 }
@@ -26,6 +27,7 @@ const dayNames = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', '
 const BalanceDetailsModal: React.FC<BalanceDetailsModalProps> = ({
   statusItem,
   allDayInfo,
+  allManualOvertime,
   selectedYear,
   onClose,
 }) => {
@@ -42,6 +44,7 @@ const BalanceDetailsModal: React.FC<BalanceDetailsModalProps> = ({
     const entries: UsageEntry[] = [];
     const monthlyTotals: { [month: number]: number } = {};
 
+    // Processa allDayInfo (permessi/ferie da calendario)
     Object.entries(allDayInfo).forEach(([dateKey, dayInfo]) => {
       const date = new Date(dateKey);
       const year = date.getFullYear();
@@ -75,11 +78,42 @@ const BalanceDetailsModal: React.FC<BalanceDetailsModalProps> = ({
       }
     });
 
+    // Processa allManualOvertime (straordinari, corsi, recuperi)
+    if (allManualOvertime) {
+      Object.entries(allManualOvertime).forEach(([dateKey, overtimeEntries]) => {
+        const date = new Date(dateKey);
+        const year = date.getFullYear();
+
+        if (year === selectedYear) {
+          overtimeEntries.forEach(entry => {
+            const entryTypeStr = `code-${statusItem.code}`;
+            
+            if (entry.type === entryTypeStr) {
+              const month = date.getMonth();
+              const monthName = monthNames[month];
+              const dayName = dayNames[date.getDay()];
+              const hours = entry.durationMs / (1000 * 60 * 60);
+
+              entries.push({
+                date: dateKey,
+                amount: hours,
+                month,
+                monthName,
+                dayName,
+              });
+
+              monthlyTotals[month] = (monthlyTotals[month] || 0) + hours;
+            }
+          });
+        }
+      });
+    }
+
     // Ordina per data
     entries.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
     return { entries, monthlyTotals };
-  }, [allDayInfo, selectedYear, statusItem]);
+  }, [allDayInfo, allManualOvertime, selectedYear, statusItem]);
 
   const totalUsed = useMemo(() => {
     return usageDetails.entries.reduce((sum, entry) => sum + entry.amount, 0);

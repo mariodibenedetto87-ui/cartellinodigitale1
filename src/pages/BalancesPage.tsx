@@ -182,6 +182,7 @@ const BalancesPage: React.FC<BalancesPageProps> = (props) => {
         <BalanceDetailsModal
           statusItem={selectedStatusItem}
           allDayInfo={allDayInfo}
+          allManualOvertime={allManualOvertime}
           selectedYear={selectedYear}
           onClose={() => setSelectedStatusItem(null)}
         />
