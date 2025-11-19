@@ -190,8 +190,18 @@ const CalendarPage: React.FC<CalendarPageProps> = (props) => {
                                         type: Type.STRING, 
                                         description: 'Il tipo di giorno: "work" per giornate lavorative con timbrature, "leave" per ferie/permessi/malattia, "rest" per riposi/festivi, "absence" per assenze.' 
                                     },
-                                    clock_in: { type: Type.STRING, description: 'Orario della prima timbratura di entrata in formato HH:MM (solo se day_type è "work").' },
-                                    clock_out: { type: Type.STRING, description: 'Orario dell\'ultima timbratura di uscita in formato HH:MM (solo se day_type è "work").' },
+                                    timestamps: { 
+                                        type: Type.ARRAY, 
+                                        description: 'Array di TUTTE le timbrature del giorno in ordine cronologico. Ogni elemento è un oggetto con time (HH:MM) e type ("in" o "out"). Esempio: [{"time":"08:15","type":"in"},{"time":"12:30","type":"out"},{"time":"13:15","type":"in"},{"time":"17:45","type":"out"}]',
+                                        items: {
+                                            type: Type.OBJECT,
+                                            properties: {
+                                                time: { type: Type.STRING, description: 'Orario timbratura formato HH:MM' },
+                                                type: { type: Type.STRING, description: '"in" per entrata, "out" per uscita' }
+                                            },
+                                            required: ['time', 'type']
+                                        }
+                                    },
                                     work_code: { type: Type.STRING, description: 'Codice LAV del turno se presente (es. "11" per mattina, "12" per pomeriggio, "13" per sera, "14" per notte, "1023" per riposo).' },
                                     leave_type: { 
                                         type: Type.STRING, 
@@ -210,33 +220,71 @@ const CalendarPage: React.FC<CalendarPageProps> = (props) => {
 
 **Istruzioni Imperative per l'Estrazione Corretta:**
 
-1.  **Identifica Mese e Anno:** Trova il mese e l'anno nel documento (es. "OTTOBRE 2025") e usali per costruire una data completa in formato AAAA-MM-GG per ogni giorno.
+1.  **Identifica Mese e Anno:** 
+    Trova il mese e l'anno nel documento (es. "MARZO 2025", "GENNAIO 2025") e usali per costruire date complete in formato AAAA-MM-GG.
+    - Esempio: se trovi "MARZO 2025" e giorno "15" → data = "2025-03-15"
+    - Attenzione: usa il mese corretto (01-12) non il nome
 
 2.  **Determina il Tipo di Giorno (day_type):**
-    *   Se il giorno ha timbrature reali → day_type = "work"
-    *   Se il giorno ha descrizioni come "FERIE", "PERMESSI" → day_type = "leave"
-    *   Se il giorno ha "RIPOSO", "FESTIVO" → day_type = "rest"
-    *   Se il giorno è vuoto/assenza → day_type = "absence"
+    *   Timbrature reali presenti (orari tipo 08:30, 17:15) → day_type = "work"
+    *   Scritte "FERIE", "FER", "PERMESSI", "PERM" → day_type = "leave"
+    *   Scritte "RIPOSO", "RIP", "FESTIVO", "FEST" → day_type = "rest"
+    *   Riga completamente vuota o trattini → day_type = "absence"
 
 3.  **Per Giorni Lavorativi (day_type = "work"):**
-    *   Cerca colonne con intestazioni **"Timbrature"**, **"Entrata"**, **"Uscita"**, "E/U", "Entrata Effettiva", "Uscita Effettiva".
-    *   Estrai la **prima entrata** e mettila in \`clock_in\` (formato HH:MM)
-    *   Estrai l'**ultima uscita** e mettila in \`clock_out\` (formato HH:MM)
-    *   Se trovi un codice LAV (es. "11", "12", "13", "14", "1023"), mettilo in \`work_code\`
+    *   **PRIORITÀ TIMBRATURE REALI**: Cerca colonne "Timbrature", "Entrata Effettiva", "Uscita Effettiva", "E/U"
+    *   **IGNORA** colonne "Orario Programmato", "Teorico", "Previsto"
+    *   **ESTRAI TUTTE LE TIMBRATURE** in ordine cronologico nel campo timestamps
+    *   Ogni timbratura deve avere: time (formato HH:MM) e type ("in" o "out")
+    *   **Esempio con pausa pranzo**: 
+        - Timbrature trovate: 08:15 (E), 12:30 (U), 13:15 (E), 17:45 (U)
+        - Output timestamps: [{"time":"08:15","type":"in"},{"time":"12:30","type":"out"},{"time":"13:15","type":"in"},{"time":"17:45","type":"out"}]
+    *   **Validazione**: timbrature alternate (in→out→in→out), orari crescenti, tra 00:00 e 23:59
+    *   Codici LAV comuni: "11" (mattina), "12" (pomeriggio), "13" (sera), "14" (notte), "1023" (riposo)
 
 4.  **Per Assenze/Permessi (day_type = "leave"):**
-    *   Se trovi "FERIE" → leave_type = "holiday"
-    *   Se trovi "MALATTIA" → leave_type = "sick"
-    *   Se trovi "PERMESSI" o "PERMESSI LEGGE" → leave_type = "permit"
-    *   Se trovi "PARENTALE" → leave_type = "parental"
+    *   "FERIE", "FER" → leave_type = "holiday"
+    *   "MALATTIA", "MAL" → leave_type = "sick"
+    *   "PERMESSI", "PERM", "PERMESSI LEGGE", "104" → leave_type = "permit"
+    *   "PARENTALE", "MATERNITÀ", "PATERNITÀ" → leave_type = "parental"
 
 5.  **Note Aggiuntive:**
-    *   Metti nel campo \`note\` qualsiasi informazione extra trovata (es. "BLOCCO DEBITO", "ORDINARIO", "LAVORO AGILE")
+    *   Estrai informazioni extra: "BLOCCO DEBITO", "ORDINARIO", "LAVORO AGILE", "SMART WORKING", "STRAORDINARIO"
+    *   Se trovi ore lavorate o saldo, aggiungile alle note
 
-6.  **Regole Importanti:**
-    *   Ignora righe di riepilogo o totali
-    *   Ignora orari programmati/teorici se sono presenti timbrature reali
-    *   L'output finale deve essere un oggetto JSON valido con una chiave "days"`;
+6.  **Esempi Concreti:**
+    
+    Esempio 1 - Giorno lavorativo con pausa:
+    Riga cartellino: "15 | Lun | 08:15 | 12:30 | 13:15 | 17:45 | LAV 11 | 8.00h"
+    Output: { 
+        date: "2025-03-15", 
+        day_type: "work", 
+        timestamps: [
+            {"time":"08:15","type":"in"},
+            {"time":"12:30","type":"out"},
+            {"time":"13:15","type":"in"},
+            {"time":"17:45","type":"out"}
+        ],
+        work_code: "11",
+        note: "L'app calcolerà automaticamente il buono pasto (8.25h con pausa 45min = Eligibile)"
+    }
+    
+    Esempio 2 - Ferie:
+    Riga cartellino: "20 | Sab | FERIE | - | - | - |"
+    Output: { date: "2025-03-20", day_type: "leave", leave_type: "holiday" }
+    
+    Esempio 3 - Riposo:
+    Riga cartellino: "22 | Lun | RIPOSO | LAV 1023 | - |"
+    Output: { date: "2025-03-22", day_type: "rest", work_code: "1023" }
+
+7.  **Regole Critiche:**
+    *   ❌ IGNORA righe "TOTALE", "SALDO", "RIEPILOGO"
+    *   ❌ IGNORA orari teorici/programmati se ci sono timbrature reali
+    *   ❌ NON inventare dati mancanti
+    *   ✅ Estrai SOLO giorni con almeno una data valida
+    *   ✅ Formato orario SEMPRE HH:MM (es. "08:00" non "8:00")
+    *   ✅ Timbrature in ordine cronologico crescente
+    *   ✅ Se incerti, day_type = "absence" e aggiungi nota con dubbio`;
 
                 // Retry logic for API overload (503 errors)
                 const maxRetries = 3;
@@ -294,8 +342,88 @@ const CalendarPage: React.FC<CalendarPageProps> = (props) => {
                     throw new Error("InvalidDataStructure");
                 }
 
-                onImportData(parsedData.days);
-                setImportStatus({ message: 'Importazione completata con successo!', type: 'success' });
+                // Validazione e correzione automatica dei dati
+                const validatedDays = parsedData.days
+                    .filter((day: any) => {
+                        // Rimuovi righe senza data valida
+                        if (!day.date || !/^\d{4}-\d{2}-\d{2}$/.test(day.date)) {
+                            console.warn('Data non valida ignorata:', day);
+                            return false;
+                        }
+                        return true;
+                    })
+                    .map((day: any) => {
+                        const validated = { ...day };
+
+                        // Valida e correggi timestamps array
+                        if (validated.timestamps && Array.isArray(validated.timestamps)) {
+                            validated.timestamps = validated.timestamps
+                                .map((ts: any) => {
+                                    if (!ts.time || !ts.type) return null;
+                                    
+                                    // Correggi formato orario (es. "8:30" → "08:30")
+                                    let time = ts.time;
+                                    if (/^\d{1}:\d{2}$/.test(time)) {
+                                        time = '0' + time;
+                                    }
+                                    
+                                    return { time, type: ts.type };
+                                })
+                                .filter((ts: any) => ts !== null);
+                            
+                            // Valida ordine cronologico
+                            let lastMinutes = -1;
+                            let hasError = false;
+                            for (const ts of validated.timestamps) {
+                                const [h, m] = ts.time.split(':').map(Number);
+                                const minutes = h * 60 + m;
+                                if (minutes <= lastMinutes) {
+                                    hasError = true;
+                                    break;
+                                }
+                                lastMinutes = minutes;
+                            }
+                            
+                            if (hasError) {
+                                console.warn(`Timbrature non in ordine cronologico per ${validated.date}`);
+                                validated.note = (validated.note || '') + ' [Verifica ordine timbrature]';
+                            }
+                        }
+
+                        // Normalizza work_code (rimuovi spazi)
+                        if (validated.work_code) {
+                            validated.work_code = validated.work_code.toString().trim();
+                        }
+
+                        // Normalizza leave_type
+                        if (validated.leave_type) {
+                            const leaveMap: Record<string, string> = {
+                                'ferie': 'holiday',
+                                'fer': 'holiday',
+                                'malattia': 'sick',
+                                'mal': 'sick',
+                                'permesso': 'permit',
+                                'permessi': 'permit',
+                                'perm': 'permit',
+                                '104': 'permit'
+                            };
+                            const normalized = leaveMap[validated.leave_type.toLowerCase()];
+                            if (normalized) validated.leave_type = normalized;
+                        }
+
+                        return validated;
+                    });
+
+                const skippedCount = parsedData.days.length - validatedDays.length;
+                const warningMsg = skippedCount > 0 
+                    ? ` (${skippedCount} righe ignorate per dati non validi)` 
+                    : '';
+
+                onImportData(validatedDays);
+                setImportStatus({ 
+                    message: `Importazione completata! ${validatedDays.length} giorni importati${warningMsg}`, 
+                    type: 'success' 
+                });
             } catch (error) {
                 console.error("Errore durante l'importazione del cartellino:", error);
                 let errorMessage = "Si è verificato un errore imprevisto. Riprova.";
@@ -486,6 +614,7 @@ const CalendarPage: React.FC<CalendarPageProps> = (props) => {
                     onOpenAddManualEntryModal={() => {}}
                     onDeleteManualOvertime={onDeleteManualOvertime}
                     onOpenAddOvertimeModal={() => onOpenAddOvertimeModal(selectedDate)}
+                    onOpenHoursMissingModal={(date) => onOpenQuickLeaveModal({ date })}
                     onOpenQuickLeaveModal={(date) => onOpenQuickLeaveModal({ date })}
                 />
             </aside>
@@ -545,9 +674,10 @@ const CalendarPage: React.FC<CalendarPageProps> = (props) => {
                                 onDeleteEntry={onDeleteEntry}
                                 onOpenAddEntryModal={onOpenAddEntryModal}
                                 onOpenAddManualEntryModal={() => {}}
-                                onDeleteManualOvertime={onDeleteManualOvertime}
-                                onOpenAddOvertimeModal={() => onOpenAddOvertimeModal(selectedDate)}
-                                onOpenQuickLeaveModal={(date) => onOpenQuickLeaveModal({ date })}
+                            onDeleteManualOvertime={onDeleteManualOvertime}
+                            onOpenAddOvertimeModal={() => onOpenAddOvertimeModal(selectedDate)}
+                            onOpenHoursMissingModal={(date) => onOpenQuickLeaveModal({ date })}
+                            onOpenQuickLeaveModal={(date) => onOpenQuickLeaveModal({ date })}
                             />
                         </div>
                     </aside>

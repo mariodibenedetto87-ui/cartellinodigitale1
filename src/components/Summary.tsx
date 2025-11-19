@@ -20,6 +20,7 @@ interface SummaryProps {
     onOpenAddEntryModal: (date: Date) => void;
     onOpenAddManualEntryModal: (date: Date) => void;
     onOpenAddOvertimeModal: (date: Date) => void;
+    onOpenHoursMissingModal?: (date: Date) => void; // Nuovo: per giustificare ore mancanti
     onDeleteManualOvertime: (dateKey: string, entryId: string) => void;
     onOpenQuickLeaveModal: (date: Date) => void;
 }
@@ -31,7 +32,7 @@ const CalendarIcon: React.FC<{className?: string}> = ({className}) => (
 );
 
 
-const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, workSettings, statusItems, manualOvertimeEntries, onEditEntry, onDeleteEntry, onOpenAddEntryModal, onOpenAddManualEntryModal, onOpenAddOvertimeModal, onDeleteManualOvertime, onOpenQuickLeaveModal }) => {
+const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, workSettings, statusItems, manualOvertimeEntries, onEditEntry, onDeleteEntry, onOpenAddEntryModal, onOpenAddManualEntryModal, onOpenAddOvertimeModal, onOpenHoursMissingModal, onDeleteManualOvertime, onOpenQuickLeaveModal }) => {
     const dateKey = date.toISOString().split('T')[0];
     
     console.log('🔄 Summary re-render:', { 
@@ -318,18 +319,28 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                         <h4 className="text-md font-semibold text-gray-700 dark:text-slate-300">Timbrature del Giorno</h4>
                         <div className="flex gap-2">
                             {entries.length > 0 && (
-                                <button 
-                                    onClick={() => onOpenAddOvertimeModal(date)} 
-                                    className="text-sm bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-300 font-semibold py-1 px-3 rounded-lg hover:bg-orange-200 dark:hover:bg-orange-900 transition-colors"
-                                >
-                                    ⚡ Straordinari
-                                </button>
+                                <>
+                                    <button 
+                                        onClick={() => onOpenAddOvertimeModal(date)} 
+                                        className="text-xs bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-300 font-semibold py-1.5 px-2.5 rounded-lg hover:bg-orange-200 dark:hover:bg-orange-900 transition-colors"
+                                        title="Giustifica ore extra (straordinari, corsi, formazione)"
+                                    >
+                                        ⚡ Ore+
+                                    </button>
+                                    <button 
+                                        onClick={() => onOpenHoursMissingModal ? onOpenHoursMissingModal(date) : onOpenQuickLeaveModal(date)} 
+                                        className="text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 font-semibold py-1.5 px-2.5 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors"
+                                        title="Giustifica ore mancanti (permessi, malattia)"
+                                    >
+                                        🏥 Ore-
+                                    </button>
+                                </>
                             )}
                             <button 
                                 onClick={() => onOpenAddEntryModal(date)} 
-                                className="text-sm bg-teal-100 dark:bg-teal-900/50 text-teal-600 dark:text-teal-300 font-semibold py-1 px-3 rounded-lg hover:bg-teal-200 dark:hover:bg-teal-900 transition-colors"
+                                className="text-xs bg-teal-100 dark:bg-teal-900/50 text-teal-600 dark:text-teal-300 font-semibold py-1.5 px-2.5 rounded-lg hover:bg-teal-200 dark:hover:bg-teal-900 transition-colors"
                             >
-                                Aggiungi
+                                ➕ Aggiungi
                             </button>
                         </div>
                     </div>

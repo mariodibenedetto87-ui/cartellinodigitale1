@@ -185,6 +185,7 @@ const DashboardPage: React.FC<DashboardPageProps> = (props) => {
                 onDeleteManualOvertime={onDeleteManualOvertime}
                 onOpenQuickLeaveModal={(date) => onOpenQuickLeaveModal({ date })}
                 onOpenAddOvertimeModal={onOpenAddOvertimeModal}
+                onOpenHoursMissingModal={(date) => onOpenQuickLeaveModal({ date })}
             />
         ),
         plannerCard: <PlannerCard onOpen={() => onOpenRangePlanner()} />,

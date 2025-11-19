@@ -18,7 +18,7 @@ import QuickLeaveModal from './components/QuickLeaveModal';
 import Toast from './components/Toast';
 import AddTimeEntryModal from './components/AddTimeEntryModal';
 import AddManualEntryModal from './components/AddManualEntryModal';
-import AddOvertimeModal from './components/AddOvertimeModal';
+import HoursJustificationModal from './components/HoursJustificationModal';
 import RangePlannerModal from './components/RangePlannerModal';
 import MealVoucherModal from './components/MealVoucherModal';
 import Onboarding from './components/Onboarding';
@@ -113,7 +113,7 @@ const App: React.FC = () => {
     const [quickLeaveModalOptions, setQuickLeaveModalOptions] = useState<{date: Date; highlightedLeave?: LeaveType} | null>(null);
     const [addEntryModalDate, setAddEntryModalDate] = useState<Date | null>(null);
     const [addManualEntryModalDate, setAddManualEntryModalDate] = useState<Date | null>(null);
-    const [addOvertimeModalDate, setAddOvertimeModalDate] = useState<Date | null>(null);
+    const [hoursJustificationModal, setHoursJustificationModal] = useState<{ date: Date; mode: 'extra' | 'missing' } | null>(null);
     const [mealVoucherModalDate, setMealVoucherModalDate] = useState<Date | null>(null);
     const [rangePlannerOptions, setRangePlannerOptions] = useState<{isOpen: boolean, startDate?: Date}>({isOpen: false});
     const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
@@ -476,15 +476,32 @@ const App: React.FC = () => {
                     shiftId = shiftMap[code];
                 }
 
-                // Priority 2: Fallback to clock-in time if shift is still unknown AND day_type is work
-                if (!shiftId && day.day_type === 'work' && day.clock_in) {
-                    const inTime = day.clock_in.split(':').map(Number);
-                    if (!isNaN(inTime[0])) {
-                        const hour = inTime[0];
-                        if (hour >= 7 && hour < 13) shiftId = 'morning';
-                        else if (hour >= 13 && hour < 16) shiftId = 'afternoon';
-                        else if (hour >= 16 && hour < 21) shiftId = 'evening';
-                        else if (hour >= 21 || hour < 7) shiftId = 'night';
+                // Priority 2: Fallback to first timestamp if shift is still unknown AND day_type is work
+                if (!shiftId && day.day_type === 'work') {
+                    // Check for timestamps array (new format)
+                    if (day.timestamps && Array.isArray(day.timestamps) && day.timestamps.length > 0) {
+                        const firstIn = day.timestamps.find((ts: any) => ts.type === 'in');
+                        if (firstIn && firstIn.time) {
+                            const inTime = firstIn.time.split(':').map(Number);
+                            if (!isNaN(inTime[0])) {
+                                const hour = inTime[0];
+                                if (hour >= 7 && hour < 13) shiftId = 'morning';
+                                else if (hour >= 13 && hour < 16) shiftId = 'afternoon';
+                                else if (hour >= 16 && hour < 21) shiftId = 'evening';
+                                else if (hour >= 21 || hour < 7) shiftId = 'night';
+                            }
+                        }
+                    }
+                    // Backward compatibility: clock_in (old format)
+                    else if (day.clock_in) {
+                        const inTime = day.clock_in.split(':').map(Number);
+                        if (!isNaN(inTime[0])) {
+                            const hour = inTime[0];
+                            if (hour >= 7 && hour < 13) shiftId = 'morning';
+                            else if (hour >= 13 && hour < 16) shiftId = 'afternoon';
+                            else if (hour >= 16 && hour < 21) shiftId = 'evening';
+                            else if (hour >= 21 || hour < 7) shiftId = 'night';
+                        }
                     }
                 }
 
@@ -497,7 +514,36 @@ const App: React.FC = () => {
 
                 // --- Data Processing by Type ---
                 if (day.day_type === 'work') {
-                    if (day.clock_in && day.clock_out) {
+                    // NEW FORMAT: timestamps array (multiple punches)
+                    if (day.timestamps && Array.isArray(day.timestamps) && day.timestamps.length > 0) {
+                        if (!newLogs[dateKey]) newLogs[dateKey] = [];
+                        
+                        day.timestamps.forEach((ts: any) => {
+                            if (ts.time && ts.type) {
+                                const time = ts.time.split(':').map(Number);
+                                if (!isNaN(time[0])) {
+                                    const tsDate = parseDateKey(dateKey);
+                                    tsDate.setHours(time[0], time[1] || 0, 0, 0);
+                                    
+                                    // Handle overnight shifts: if OUT time < previous IN time, add 1 day
+                                    if (ts.type === 'out' && newLogs[dateKey].length > 0) {
+                                        const lastEntry = newLogs[dateKey][newLogs[dateKey].length - 1];
+                                        if (tsDate <= lastEntry.timestamp) {
+                                            tsDate.setDate(tsDate.getDate() + 1);
+                                        }
+                                    }
+                                    
+                                    newLogs[dateKey].push({ 
+                                        id: self.crypto.randomUUID(), 
+                                        timestamp: tsDate, 
+                                        type: ts.type as 'in' | 'out'
+                                    });
+                                }
+                            }
+                        });
+                    }
+                    // OLD FORMAT: clock_in / clock_out (backward compatibility)
+                    else if (day.clock_in && day.clock_out) {
                         const inTime = day.clock_in.split(':').map(Number);
                         const outTime = day.clock_out.split(':').map(Number);
                         if (!isNaN(inTime[0]) && !isNaN(outTime[0])) {
@@ -1257,7 +1303,7 @@ const App: React.FC = () => {
                     onOpenAddEntryModal={setAddEntryModalDate}
                     onOpenAddManualEntryModal={setAddManualEntryModalDate}
                     onDeleteManualOvertime={handleDeleteManualOvertime}
-                    onOpenAddOvertimeModal={setAddOvertimeModalDate}
+                    onOpenAddOvertimeModal={(date) => setHoursJustificationModal({ date, mode: 'extra' })}
                     onOpenMealVoucherModal={setMealVoucherModalDate}
                     onOpenRangePlanner={(options) => setRangePlannerOptions({ isOpen: true, startDate: options?.startDate || selectedDate })}
                 />;
@@ -1271,7 +1317,7 @@ const App: React.FC = () => {
                             onEditEntry={(dateKey, entryId, ts, type) => handleEditEntry(dateKey, entryId, ts, type)}
                             onDeleteEntry={(dateKey, entryId) => handleDeleteEntry(dateKey, entryId)}
                             onOpenAddEntryModal={setAddEntryModalDate}
-                            onOpenAddOvertimeModal={setAddOvertimeModalDate}
+                            onOpenAddOvertimeModal={(date) => setHoursJustificationModal({ date, mode: 'extra' })}
                             onDeleteManualOvertime={handleDeleteManualOvertime} onImportData={handleImportData}
                             onOpenQuickLeaveModal={(options) => setQuickLeaveModalOptions(options)}
                             onSetSavedRotations={(r) => setSettings(s => ({ ...s, savedRotations: r }))}
@@ -1289,7 +1335,7 @@ const App: React.FC = () => {
                             workSettings={workSettings} 
                             allManualOvertime={allManualOvertime}
                             allMealVouchers={allMealVouchers}
-                            onOpenAddOvertimeModal={setAddOvertimeModalDate}
+                            onOpenAddOvertimeModal={(date) => setHoursJustificationModal({ date, mode: 'extra' })}
                         />
                     </Suspense>
                 );
@@ -1376,13 +1422,14 @@ const App: React.FC = () => {
                     onSave={handleAddOvertime}
                 />
             )}
-            {addOvertimeModalDate && (
-                <AddOvertimeModal
-                    date={addOvertimeModalDate}
+            {hoursJustificationModal && (
+                <HoursJustificationModal
+                    date={hoursJustificationModal.date}
+                    mode={hoursJustificationModal.mode}
                     allLogs={allLogs}
                     allManualOvertime={allManualOvertime}
                     statusItems={settings.statusItems}
-                    onClose={() => setAddOvertimeModalDate(null)}
+                    onClose={() => setHoursJustificationModal(null)}
                     onSave={handleAddOvertime}
                     onDelete={handleDeleteManualOvertime}
                 />
