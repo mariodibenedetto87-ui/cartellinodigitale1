@@ -117,7 +117,19 @@ const HoursJustificationModal: React.FC<HoursJustificationModalProps> = ({
     }
 
     const durationMs = hrs * 60 * 60 * 1000;
-    onSave(dateKey, durationMs, selectedType.description, note || selectedType.description);
+    
+    // Determina il tipo corretto per il salvataggio
+    // Per overtime, usa 'diurnal' come default, per leave usa il codice
+    let saveType: string;
+    if (mode === 'extra') {
+      // Per ore extra, usa code-XXX se c'è un codice, altrimenti 'diurnal'
+      saveType = `code-${selectedType.code}`;
+    } else {
+      // Per ore mancanti (permessi, malattia), usa sempre code-XXX
+      saveType = `code-${selectedType.code}`;
+    }
+    
+    onSave(dateKey, durationMs, saveType, note || selectedType.description);
     
     // Reset form
     setHours('');

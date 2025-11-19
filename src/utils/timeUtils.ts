@@ -330,15 +330,23 @@ export const calculateWorkSummary = (
 
     manualOvertimeEntries.forEach(entry => {
         summary.totalWorkMs += entry.durationMs;
-        switch (entry.type) {
-            case 'diurnal': summary.overtimeDiurnalMs += entry.durationMs; break;
-            case 'nocturnal': summary.overtimeNocturnalMs += entry.durationMs; break;
-            case 'holiday': summary.overtimeHolidayMs += entry.durationMs; break;
-            case 'nocturnal-holiday': summary.overtimeNocturnalHolidayMs += entry.durationMs; break;
-            default:
-                // For any other type (e.g., 'code-2041' for a course), add to excess hours.
-                summary.excessHoursMs += entry.durationMs;
-                break;
+        
+        // Check if type is in code-XXXX format (e.g., 'code-2041' for a course)
+        if (entry.type.startsWith('code-')) {
+            // All code-based entries go to excess hours (straordinari/corsi/permessi)
+            summary.excessHoursMs += entry.durationMs;
+        } else {
+            // Legacy format support: specific type strings
+            switch (entry.type) {
+                case 'diurnal': summary.overtimeDiurnalMs += entry.durationMs; break;
+                case 'nocturnal': summary.overtimeNocturnalMs += entry.durationMs; break;
+                case 'holiday': summary.overtimeHolidayMs += entry.durationMs; break;
+                case 'nocturnal-holiday': summary.overtimeNocturnalHolidayMs += entry.durationMs; break;
+                default:
+                    // Unknown type, add to excess hours
+                    summary.excessHoursMs += entry.durationMs;
+                    break;
+            }
         }
     });
 
