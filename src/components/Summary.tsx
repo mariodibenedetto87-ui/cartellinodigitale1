@@ -32,6 +32,15 @@ const CalendarIcon: React.FC<{className?: string}> = ({className}) => (
 
 
 const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, workSettings, statusItems, manualOvertimeEntries, onEditEntry, onDeleteEntry, onOpenAddEntryModal, onOpenAddManualEntryModal, onOpenAddOvertimeModal, onDeleteManualOvertime, onOpenQuickLeaveModal }) => {
+    const dateKey = date.toISOString().split('T')[0];
+    
+    console.log('🔄 Summary re-render:', { 
+        dateKey, 
+        entriesCount: entries.length,
+        entryIds: entries.map(e => e.id),
+        entryTimes: entries.map(e => new Date(e.timestamp).toLocaleTimeString())
+    });
+    
     const [editingEntry, setEditingEntry] = useState<{ entry: TimeEntry; id: string } | null>(null);
     const [isCalendarPopoverOpen, setCalendarPopoverOpen] = useState(false);
     const popoverRef = useRef<HTMLDivElement>(null);
@@ -64,7 +73,7 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
     
-    const dateKey = date.toISOString().split('T')[0];
+    // dateKey già dichiarato all'inizio del componente
     const { summary, intervals } = calculateWorkSummary(date, entries, workSettings, dayInfo, nextDayInfo, manualOvertimeEntries);
     
     const totalOvertimeMs = summary.overtimeDiurnalMs + summary.overtimeNocturnalMs + summary.overtimeHolidayMs + summary.overtimeNocturnalHolidayMs;
@@ -344,7 +353,11 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                                             <button onClick={() => setEditingEntry({ entry, id: entry.id })} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600" aria-label="Modifica timbratura">
                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z" /></svg>
                                             </button>
-                                            <button onClick={() => onDeleteEntry(dateKey, entry.id)} className="p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50" aria-label="Elimina timbratura">
+                                            <button onClick={() => {
+                                                console.log('🖱️ Click su elimina nel Summary:', { dateKey, entryId: entry.id, timestamp: entry.timestamp });
+                                                console.log('📋 Entries attuali nel Summary:', entries.map(e => ({ id: e.id, type: e.type, time: new Date(e.timestamp).toLocaleTimeString() })));
+                                                onDeleteEntry(dateKey, entry.id);
+                                            }} className="p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50" aria-label="Elimina timbratura">
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                             </button>
                                         </div>
