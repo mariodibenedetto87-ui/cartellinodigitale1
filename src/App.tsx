@@ -896,47 +896,38 @@ const App: React.FC = () => {
         
         const newDateKey = formatDateKey(newTimestamp);
         
+        // Aggiorna immediatamente lo stato locale
         setAllLogs(prev => {
-            // Create completely new object structure to force React re-render
-            const newLogs: AllTimeLogs = {};
+            const newLogs = { ...prev };
             
             const entryIndex = prev[dateKey]?.findIndex(e => e.id === entryId);
             if (entryIndex === -1 || typeof entryIndex === 'undefined') return prev;
             
             const entry = prev[dateKey][entryIndex];
+            const updatedEntry = { ...entry, timestamp: newTimestamp, type: newType };
 
-            // Rebuild the entire object
-            Object.keys(prev).forEach(key => {
-                if (key === dateKey) {
-                    // Remove from old position
-                    const filtered = prev[key].filter((_, idx) => idx !== entryIndex);
-                    if (filtered.length > 0) {
-                        newLogs[key] = [...filtered];
-                    }
-                } else if (key === newDateKey) {
-                    // If target date already has entries, add the modified entry
-                    const updatedEntry = { ...entry, timestamp: newTimestamp, type: newType };
-                    newLogs[key] = [...prev[key], updatedEntry].sort((a, b) => 
-                        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-                    );
-                } else {
-                    // Copy all other dates
-                    newLogs[key] = [...prev[key]];
-                }
-            });
+            // Rimuovi dalla vecchia posizione
+            const remainingInOldDate = prev[dateKey].filter((_, idx) => idx !== entryIndex);
+            if (remainingInOldDate.length > 0) {
+                newLogs[dateKey] = [...remainingInOldDate];
+            } else {
+                delete newLogs[dateKey];
+            }
 
-            // If newDateKey didn't exist before, create it
-            if (!prev[newDateKey] && dateKey !== newDateKey) {
-                const updatedEntry = { ...entry, timestamp: newTimestamp, type: newType };
+            // Aggiungi alla nuova posizione
+            if (newLogs[newDateKey]) {
+                newLogs[newDateKey] = [...newLogs[newDateKey], updatedEntry].sort((a, b) => 
+                    new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+                );
+            } else {
                 newLogs[newDateKey] = [updatedEntry];
             }
 
             return newLogs;
         });
         
-        // Auto-calcolo buono pasto per il giorno modificato
+        // Auto-calcolo buono pasto per il giorno modificato (in modo asincrono)
         setTimeout(() => {
-            // Per il nuovo giorno, usa le entries aggiornate (closure problem fixed)
             setAllLogs(currentLogs => {
                 const updatedEntries = currentLogs[newDateKey] || [];
                 if (updatedEntries.length > 0) {
@@ -961,40 +952,33 @@ const App: React.FC = () => {
     const handleDeleteEntry = async (dateKey: string, entryId: string) => {
         if (!session) return;
         
-        // Prima salva le entries prima dell'eliminazione per il calcolo voucher
-        const entriesBeforeDelete = allLogs[dateKey] || [];
-        
+        // Prima elimina dal database
         const { error } = await supabase.from('time_logs').delete().eq('id', entryId);
         if (error) { 
             showToast(`Errore nell'eliminazione: ${error.message}`, 'error'); 
             return; 
         }
         
-        // Aggiorna lo stato locale
+        // Salva le entries prima dell'eliminazione per il calcolo voucher
+        const entriesBeforeDelete = allLogs[dateKey] || [];
+        const remainingEntries = entriesBeforeDelete.filter(e => e.id !== entryId);
+        
+        // Aggiorna immediatamente lo stato locale
         setAllLogs(prev => {
-            // Crea un nuovo oggetto invece di modificare quello esistente
-            const updated: AllTimeLogs = {};
+            const newLogs = { ...prev };
             
-            // Copia tutte le date tranne quella che stiamo modificando
-            Object.keys(prev).forEach(key => {
-                if (key !== dateKey) {
-                    updated[key] = prev[key];
-                }
-            });
-            
-            // Aggiungi la data modificata (se ci sono ancora entries)
-            if (prev[dateKey]) {
-                const filteredEntries = prev[dateKey].filter(e => e.id !== entryId);
-                if (filteredEntries.length > 0) {
-                    updated[dateKey] = filteredEntries;
-                }
+            if (remainingEntries.length > 0) {
+                // Se ci sono ancora entries, aggiornale
+                newLogs[dateKey] = [...remainingEntries];
+            } else {
+                // Se non ci sono più entries, rimuovi la chiave
+                delete newLogs[dateKey];
             }
             
-            return updated;
+            return newLogs;
         });
         
-        // Auto-calcolo buono pasto dopo eliminazione
-        const remainingEntries = entriesBeforeDelete.filter(e => e.id !== entryId);
+        // Auto-calcolo buono pasto dopo eliminazione (in modo asincrono)
         setTimeout(() => {
             if (remainingEntries.length > 0) {
                 autoCheckMealVoucher(dateKey, remainingEntries);
