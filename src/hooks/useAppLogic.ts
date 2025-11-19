@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAppContext } from '../contexts/AppContext';
 import { formatDateKey } from '../utils/timeUtils';
-import { AllDayInfo, LeaveType, ShiftType, ManualOvertimeType } from '../types';
+import { AllDayInfo, LeaveType, ShiftType, ManualOvertimeType, WorkSettings, OfferSettings, ThemeSettings, DashboardLayout, WidgetVisibility, SavedRotation, StatusItem } from '../types';
 
 /**
  * Hook centralizzato per tutta la logica di business dell'app
@@ -19,6 +19,7 @@ export const useAppLogic = () => {
     setAllManualOvertime,
     allMealVouchers,
     setAllMealVouchers,
+    setSettings,
     showToast,
   } = useAppContext();
 
@@ -292,6 +293,35 @@ export const useAppLogic = () => {
     }
   }, [session, allDayInfo, setAllDayInfo, showToast]);
 
+  // --- SETTINGS HANDLERS ---
+  const handleSaveWorkSettings = useCallback((newSettings: WorkSettings) => {
+    setSettings(prev => ({ ...prev, workSettings: newSettings }));
+  }, [setSettings]);
+
+  const handleSaveOfferSettings = useCallback((newSettings: OfferSettings) => {
+    setSettings(prev => ({ ...prev, offerSettings: newSettings }));
+  }, [setSettings]);
+
+  const handleSaveThemeSettings = useCallback((newSettings: ThemeSettings) => {
+    setSettings(prev => ({ ...prev, themeSettings: newSettings }));
+  }, [setSettings]);
+
+  const handleSaveDashboardLayout = useCallback((newLayout: DashboardLayout) => {
+    setSettings(prev => ({ ...prev, dashboardLayout: newLayout }));
+  }, [setSettings]);
+
+  const handleSaveWidgetVisibility = useCallback((newVisibility: WidgetVisibility) => {
+    setSettings(prev => ({ ...prev, widgetVisibility: newVisibility }));
+  }, [setSettings]);
+
+  const handleSaveSavedRotations = useCallback((newRotations: SavedRotation[]) => {
+    setSettings(prev => ({ ...prev, savedRotations: newRotations }));
+  }, [setSettings]);
+
+  const handleSetStatusItems = useCallback((newItems: StatusItem[]) => {
+    setSettings(prev => ({ ...prev, statusItems: newItems }));
+  }, [setSettings]);
+
   return {
     handleEditEntry,
     handleDeleteEntry,
@@ -301,5 +331,12 @@ export const useAppLogic = () => {
     handleSaveMealVoucher,
     handleSetAllDayInfo,
     handleSetDayInfoForRange,
+    handleSaveWorkSettings,
+    handleSaveOfferSettings,
+    handleSaveThemeSettings,
+    handleSaveDashboardLayout,
+    handleSaveWidgetVisibility,
+    handleSaveSavedRotations,
+    handleSetStatusItems,
   };
 };

@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { AllTimeLogs, AllDayInfo, WorkSettings, CalendarView, LeaveType, StatusItem, AllManualOvertime, SavedRotation } from '../types';
+import { useAppContext } from '../contexts/AppContext';
+import { useAppLogic } from '../hooks/useAppLogic';
 import CalendarHeader from '../components/calendar/CalendarHeader';
 import MonthView from '../components/calendar/MonthView';
 import YearView from '../components/calendar/YearView';
@@ -20,26 +22,55 @@ import DayEventsModal from '../components/modals/DayEventsModal';
 // Get Google API Key from environment - direct access to VITE_ prefixed variables
 const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY || '';
 
+// Props opzionali - retrocompatibile con Context API
 interface CalendarPageProps {
-    allLogs: AllTimeLogs;
-    allDayInfo: AllDayInfo;
-    allManualOvertime: AllManualOvertime;
-    workSettings: WorkSettings;
-    statusItems: StatusItem[];
-    savedRotations: SavedRotation[];
-    onSetAllDayInfo: (newAllDayInfo: AllDayInfo) => Promise<void>;
-    onEditEntry: (dateKey: string, entryId: string, newTimestamp: Date, newType: 'in' | 'out') => void;
-    onDeleteEntry: (dateKey: string, entryId: string) => void;
-    onOpenAddEntryModal: (date: Date) => void;
-    onOpenAddOvertimeModal: (date: Date) => void;
-    onDeleteManualOvertime: (dateKey: string, entryId: string) => void;
-    onImportData: (data: any) => void;
-    onOpenQuickLeaveModal: (options: { date: Date; highlightedLeave?: LeaveType }) => void;
-    onSetSavedRotations: (rotations: SavedRotation[]) => void;
-    onOpenRangePlanner: (options: { startDate: Date }) => void;
+    allLogs?: AllTimeLogs;
+    allDayInfo?: AllDayInfo;
+    allManualOvertime?: AllManualOvertime;
+    workSettings?: WorkSettings;
+    statusItems?: StatusItem[];
+    savedRotations?: SavedRotation[];
+    onSetAllDayInfo?: (newAllDayInfo: AllDayInfo) => Promise<void>;
+    onEditEntry?: (dateKey: string, entryId: string, newTimestamp: Date, newType: 'in' | 'out') => void;
+    onDeleteEntry?: (dateKey: string, entryId: string) => void;
+    onOpenAddEntryModal?: (date: Date) => void;
+    onOpenAddOvertimeModal?: (date: Date) => void;
+    onDeleteManualOvertime?: (dateKey: string, entryId: string) => void;
+    onImportData?: (data: any) => void;
+    onOpenQuickLeaveModal?: (options: { date: Date; highlightedLeave?: LeaveType }) => void;
+    onSetSavedRotations?: (rotations: SavedRotation[]) => void;
+    onOpenRangePlanner?: (options: { startDate: Date }) => void;
 }
 
-const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allManualOvertime, workSettings, statusItems, savedRotations, onSetAllDayInfo, onEditEntry, onDeleteEntry, onOpenAddEntryModal, onOpenAddOvertimeModal, onDeleteManualOvertime, onImportData, onOpenQuickLeaveModal, onSetSavedRotations, onOpenRangePlanner }) => {
+const CalendarPage: React.FC<CalendarPageProps> = (props) => {
+    // Context API fallback
+    const context = useAppContext();
+    const logic = useAppLogic();
+    
+    // Usa props se fornite, altrimenti Context
+    const allLogs = props.allLogs ?? context.allLogs;
+    const allDayInfo = props.allDayInfo ?? context.allDayInfo;
+    const allManualOvertime = props.allManualOvertime ?? context.allManualOvertime;
+    const workSettings = props.workSettings ?? context.settings.workSettings;
+    const statusItems = props.statusItems ?? context.settings.statusItems;
+    const savedRotations = props.savedRotations ?? context.settings.savedRotations;
+    
+    // Handlers: props o logic hook
+    const onSetAllDayInfo = props.onSetAllDayInfo ?? logic.handleSetAllDayInfo;
+    const onEditEntry = props.onEditEntry ?? logic.handleEditEntry;
+    const onDeleteEntry = props.onDeleteEntry ?? logic.handleDeleteEntry;
+    const onDeleteManualOvertime = props.onDeleteManualOvertime ?? logic.handleDeleteManualOvertime;
+    const onSetSavedRotations = props.onSetSavedRotations ?? ((r: SavedRotation[]) => {
+        context.setSettings(s => ({ ...s, savedRotations: r }));
+    });
+    
+    // Modal handlers - restano gestiti da App.tsx per ora
+    const onOpenAddEntryModal = props.onOpenAddEntryModal ?? (() => {});
+    const onOpenAddOvertimeModal = props.onOpenAddOvertimeModal ?? (() => {});
+    const onImportData = props.onImportData ?? (() => {});
+    const onOpenQuickLeaveModal = props.onOpenQuickLeaveModal ?? (() => {});
+    const onOpenRangePlanner = props.onOpenRangePlanner ?? (() => {});
+    
     const [view, setView] = useState<CalendarView>('month');
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [displayDate, setDisplayDate] = useState(new Date());

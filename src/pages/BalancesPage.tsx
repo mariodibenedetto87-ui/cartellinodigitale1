@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { StatusItem, AllDayInfo, AllTimeLogs, WorkSettings, AllManualOvertime, AllMealVouchers } from '../types';
+import { useAppContext } from '../contexts/AppContext';
 import { calculateStatusUsage } from '../utils/statusUtils';
 import LeaveDonutChart from '../components/charts/LeaveDonutChart';
 import { getStatusItemDetails } from '../utils/leaveUtils';
@@ -8,17 +9,30 @@ import ComparativeStats from '../components/ComparativeStats';
 import BalanceDetailsModal from '../components/modals/BalanceDetailsModal';
 import MealVouchersDetailsModal from '../components/modals/MealVouchersDetailsModal';
 
+// Props opzionali - retrocompatibile con Context API
 interface BalancesPageProps {
-  statusItems: StatusItem[];
-  allDayInfo: AllDayInfo;
-  allLogs: AllTimeLogs;
-  workSettings: WorkSettings;
-  allManualOvertime: AllManualOvertime;
-  allMealVouchers: AllMealVouchers;
-  onOpenAddOvertimeModal: (date: Date) => void;
+  statusItems?: StatusItem[];
+  allDayInfo?: AllDayInfo;
+  allLogs?: AllTimeLogs;
+  workSettings?: WorkSettings;
+  allManualOvertime?: AllManualOvertime;
+  allMealVouchers?: AllMealVouchers;
+  onOpenAddOvertimeModal?: (date: Date) => void;
 }
 
-const BalancesPage: React.FC<BalancesPageProps> = ({ statusItems, allDayInfo, allLogs, workSettings, allManualOvertime, allMealVouchers, onOpenAddOvertimeModal }) => {
+const BalancesPage: React.FC<BalancesPageProps> = (props) => {
+  // Context API fallback
+  const context = useAppContext();
+  
+  // Usa props se fornite, altrimenti Context
+  const statusItems = props.statusItems ?? context.settings.statusItems;
+  const allDayInfo = props.allDayInfo ?? context.allDayInfo;
+  const allLogs = props.allLogs ?? context.allLogs;
+  const workSettings = props.workSettings ?? context.settings.workSettings;
+  const allManualOvertime = props.allManualOvertime ?? context.allManualOvertime;
+  const allMealVouchers = props.allMealVouchers ?? context.allMealVouchers;
+  const onOpenAddOvertimeModal = props.onOpenAddOvertimeModal ?? (() => {});
+  
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedStatusItem, setSelectedStatusItem] = useState<StatusItem | null>(null);
   const [isMealVouchersModalOpen, setIsMealVouchersModalOpen] = useState(false);

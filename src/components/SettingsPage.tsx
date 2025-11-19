@@ -9,24 +9,26 @@ import ThemeColorPicker from './ThemeColorPicker';
 import DashboardLayoutEditor from './DashboardLayoutEditor';
 import PushNotificationsSettings from './PushNotificationsSettings';
 import { formatHoursDecimal } from '../utils/timeUtils';
+import { useAppContext } from '../contexts/AppContext';
+import { useAppLogic } from '../hooks/useAppLogic';
 
 interface SettingsPageProps {
-  workSettings: WorkSettings;
-  offerSettings: OfferSettings;
-  themeSettings: ThemeSettings;
-  dashboardLayout: DashboardLayout;
-  widgetVisibility: WidgetVisibility;
-  savedRotations: SavedRotation[];
-  statusItems: StatusItem[];
-  allDayInfo: AllDayInfo;
-  onSaveWorkSettings: (settings: WorkSettings) => void;
-  onSaveOfferSettings: (settings: OfferSettings) => void;
-  onSaveThemeSettings: (settings: ThemeSettings) => void;
-  onSaveDashboardLayout: (layout: DashboardLayout) => void;
-  onSaveWidgetVisibility: (visibility: WidgetVisibility) => void;
-  onSaveSavedRotations: (rotations: SavedRotation[]) => void;
-  onSetStatusItems: (items: StatusItem[]) => void;
-  onShowToast: (message: string, type?: 'success' | 'error') => void;
+  workSettings?: WorkSettings;
+  offerSettings?: OfferSettings;
+  themeSettings?: ThemeSettings;
+  dashboardLayout?: DashboardLayout;
+  widgetVisibility?: WidgetVisibility;
+  savedRotations?: SavedRotation[];
+  statusItems?: StatusItem[];
+  allDayInfo?: AllDayInfo;
+  onSaveWorkSettings?: (settings: WorkSettings) => void;
+  onSaveOfferSettings?: (settings: OfferSettings) => void;
+  onSaveThemeSettings?: (settings: ThemeSettings) => void;
+  onSaveDashboardLayout?: (layout: DashboardLayout) => void;
+  onSaveWidgetVisibility?: (visibility: WidgetVisibility) => void;
+  onSaveSavedRotations?: (rotations: SavedRotation[]) => void;
+  onSetStatusItems?: (items: StatusItem[]) => void;
+  onShowToast?: (message: string, type?: 'success' | 'error') => void;
 }
 
 const DragHandleIcon: React.FC<{className?: string}> = ({className}) => (
@@ -43,24 +45,28 @@ const DeleteIcon: React.FC<{className?: string}> = ({className}) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
 );
 
-const SettingsPage: React.FC<SettingsPageProps> = ({
-  workSettings,
-  offerSettings,
-  themeSettings,
-  dashboardLayout,
-  widgetVisibility,
-  savedRotations,
-  statusItems,
-  allDayInfo,
-  onSaveWorkSettings,
-  onSaveOfferSettings,
-  onSaveThemeSettings,
-  onSaveDashboardLayout,
-  onSaveWidgetVisibility,
-  onSaveSavedRotations,
-  onSetStatusItems,
-  onShowToast,
-}) => {
+const SettingsPage: React.FC<SettingsPageProps> = (props) => {
+  const context = useAppContext();
+  const logic = useAppLogic();
+
+  // Retrocompatible: use props if provided, fallback to Context
+  const workSettings = props.workSettings ?? context.settings.workSettings;
+  const offerSettings = props.offerSettings ?? context.settings.offerSettings;
+  const themeSettings = props.themeSettings ?? context.settings.themeSettings;
+  const dashboardLayout = props.dashboardLayout ?? context.settings.dashboardLayout;
+  const widgetVisibility = props.widgetVisibility ?? context.settings.widgetVisibility;
+  const savedRotations = props.savedRotations ?? context.settings.savedRotations;
+  const statusItems = props.statusItems ?? context.settings.statusItems;
+  const allDayInfo = props.allDayInfo ?? context.allDayInfo;
+  const onSaveWorkSettings = props.onSaveWorkSettings ?? logic.handleSaveWorkSettings;
+  const onSaveOfferSettings = props.onSaveOfferSettings ?? logic.handleSaveOfferSettings;
+  const onSaveThemeSettings = props.onSaveThemeSettings ?? logic.handleSaveThemeSettings;
+  const onSaveDashboardLayout = props.onSaveDashboardLayout ?? logic.handleSaveDashboardLayout;
+  const onSaveWidgetVisibility = props.onSaveWidgetVisibility ?? logic.handleSaveWidgetVisibility;
+  const onSaveSavedRotations = props.onSaveSavedRotations ?? logic.handleSaveSavedRotations;
+  const onSetStatusItems = props.onSetStatusItems ?? logic.handleSetStatusItems;
+  const onShowToast = props.onShowToast ?? context.showToast;
+
   const [localWorkSettings, setLocalWorkSettings] = useState(workSettings);
   const [localOfferSettings, setLocalOfferSettings] = useState(offerSettings);
   const [localDashboardLayout, setLocalDashboardLayout] = useState(dashboardLayout);
