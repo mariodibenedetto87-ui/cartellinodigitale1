@@ -19,6 +19,7 @@ import Toast from './components/Toast';
 import AddTimeEntryModal from './components/AddTimeEntryModal';
 import AddManualEntryModal from './components/AddManualEntryModal';
 import HoursJustificationModal from './components/HoursJustificationModal';
+import AbsenceJustificationModal from './components/AbsenceJustificationModal';
 import RangePlannerModal from './components/RangePlannerModal';
 import MealVoucherModal from './components/MealVoucherModal';
 import Onboarding from './components/Onboarding';
@@ -114,6 +115,7 @@ const App: React.FC = () => {
     const [addEntryModalDate, setAddEntryModalDate] = useState<Date | null>(null);
     const [addManualEntryModalDate, setAddManualEntryModalDate] = useState<Date | null>(null);
     const [hoursJustificationModal, setHoursJustificationModal] = useState<{ date: Date; mode: 'extra' | 'missing' } | null>(null);
+    const [absenceJustificationModalDate, setAbsenceJustificationModalDate] = useState<Date | null>(null);
     const [mealVoucherModalDate, setMealVoucherModalDate] = useState<Date | null>(null);
     const [rangePlannerOptions, setRangePlannerOptions] = useState<{isOpen: boolean, startDate?: Date}>({isOpen: false});
     const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
@@ -1312,6 +1314,7 @@ const App: React.FC = () => {
                     onOpenAddManualEntryModal={setAddManualEntryModalDate}
                     onDeleteManualOvertime={handleDeleteManualOvertime}
                     onOpenAddOvertimeModal={(date) => setHoursJustificationModal({ date, mode: 'extra' })}
+                    onOpenHoursMissingModal={(date) => setAbsenceJustificationModalDate(date)}
                     onOpenMealVoucherModal={setMealVoucherModalDate}
                     onOpenRangePlanner={(options) => setRangePlannerOptions({ isOpen: true, startDate: options?.startDate || selectedDate })}
                 />;
@@ -1326,6 +1329,7 @@ const App: React.FC = () => {
                             onDeleteEntry={(dateKey, entryId) => handleDeleteEntry(dateKey, entryId)}
                             onOpenAddEntryModal={setAddEntryModalDate}
                             onOpenAddOvertimeModal={(date) => setHoursJustificationModal({ date, mode: 'extra' })}
+                            onOpenHoursMissingModal={(date: Date) => setAbsenceJustificationModalDate(date)}
                             onDeleteManualOvertime={handleDeleteManualOvertime} onImportData={handleImportData}
                             onOpenQuickLeaveModal={(options) => setQuickLeaveModalOptions(options)}
                             onSetSavedRotations={(r) => setSettings(s => ({ ...s, savedRotations: r }))}
@@ -1438,6 +1442,17 @@ const App: React.FC = () => {
                     allManualOvertime={allManualOvertime}
                     statusItems={settings.statusItems}
                     onClose={() => setHoursJustificationModal(null)}
+                    onSave={handleAddOvertime}
+                    onDelete={handleDeleteManualOvertime}
+                />
+            )}
+            {absenceJustificationModalDate && (
+                <AbsenceJustificationModal
+                    date={absenceJustificationModalDate}
+                    allLogs={allLogs}
+                    allManualOvertime={allManualOvertime}
+                    statusItems={settings.statusItems}
+                    onClose={() => setAbsenceJustificationModalDate(null)}
                     onSave={handleAddOvertime}
                     onDelete={handleDeleteManualOvertime}
                 />

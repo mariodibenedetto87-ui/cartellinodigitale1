@@ -35,6 +35,7 @@ interface CalendarPageProps {
     onDeleteEntry?: (dateKey: string, entryId: string) => void;
     onOpenAddEntryModal?: (date: Date) => void;
     onOpenAddOvertimeModal?: (date: Date) => void;
+    onOpenHoursMissingModal?: (date: Date) => void;
     onDeleteManualOvertime?: (dateKey: string, entryId: string) => void;
     onImportData?: (data: any) => void;
     onOpenQuickLeaveModal?: (options: { date: Date; highlightedLeave?: LeaveType }) => void;
@@ -67,6 +68,7 @@ const CalendarPage: React.FC<CalendarPageProps> = (props) => {
     // Modal handlers - restano gestiti da App.tsx per ora
     const onOpenAddEntryModal = props.onOpenAddEntryModal ?? (() => {});
     const onOpenAddOvertimeModal = props.onOpenAddOvertimeModal ?? (() => {});
+    const onOpenHoursMissingModal = props.onOpenHoursMissingModal ?? (() => {});
     const onImportData = props.onImportData ?? (() => {});
     const onOpenQuickLeaveModal = props.onOpenQuickLeaveModal ?? (() => {});
     const onOpenRangePlanner = props.onOpenRangePlanner ?? (() => {});
@@ -614,7 +616,7 @@ const CalendarPage: React.FC<CalendarPageProps> = (props) => {
                     onOpenAddManualEntryModal={() => {}}
                     onDeleteManualOvertime={onDeleteManualOvertime}
                     onOpenAddOvertimeModal={() => onOpenAddOvertimeModal(selectedDate)}
-                    onOpenHoursMissingModal={(date) => onOpenQuickLeaveModal({ date })}
+                    onOpenHoursMissingModal={() => onOpenHoursMissingModal(selectedDate)}
                     onOpenQuickLeaveModal={(date) => onOpenQuickLeaveModal({ date })}
                 />
             </aside>
@@ -676,7 +678,7 @@ const CalendarPage: React.FC<CalendarPageProps> = (props) => {
                                 onOpenAddManualEntryModal={() => {}}
                             onDeleteManualOvertime={onDeleteManualOvertime}
                             onOpenAddOvertimeModal={() => onOpenAddOvertimeModal(selectedDate)}
-                            onOpenHoursMissingModal={(date) => onOpenQuickLeaveModal({ date })}
+                            onOpenHoursMissingModal={() => onOpenHoursMissingModal(selectedDate)}
                             onOpenQuickLeaveModal={(date) => onOpenQuickLeaveModal({ date })}
                             />
                         </div>

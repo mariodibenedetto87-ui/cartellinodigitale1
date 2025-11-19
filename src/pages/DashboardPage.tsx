@@ -43,6 +43,7 @@ interface DashboardPageProps {
     onDeleteManualOvertime: (dateKey: string, entryId: string) => void;
     onOpenRangePlanner: (options?: { startDate?: Date }) => void;
     onOpenAddOvertimeModal: (date: Date) => void;
+    onOpenHoursMissingModal?: (date: Date) => void;
     onOpenMealVoucherModal: (date: Date) => void;
 }
 
@@ -54,7 +55,7 @@ const DashboardPage: React.FC<DashboardPageProps> = (props) => {
         onSetSelectedDate, onEditEntry, onDeleteEntry, onOpenAddEntryModal,
         onOpenAddManualEntryModal, onDeleteManualOvertime, onDismissNotification,
         dashboardLayout, widgetVisibility, onOpenRangePlanner, onOpenQuickLeaveModal,
-        onOpenAddOvertimeModal, onOpenMealVoucherModal
+        onOpenAddOvertimeModal, onOpenHoursMissingModal, onOpenMealVoucherModal
     } = props;
     
     const [summaryRenderKey, setSummaryRenderKey] = useState(0);
@@ -185,7 +186,7 @@ const DashboardPage: React.FC<DashboardPageProps> = (props) => {
                 onDeleteManualOvertime={onDeleteManualOvertime}
                 onOpenQuickLeaveModal={(date) => onOpenQuickLeaveModal({ date })}
                 onOpenAddOvertimeModal={onOpenAddOvertimeModal}
-                onOpenHoursMissingModal={(date) => onOpenQuickLeaveModal({ date })}
+                onOpenHoursMissingModal={onOpenHoursMissingModal || ((date) => onOpenQuickLeaveModal({ date }))}
             />
         ),
         plannerCard: <PlannerCard onOpen={() => onOpenRangePlanner()} />,
