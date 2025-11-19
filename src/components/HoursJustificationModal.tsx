@@ -117,13 +117,14 @@ const HoursJustificationModal: React.FC<HoursJustificationModalProps> = ({
     }
 
     const durationMs = hrs * 60 * 60 * 1000;
-    onSave(dateKey, durationMs, selectedType.code.toString(), note || selectedType.description);
+    onSave(dateKey, durationMs, selectedType.description, note || selectedType.description);
     
     // Reset form
     setHours('');
     setSelectedType(null);
     setNote('');
     setSelectedLogIndices([]);
+    onClose();
   };
 
   const handleDelete = (entryId: string) => {
