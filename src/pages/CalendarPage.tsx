@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { AllTimeLogs, AllDayInfo, WorkSettings, CalendarView, LeaveType, StatusItem, AllManualOvertime, SavedRotation } from '../types';
 import CalendarHeader from '../components/calendar/CalendarHeader';
 import MonthView from '../components/calendar/MonthView';
@@ -315,6 +315,11 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
 
     const selectedDateKey = formatDateKey(selectedDate);
     const manualOvertimeForSelectedDate = allManualOvertime[selectedDateKey] || [];
+    
+    // Forza un nuovo array reference per far rilevare il cambio a React
+    const entriesForSelectedDate = useMemo(() => {
+        return [...(allLogs[selectedDateKey] || [])];
+    }, [allLogs, selectedDateKey]);
 
     const renderView = () => {
         switch (view) {
@@ -423,7 +428,7 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
                 <Summary
                     key={`summary-desktop-${selectedDateKey}-${summaryRenderKey}`}
                     date={selectedDate}
-                    entries={allLogs[selectedDateKey] || []}
+                    entries={entriesForSelectedDate}
                     dayInfo={allDayInfo[selectedDateKey]}
                     nextDayInfo={nextDayInfo}
                     workSettings={workSettings}
@@ -484,7 +489,7 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
                             <Summary
                                 key={`summary-mobile-${selectedDateKey}-${summaryRenderKey}`}
                                 date={selectedDate}
-                                entries={allLogs[selectedDateKey] || []}
+                                entries={entriesForSelectedDate}
                                 dayInfo={allDayInfo[selectedDateKey]}
                                 nextDayInfo={nextDayInfo}
                                 workSettings={workSettings}
