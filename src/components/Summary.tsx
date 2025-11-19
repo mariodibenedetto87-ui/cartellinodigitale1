@@ -119,14 +119,14 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
                 <div>
                     <h3 className="text-base sm:text-lg font-semibold text-gray-700 dark:text-slate-300">Riepilogo del Giorno</h3>
-                    <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">{date.toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-600">{date.toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 </div>
                 <div className="relative">
                      <button
                         ref={calendarButtonRef}
                         onClick={() => setCalendarPopoverOpen(prev => !prev)}
                         // disabled={!eventDetails}
-                        className="p-2 rounded-full text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors"
+                        className="p-2 rounded-full text-gray-600 dark:text-slate-600 hover:bg-gray-200 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors"
                         aria-label="Aggiungi al calendario"
                       >
                           <CalendarIcon className="w-5 h-5" />
@@ -206,9 +206,9 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
 
                 <div className="bg-gray-50 dark:bg-slate-700/50 p-3 sm:p-4 rounded-xl">
                     <div className="text-center">
-                        <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-slate-400">Ore da Timbrature</p>
+                        <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-slate-600">Ore da Timbrature</p>
                         <p className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-800 dark:text-white">{formatDuration(summary.totalWorkMs)}</p>
-                        <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                        <p className="text-xs text-gray-600 dark:text-slate-600 mt-1">
                             (Esclusi straordinari manuali)
                         </p>
                     </div>
@@ -216,11 +216,11 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                     <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-600">
                         <h4 className="text-xs sm:text-sm font-semibold text-center text-gray-600 dark:text-slate-300 mb-3">Riepilogo Ore</h4>
                         <div className="space-y-1.5 text-xs sm:text-sm">
-                            <div className="flex justify-between text-xs text-gray-500 dark:text-slate-400">
+                            <div className="flex justify-between text-xs text-gray-600 dark:text-slate-600">
                                 <span>Primo Ingresso</span>
                                 <span className="font-semibold text-right text-slate-700 dark:text-slate-300">{firstIn ? formatTime(firstIn.timestamp) : 'N/D'}</span>
                             </div>
-                            <div className="flex justify-between text-xs text-gray-500 dark:text-slate-400">
+                            <div className="flex justify-between text-xs text-gray-600 dark:text-slate-600">
                                 <span>Ultima Uscita</span>
                                 <span className="font-semibold text-right text-slate-700 dark:text-slate-300">{lastOut ? formatTime(lastOut.timestamp) : 'N/D'}</span>
                             </div>
@@ -232,11 +232,11 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                             <div className="space-y-1.5">
                                 {summary.nullHoursMs > 0 && (
                                     <div className="flex justify-between">
-                                        <span className="flex items-center gap-2 text-gray-500 dark:text-slate-400">
+                                        <span className="flex items-center gap-2 text-gray-600 dark:text-slate-600">
                                           <div className="w-2 h-2 rounded-full bg-slate-400"></div>
                                           Ore Nulle (pre-turno)
                                         </span>
-                                        <span className="font-semibold text-slate-500 dark:text-slate-400">{formatDuration(summary.nullHoursMs)}</span>
+                                        <span className="font-semibold text-slate-600 dark:text-slate-600">{formatDuration(summary.nullHoursMs)}</span>
                                     </div>
                                 )}
                                 {summary.standardWorkMs > 0 && (
@@ -264,7 +264,7 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                                         <div className="pl-4 mt-1.5 space-y-1 text-sm border-l-2 border-orange-200 dark:border-orange-800/50 ml-1">
                                             {summary.overtimeDiurnalMs > 0 && (
                                                 <div className="flex justify-between">
-                                                    <span className="flex items-center gap-2 text-gray-500 dark:text-slate-400">
+                                                    <span className="flex items-center gap-2 text-gray-600 dark:text-slate-600">
                                                       <div className="w-2 h-2 rounded-full bg-orange-500"></div>
                                                       Diurno
                                                     </span>
@@ -273,7 +273,7 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                                             )}
                                             {summary.overtimeNocturnalMs > 0 && (
                                                  <div className="flex justify-between">
-                                                    <span className="flex items-center gap-2 text-gray-500 dark:text-slate-400">
+                                                    <span className="flex items-center gap-2 text-gray-600 dark:text-slate-600">
                                                       <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
                                                       Notturno
                                                     </span>
@@ -282,7 +282,7 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                                             )}
                                             {summary.overtimeHolidayMs > 0 && (
                                                 <div className="flex justify-between">
-                                                    <span className="flex items-center gap-2 text-gray-500 dark:text-slate-400">
+                                                    <span className="flex items-center gap-2 text-gray-600 dark:text-slate-600">
                                                       <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
                                                       Festivo
                                                     </span>
@@ -291,7 +291,7 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                                             )}
                                             {summary.overtimeNocturnalHolidayMs > 0 && (
                                                 <div className="flex justify-between">
-                                                    <span className="flex items-center gap-2 text-gray-500 dark:text-slate-400">
+                                                    <span className="flex items-center gap-2 text-gray-600 dark:text-slate-600">
                                                       <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                                                       Festivo Notturno
                                                     </span>
@@ -350,7 +350,7 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                                             <div className={`w-2 h-2 rounded-full ${entry.type === 'in' ? 'bg-green-500' : 'bg-red-500'}`}></div>
                                             <div>
                                                 <p className="font-semibold text-slate-800 dark:text-white">{new Date(entry.timestamp).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</p>
-                                                <p className="text-xs text-gray-500 dark:text-slate-400">{entry.type === 'in' ? 'Entrata' : 'Uscita'}</p>
+                                                <p className="text-xs text-gray-600 dark:text-slate-600">{entry.type === 'in' ? 'Entrata' : 'Uscita'}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -368,15 +368,15 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                                     </div>
                                     {hasIntervalDetails && (
                                         <div className="mt-3 pt-2 border-t border-dashed border-gray-200 dark:border-slate-600">
-                                            <h5 className="text-xs font-bold text-gray-500 dark:text-slate-400 mb-1 pl-1">Riepilogo Intervallo</h5>
+                                            <h5 className="text-xs font-bold text-gray-600 dark:text-slate-600 mb-1 pl-1">Riepilogo Intervallo</h5>
                                             <dl className="text-xs space-y-0.5 pl-1">
-                                                {intervalForEntry.nullHoursMs > 0 && <div className="flex justify-between"><dt className="text-gray-600 dark:text-slate-400">Nulle (pre-turno):</dt><dd className="font-semibold text-slate-500 dark:text-slate-400">{formatDuration(intervalForEntry.nullHoursMs)}</dd></div>}
-                                                {intervalForEntry.standardWorkMs > 0 && <div className="flex justify-between"><dt className="text-gray-600 dark:text-slate-400">Ordinario:</dt><dd className="font-semibold text-slate-700 dark:text-slate-200">{formatDuration(intervalForEntry.standardWorkMs)}</dd></div>}
-                                                {intervalForEntry.excessHoursMs > 0 && <div className="flex justify-between"><dt className="text-gray-600 dark:text-slate-400">Eccedenti:</dt><dd className="font-semibold text-cyan-500 dark:text-cyan-400">{formatDuration(intervalForEntry.excessHoursMs)}</dd></div>}
-                                                {intervalForEntry.overtimeDiurnalMs > 0 && <div className="flex justify-between"><dt className="text-gray-600 dark:text-slate-400">Straord. Diurno:</dt><dd className="font-semibold text-orange-500 dark:text-orange-400">{formatDuration(intervalForEntry.overtimeDiurnalMs)}</dd></div>}
-                                                {intervalForEntry.overtimeNocturnalMs > 0 && <div className="flex justify-between"><dt className="text-gray-600 dark:text-slate-400">Straord. Notturno:</dt><dd className="font-semibold text-indigo-500 dark:text-indigo-400">{formatDuration(intervalForEntry.overtimeNocturnalMs)}</dd></div>}
-                                                {intervalForEntry.overtimeHolidayMs > 0 && <div className="flex justify-between"><dt className="text-gray-600 dark:text-slate-400">Straord. Festivo:</dt><dd className="font-semibold text-yellow-500 dark:text-yellow-400">{formatDuration(intervalForEntry.overtimeHolidayMs)}</dd></div>}
-                                                {intervalForEntry.overtimeNocturnalHolidayMs > 0 && <div className="flex justify-between"><dt className="text-gray-600 dark:text-slate-400">Straord. Fest. Nott.:</dt><dd className="font-semibold text-blue-500 dark:text-blue-400">{formatDuration(intervalForEntry.overtimeNocturnalHolidayMs)}</dd></div>}
+                                                {intervalForEntry.nullHoursMs > 0 && <div className="flex justify-between"><dt className="text-gray-600 dark:text-slate-600">Nulle (pre-turno):</dt><dd className="font-semibold text-slate-600 dark:text-slate-600">{formatDuration(intervalForEntry.nullHoursMs)}</dd></div>}
+                                                {intervalForEntry.standardWorkMs > 0 && <div className="flex justify-between"><dt className="text-gray-600 dark:text-slate-600">Ordinario:</dt><dd className="font-semibold text-slate-700 dark:text-slate-200">{formatDuration(intervalForEntry.standardWorkMs)}</dd></div>}
+                                                {intervalForEntry.excessHoursMs > 0 && <div className="flex justify-between"><dt className="text-gray-600 dark:text-slate-600">Eccedenti:</dt><dd className="font-semibold text-cyan-500 dark:text-cyan-400">{formatDuration(intervalForEntry.excessHoursMs)}</dd></div>}
+                                                {intervalForEntry.overtimeDiurnalMs > 0 && <div className="flex justify-between"><dt className="text-gray-600 dark:text-slate-600">Straord. Diurno:</dt><dd className="font-semibold text-orange-500 dark:text-orange-400">{formatDuration(intervalForEntry.overtimeDiurnalMs)}</dd></div>}
+                                                {intervalForEntry.overtimeNocturnalMs > 0 && <div className="flex justify-between"><dt className="text-gray-600 dark:text-slate-600">Straord. Notturno:</dt><dd className="font-semibold text-indigo-500 dark:text-indigo-400">{formatDuration(intervalForEntry.overtimeNocturnalMs)}</dd></div>}
+                                                {intervalForEntry.overtimeHolidayMs > 0 && <div className="flex justify-between"><dt className="text-gray-600 dark:text-slate-600">Straord. Festivo:</dt><dd className="font-semibold text-yellow-500 dark:text-yellow-400">{formatDuration(intervalForEntry.overtimeHolidayMs)}</dd></div>}
+                                                {intervalForEntry.overtimeNocturnalHolidayMs > 0 && <div className="flex justify-between"><dt className="text-gray-600 dark:text-slate-600">Straord. Fest. Nott.:</dt><dd className="font-semibold text-blue-500 dark:text-blue-400">{formatDuration(intervalForEntry.overtimeNocturnalHolidayMs)}</dd></div>}
                                             </dl>
                                         </div>
                                     )}
@@ -386,7 +386,7 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                     ) : (
                         !hasManualOvertime && (
                             <div className="text-center py-8 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
-                                <p className="text-gray-500 dark:text-slate-400">Nessuna timbratura registrata per questo giorno.</p>
+                                <p className="text-gray-600 dark:text-slate-600">Nessuna timbratura registrata per questo giorno.</p>
                             </div>
                         )
                     )}
@@ -414,7 +414,7 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                                         <div>
                                             <p className="font-semibold text-slate-800 dark:text-white">{formatDuration(entry.durationMs)}</p>
                                             <p className="text-xs text-orange-500 dark:text-orange-400 font-bold">{label}</p>
-                                            {entry.note && <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 italic">"{entry.note}"</p>}
+                                            {entry.note && <p className="text-xs text-gray-600 dark:text-slate-600 mt-1 italic">"{entry.note}"</p>}
                                         </div>
                                         <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button onClick={() => onDeleteManualOvertime(dateKey, entry.id)} className="p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50" aria-label="Elimina voce manuale">
@@ -428,7 +428,7 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                     ) : (
                         entries.length > 0 && (
                             <div className="text-center py-4 bg-gray-50/50 dark:bg-slate-700/20 rounded-lg">
-                                <p className="text-xs text-gray-400 dark:text-slate-500">Nessuna aggiunta manuale.</p>
+                                <p className="text-xs text-gray-600 dark:text-slate-600">Nessuna aggiunta manuale.</p>
                             </div>
                         )
                     )}

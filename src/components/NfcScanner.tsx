@@ -186,7 +186,7 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
                     </h2>
                      <div className="flex items-center space-x-2 mt-2">
                         <button onClick={() => handleDateNavigation(-1)} className={`p-1.5 rounded-full transition-colors ${isClockedIn ? 'hover:bg-white/10' : 'hover:bg-gray-200 dark:hover:bg-slate-700'}`} aria-label="Giorno precedente">
-                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-5 h-5 ${isClockedIn ? 'text-white/80' : 'text-gray-500 dark:text-slate-400'}`}>
+                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-5 h-5 ${isClockedIn ? 'text-white/80' : 'text-gray-600 dark:text-slate-600'}`}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
                             </svg>
                         </button>
@@ -215,12 +215,12 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
                             aria-label="Seleziona data"
                             title="Seleziona data"
                         >
-                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-5 h-5 ${isClockedIn ? 'text-white/80' : 'text-gray-500 dark:text-slate-400'}`}>
+                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-5 h-5 ${isClockedIn ? 'text-white/80' : 'text-gray-600 dark:text-slate-600'}`}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                             </svg>
                         </button>
                         <button onClick={() => handleDateNavigation(1)} className={`p-1.5 rounded-full transition-colors ${isClockedIn ? 'hover:bg-white/10' : 'hover:bg-gray-200 dark:hover:bg-slate-700'}`} aria-label="Giorno successivo">
-                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-5 h-5 ${isClockedIn ? 'text-white/80' : 'text-gray-500 dark:text-slate-400'}`}>
+                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-5 h-5 ${isClockedIn ? 'text-white/80' : 'text-gray-600 dark:text-slate-600'}`}>
                                <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                             </svg>
                         </button>
@@ -254,14 +254,14 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
                 ) : (
                     (dayTotalWorkMs ?? 0) > 0 ? (
                         <div className="animate-fade-in-up">
-                            <p className="text-sm text-gray-500 dark:text-slate-400">Ore da Timbrature</p>
+                            <p className="text-sm text-gray-600 dark:text-slate-600">Ore da Timbrature</p>
                             <div className="flex items-center justify-center space-x-3 mt-1">
                                 <ClockIcon className="w-8 h-8 text-slate-700 dark:text-slate-300" />
                                 <div className="text-left">
                                     <p className="text-5xl font-mono tracking-wider text-slate-800 dark:text-white">
                                         {formatDuration(dayTotalWorkMs!)}
                                     </p>
-                                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                                    <p className="text-xs text-gray-600 dark:text-slate-600 mt-1">
                                         (Solo timbrature, esclusi straordinari manuali)
                                     </p>
                                 </div>
@@ -269,7 +269,7 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
                         </div>
                     ) : (
                         <div className="animate-fade-in-up flex items-center justify-center h-full">
-                             <p className="text-gray-500 dark:text-slate-400">Nessuna attività registrata.</p>
+                             <p className="text-gray-600 dark:text-slate-600">Nessuna attività registrata.</p>
                         </div>
                     )
                 )}
@@ -277,7 +277,7 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
         </div>
         
         <div className="text-center mt-auto">
-             <p className={`h-10 mb-4 mt-2 ${isClockedIn ? 'text-white/80' : 'text-gray-500 dark:text-slate-400'}`}>
+             <p className={`h-10 mb-4 mt-2 ${isClockedIn ? 'text-white/80' : 'text-gray-600 dark:text-slate-600'}`}>
                 {getInstructionalText()}
             </p>
              {isClockedIn ? (

@@ -106,11 +106,11 @@ const MealVouchersDetailsModal: React.FC<MealVouchersDetailsModalProps> = ({
           {/* Summary Card */}
           <div className="grid grid-cols-1 gap-4 mb-6">
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Totale Buoni Pasto Maturati</p>
+              <p className="text-sm text-gray-600 dark:text-gray-600 mb-2">Totale Buoni Pasto Maturati</p>
               <p className="text-4xl font-bold text-blue-600 dark:text-blue-400">
                 {totalEarned}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              <p className="text-xs text-gray-600 dark:text-gray-600 mt-2">
                 Un buono viene maturato lavorando 7 ore continuative o 6h + pausa ≤2h
               </p>
             </div>
@@ -133,11 +133,11 @@ const MealVouchersDetailsModal: React.FC<MealVouchersDetailsModalProps> = ({
                         : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600'
                     }`}
                   >
-                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    <p className="text-xs font-medium text-gray-600 dark:text-gray-600 mb-1">
                       {monthName}
                     </p>
                     <p className={`text-lg font-bold ${
-                      total > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'
+                      total > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-600'
                     }`}>
                       {total > 0 ? total : '-'}
                     </p>
@@ -169,7 +169,7 @@ const MealVouchersDetailsModal: React.FC<MealVouchersDetailsModalProps> = ({
                         <p className="font-medium text-gray-800 dark:text-white">
                           {formatDate(entry.date)}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <p className="text-xs text-gray-600 dark:text-gray-600">
                           {entry.monthName}
                         </p>
                       </div>
@@ -179,7 +179,7 @@ const MealVouchersDetailsModal: React.FC<MealVouchersDetailsModalProps> = ({
                         <div className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">
                           1
                         </div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">buono</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-600">buono</span>
                       </div>
                     </div>
                   </div>
@@ -188,13 +188,13 @@ const MealVouchersDetailsModal: React.FC<MealVouchersDetailsModalProps> = ({
             </div>
           ) : (
             <div className="text-center py-12">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600 mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-16 h-16 mx-auto text-gray-600 dark:text-gray-600 mb-4">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.182 16.318A4.486 4.486 0 0012.016 15a4.486 4.486 0 00-3.198 1.318M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z" />
               </svg>
-              <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">
+              <p className="text-gray-600 dark:text-gray-600 text-lg font-medium">
                 Nessun buono pasto maturato
               </p>
-              <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">
+              <p className="text-gray-600 dark:text-gray-600 text-sm mt-2">
                 Non hai ancora maturato buoni pasto nel {selectedYear}
               </p>
             </div>

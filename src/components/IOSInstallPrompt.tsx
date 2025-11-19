@@ -43,12 +43,12 @@ const IOSInstallPrompt: React.FC = () => {
             </div>
             <div>
               <h3 className="font-bold text-slate-900 dark:text-white">Installa CartellinoPro</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Accesso rapido e offline</p>
+              <p className="text-xs text-slate-600 dark:text-slate-600">Accesso rapido e offline</p>
             </div>
           </div>
           <button
             onClick={handleClose}
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+            className="text-slate-600 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
             aria-label="Chiudi"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

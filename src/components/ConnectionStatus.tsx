@@ -126,7 +126,7 @@ export default function ConnectionStatus({ onSyncRequest }: ConnectionStatusProp
             )}
           </div>
           <svg
-            className={`w-4 h-4 text-gray-500 transition-transform ${
+            className={`w-4 h-4 text-gray-600 transition-transform ${
               isExpanded ? 'rotate-180' : ''
             }`}
             fill="none"
@@ -141,7 +141,7 @@ export default function ConnectionStatus({ onSyncRequest }: ConnectionStatusProp
         {isExpanded && (
           <div className="px-3 pb-3 space-y-3 border-t border-gray-200 dark:border-gray-700 pt-3">
             {/* Status Details */}
-            <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+            <div className="space-y-2 text-sm text-gray-600 dark:text-gray-600">
               <div className="flex justify-between">
                 <span>Stato:</span>
                 <span className={`font-medium ${status.isOnline ? 'text-green-600' : 'text-red-600'}`}>

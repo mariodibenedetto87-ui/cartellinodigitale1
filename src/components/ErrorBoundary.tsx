@@ -73,7 +73,7 @@ class ErrorBoundary extends Component<Props, State> {
             </h1>
 
             {/* Description */}
-            <p className="text-center text-gray-600 dark:text-gray-400 mb-8">
+            <p className="text-center text-gray-600 dark:text-gray-600 mb-8">
               Si è verificato un errore inaspettato. Non preoccuparti, i tuoi dati sono al sicuro.
               Prova a ricaricare la pagina o torna alla homepage.
             </p>
@@ -114,7 +114,7 @@ class ErrorBoundary extends Component<Props, State> {
             </div>
 
             {/* Support Link */}
-            <p className="text-center text-sm text-gray-500 dark:text-gray-500 mt-8">
+            <p className="text-center text-sm text-gray-600 dark:text-gray-600 mt-8">
               Se il problema persiste,{' '}
               <a 
                 href="mailto:support@timecardpro.com" 

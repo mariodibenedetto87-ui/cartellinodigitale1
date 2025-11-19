@@ -137,13 +137,13 @@ const QuickLeaveModal: React.FC<QuickLeaveModalProps> = ({ date, statusItems, wo
               placeholder="🔍 Cerca permesso..."
               className="w-full px-4 py-3 pl-10 bg-gray-50 dark:bg-slate-700/50 border-2 border-gray-200 dark:border-slate-600 rounded-xl text-gray-700 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500 focus:border-teal-400 dark:focus:border-teal-500 focus:ring-2 focus:ring-teal-200 dark:focus:ring-teal-800 transition-all"
             />
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 dark:text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-600 dark:text-slate-600 dark:hover:text-slate-300"
               >
                 ✕
               </button>
@@ -177,7 +177,7 @@ const QuickLeaveModal: React.FC<QuickLeaveModalProps> = ({ date, statusItems, wo
                     }`}>
                       {item.category === 'leave-hours' ? `${balance.toFixed(1)}h` : balance}
                     </div>
-                    <div className="text-xs text-gray-600 dark:text-slate-400 truncate">{truncateText(item.description, 15)}</div>
+                    <div className="text-xs text-gray-600 dark:text-slate-600 truncate">{truncateText(item.description, 15)}</div>
                   </div>
                 );
               })}
@@ -222,7 +222,7 @@ const QuickLeaveModal: React.FC<QuickLeaveModalProps> = ({ date, statusItems, wo
                                   }`}>
                                       {balance}
                                   </span>
-                                  <span className="text-xs text-gray-600 dark:text-slate-400 font-semibold">gg</span>
+                                  <span className="text-xs text-gray-600 dark:text-slate-600 font-semibold">gg</span>
                                 </div>
                             )}
                         </button>
@@ -269,7 +269,7 @@ const QuickLeaveModal: React.FC<QuickLeaveModalProps> = ({ date, statusItems, wo
                                   }`}>
                                       {balance.toFixed(1)}
                                   </span>
-                                  <span className="text-xs text-gray-600 dark:text-slate-400 font-semibold">h</span>
+                                  <span className="text-xs text-gray-600 dark:text-slate-600 font-semibold">h</span>
                                 </div>
                             )}
                         </button>
@@ -322,8 +322,8 @@ const QuickLeaveModal: React.FC<QuickLeaveModalProps> = ({ date, statusItems, wo
       {searchTerm && (leaveDayItems.length === 0 && leaveHourItems.length === 0) && (
         <div className="text-center py-8">
           <div className="text-4xl mb-2">🔍</div>
-          <p className="text-gray-500 dark:text-slate-400 font-semibold">Nessun permesso trovato</p>
-          <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">Prova con un'altra ricerca</p>
+          <p className="text-gray-600 dark:text-slate-600 font-semibold">Nessun permesso trovato</p>
+          <p className="text-xs text-gray-600 dark:text-slate-600 mt-1">Prova con un'altra ricerca</p>
         </div>
       )}
     </>
@@ -364,7 +364,7 @@ const QuickLeaveModal: React.FC<QuickLeaveModalProps> = ({ date, statusItems, wo
                 </div>
                 {currentHours > 0 && (
                   <>
-                    <div className="text-2xl font-bold text-gray-500 dark:text-slate-400">→</div>
+                    <div className="text-2xl font-bold text-gray-600 dark:text-slate-600">→</div>
                     <div>
                       <p className={`text-4xl font-black ${
                         remainingAfter < 0 ? 'text-red-600 dark:text-red-300' :
@@ -384,7 +384,7 @@ const QuickLeaveModal: React.FC<QuickLeaveModalProps> = ({ date, statusItems, wo
         
         {/* Pulsanti rapidi */}
         <div className="mb-4">
-          <p className="text-xs font-semibold text-gray-600 dark:text-slate-400 mb-2 text-center uppercase tracking-wide">⚡ Selezione Rapida</p>
+          <p className="text-xs font-semibold text-gray-600 dark:text-slate-600 mb-2 text-center uppercase tracking-wide">⚡ Selezione Rapida</p>
           <div className="grid grid-cols-5 gap-2">
             {[0.5, 1, 2, 4, 8].map(hours => (
               <button
@@ -404,7 +404,7 @@ const QuickLeaveModal: React.FC<QuickLeaveModalProps> = ({ date, statusItems, wo
         
         {/* Input con controlli +/- */}
         <div className="mb-4">
-          <p className="text-xs font-semibold text-gray-600 dark:text-slate-400 mb-2 text-center uppercase tracking-wide">✏️ Personalizza Ore</p>
+          <p className="text-xs font-semibold text-gray-600 dark:text-slate-600 mb-2 text-center uppercase tracking-wide">✏️ Personalizza Ore</p>
           <div className="flex items-stretch space-x-2">
             <button
               onClick={() => adjustHours(-0.5)}
@@ -430,7 +430,7 @@ const QuickLeaveModal: React.FC<QuickLeaveModalProps> = ({ date, statusItems, wo
                 className="w-full text-center text-3xl font-black bg-white dark:bg-slate-700 border-2 border-violet-300 dark:border-violet-600 rounded-lg px-3 py-4 text-violet-700 dark:text-violet-300 focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all"
                 autoFocus
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-500 dark:text-slate-400">ore</span>
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-600 dark:text-slate-600">ore</span>
             </div>
             <button
               onClick={() => adjustHours(0.5)}

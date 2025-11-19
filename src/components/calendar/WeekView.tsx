@@ -61,7 +61,7 @@ const WeekView: React.FC<WeekViewProps> = ({ allLogs, allDayInfo, selectedDate, 
 
     return (
         <div ref={timelineContainerRef} className="flex overflow-y-scroll" style={{ height: 'calc(100vh - 150px)' }}>
-            <div className="w-16 text-right pr-2 text-sm text-gray-500 dark:text-slate-400 sticky top-0 z-20 bg-white dark:bg-slate-900">
+            <div className="w-16 text-right pr-2 text-sm text-gray-600 dark:text-slate-600 sticky top-0 z-20 bg-white dark:bg-slate-900">
                 {/* This is a spacer for the day headers */}
                 <div className="h-20"></div>
                 {hours.map(hour => (
@@ -101,7 +101,7 @@ const WeekView: React.FC<WeekViewProps> = ({ allLogs, allDayInfo, selectedDate, 
                                 <div className="flex flex-col items-center space-y-1">
                                     <div className="flex items-center space-x-2">
                                         {dayInfo?.onCall && <PhoneIcon className="w-4 h-4 text-blue-500" title="Reperibilità" />}
-                                        <p className={`text-sm ${isToday ? 'text-teal-500 dark:text-teal-400' : 'text-gray-500 dark:text-slate-400'}`}>{day.toLocaleDateString('it-IT', { weekday: 'short' })}</p>
+                                        <p className={`text-sm ${isToday ? 'text-teal-500 dark:text-teal-400' : 'text-gray-600 dark:text-slate-600'}`}>{day.toLocaleDateString('it-IT', { weekday: 'short' })}</p>
                                     </div>
                                     {dayInfo?.leave?.type && (
                                         <div className={`px-2 py-0.5 rounded text-xs font-semibold ${getStatusItemDetails(dayInfo.leave.type, statusItems).textColor} ${getStatusItemDetails(dayInfo.leave.type, statusItems).bgColor}`}>

@@ -120,7 +120,7 @@ const ThemeColorPicker: React.FC<ThemeColorPickerProps> = ({ currentTheme, onSav
                     <h2 className="text-xl font-bold text-slate-800 dark:text-white">
                         Temi Colore
                     </h2>
-                    <p className="text-sm text-gray-600 dark:text-slate-400">
+                    <p className="text-sm text-gray-600 dark:text-slate-600">
                         Personalizza l'aspetto dell'app
                     </p>
                 </div>
@@ -153,7 +153,7 @@ const ThemeColorPicker: React.FC<ThemeColorPickerProps> = ({ currentTheme, onSav
                         <h3 className="font-bold text-sm text-slate-800 dark:text-white mb-1">
                             {preset.name}
                         </h3>
-                        <p className="text-xs text-gray-600 dark:text-slate-400 leading-relaxed">
+                        <p className="text-xs text-gray-600 dark:text-slate-600 leading-relaxed">
                             {preset.description}
                         </p>
 

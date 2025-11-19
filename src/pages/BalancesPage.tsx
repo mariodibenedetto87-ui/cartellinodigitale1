@@ -99,10 +99,10 @@ const BalancesPage: React.FC<BalancesPageProps> = (props) => {
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{mealVouchersEarned}</p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400">Maturati</p>
+                  <p className="text-xs text-gray-600 dark:text-slate-600">Maturati</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-600 dark:text-slate-400 mt-2">
+              <p className="text-sm text-gray-600 dark:text-slate-600 mt-2">
                 Buoni pasto maturati nel {selectedYear}. Un buono viene guadagnato lavorando 7 ore continuative o 6h + pausa ≤2h.
               </p>
             </div>
@@ -149,12 +149,12 @@ const BalancesPage: React.FC<BalancesPageProps> = (props) => {
                                 {isOvertime ? (
                                     <>
                                         <p className="text-lg font-bold text-orange-500">{used.toFixed(1)}h</p>
-                                        <p className="text-xs text-gray-500 dark:text-slate-400">Accumulate</p>
+                                        <p className="text-xs text-gray-600 dark:text-slate-600">Accumulate</p>
                                     </>
                                 ) : (
                                     <>
                                         <p className={`text-lg font-bold ${balance < 0 ? 'text-red-500' : 'text-emerald-500'}`}>{balance}</p>
-                                        <p className="text-xs text-gray-500 dark:text-slate-400">Saldo</p>
+                                        <p className="text-xs text-gray-600 dark:text-slate-600">Saldo</p>
                                     </>
                                 )}
                             </div>
@@ -164,7 +164,7 @@ const BalancesPage: React.FC<BalancesPageProps> = (props) => {
                                 <div className="bg-gray-200 dark:bg-slate-600 rounded-full h-2 w-full">
                                     <div className={`${details.bgColor} h-2 rounded-full`} style={{ width: `${Math.min(100, progress)}%` }}></div>
                                 </div>
-                                <div className="flex justify-between text-xs text-gray-500 dark:text-slate-400 mt-1">
+                                <div className="flex justify-between text-xs text-gray-600 dark:text-slate-600 mt-1">
                                     <span>Usati: {used}</span>
                                     <span>Previsti: {item.entitlement}</span>
                                 </div>

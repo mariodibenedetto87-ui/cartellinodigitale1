@@ -116,7 +116,7 @@ export default function GlobalSearch({
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-3">
             <div className="flex-1 relative">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input
@@ -133,7 +133,7 @@ export default function GlobalSearch({
               className={`p-3 rounded-lg border transition-colors ${
                 showFilters
                   ? 'bg-teal-500 text-white border-teal-500'
-                  : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
+                  : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-600 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -142,7 +142,7 @@ export default function GlobalSearch({
             </button>
             <button
               onClick={onClose}
-              className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600"
+              className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -202,10 +202,10 @@ export default function GlobalSearch({
               <svg className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <p className="text-gray-500 dark:text-gray-400 text-center">
+              <p className="text-gray-600 dark:text-gray-600 text-center">
                 {filters.query ? 'Nessun risultato trovato' : 'Inizia a cercare digitando...'}
               </p>
-              <p className="text-sm text-gray-400 dark:text-gray-500 text-center mt-2">
+              <p className="text-sm text-gray-600 dark:text-gray-600 text-center mt-2">
                 Prova a cercare date, turni, ferie o straordinari
               </p>
             </div>
@@ -226,12 +226,12 @@ export default function GlobalSearch({
                         <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                           {result.title}
                         </span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                        <span className="text-xs text-gray-600 dark:text-gray-600">
                           {result.date.toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
                       </div>
                       <p
-                        className="text-sm text-gray-600 dark:text-gray-400 break-words"
+                        className="text-sm text-gray-600 dark:text-gray-600 break-words"
                         dangerouslySetInnerHTML={{ __html: result.matchedText }}
                       />
                       {result.relevanceScore > 0 && (
@@ -242,13 +242,13 @@ export default function GlobalSearch({
                               style={{ width: `${result.relevanceScore}%` }}
                             />
                           </div>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                          <span className="text-xs text-gray-600 dark:text-gray-600">
                             {result.relevanceScore}% match
                           </span>
                         </div>
                       )}
                     </div>
-                    <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
@@ -260,7 +260,7 @@ export default function GlobalSearch({
 
         {/* Footer */}
         <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-600">
             <span>{results.length} risultati trovati</span>
             <span className="flex items-center gap-2">
               <kbd className="px-2 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">ESC</kbd>

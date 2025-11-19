@@ -38,11 +38,11 @@ const MealVoucherCard: React.FC<MealVoucherCardProps> = ({ date, allLogs, allMea
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center space-x-3">
           <div className={`p-3 rounded-xl ${hasVoucher ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-slate-700/30'}`}>
-            <Receipt className={`w-6 h-6 ${hasVoucher ? 'text-blue-500' : 'text-gray-400 dark:text-slate-500'}`} />
+            <Receipt className={`w-6 h-6 ${hasVoucher ? 'text-blue-500' : 'text-gray-600 dark:text-slate-600'}`} />
           </div>
           <div>
             <h3 className="text-lg font-bold text-gray-800 dark:text-white">Buono Pasto</h3>
-            <p className="text-xs text-gray-500 dark:text-slate-400">
+            <p className="text-xs text-gray-600 dark:text-slate-600">
               {date.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}
             </p>
           </div>
@@ -52,7 +52,7 @@ const MealVoucherCard: React.FC<MealVoucherCardProps> = ({ date, allLogs, allMea
         <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
           hasVoucher 
             ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' 
-            : 'bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-slate-400'
+            : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-600'
         }`}>
           {hasVoucher ? '✓ Maturato' : '✗ Non maturato'}
         </div>
@@ -62,7 +62,7 @@ const MealVoucherCard: React.FC<MealVoucherCardProps> = ({ date, allLogs, allMea
       {dayLogs.length > 0 && (
         <div className="mb-4">
           <div className="flex justify-between items-center text-sm mb-2">
-            <span className="text-gray-600 dark:text-slate-400">Ore lavorate</span>
+            <span className="text-gray-600 dark:text-slate-600">Ore lavorate</span>
             <span className="font-bold text-gray-800 dark:text-white">{workInfo.totalHours.toFixed(1)}h</span>
           </div>
           
@@ -75,7 +75,7 @@ const MealVoucherCard: React.FC<MealVoucherCardProps> = ({ date, allLogs, allMea
               style={{ width: `${Math.min(100, (workInfo.totalHours / 7) * 100)}%` }}
             />
           </div>
-          <div className="flex justify-between text-xs text-gray-500 dark:text-slate-400 mt-1">
+          <div className="flex justify-between text-xs text-gray-600 dark:text-slate-600 mt-1">
             <span>0h</span>
             <span className="text-blue-500 font-medium">7h richieste</span>
           </div>
@@ -152,12 +152,12 @@ const MealVoucherCard: React.FC<MealVoucherCardProps> = ({ date, allLogs, allMea
 
       {/* Mini info regole */}
       {!hasVoucher && dayLogs.length === 0 && (
-        <div className="mt-3 text-xs text-center text-gray-500 dark:text-slate-400">
+        <div className="mt-3 text-xs text-center text-gray-600 dark:text-slate-600">
           Aggiungi timbrature o gestisci manualmente
         </div>
       )}
       {!hasVoucher && dayLogs.length > 0 && (
-        <div className="mt-3 text-xs text-center text-gray-500 dark:text-slate-400">
+        <div className="mt-3 text-xs text-center text-gray-600 dark:text-slate-600">
           Servono 7h continuative o 6h+pausa≤2h
         </div>
       )}

@@ -160,7 +160,7 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg dark:shadow-black/20">
       <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">📱 Notifiche Push</h2>
-      <p className="text-sm text-gray-500 dark:text-slate-400 mb-6">
+      <p className="text-sm text-gray-600 dark:text-slate-600 mb-6">
         Abilita le notifiche push per ricevere promemoria sulle timbrature e altre attività importanti.
       </p>
 
@@ -169,7 +169,7 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
         <div className="flex items-center justify-between">
           <div>
             <p className="font-semibold text-gray-700 dark:text-slate-300 mb-1">Stato Permessi</p>
-            <p className="text-sm text-gray-600 dark:text-slate-400">
+            <p className="text-sm text-gray-600 dark:text-slate-600">
               {permission === 'granted' && '✅ Notifiche abilitate'}
               {permission === 'denied' && '❌ Permesso negato dal browser'}
               {permission === 'default' && '⚠️ Non ancora concesso'}

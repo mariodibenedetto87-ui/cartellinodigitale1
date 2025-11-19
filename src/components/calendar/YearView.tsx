@@ -106,7 +106,7 @@ const YearView: React.FC<YearViewProps> = ({ allLogs, allDayInfo, workSettings, 
                             {new Date(year, monthIndex).toLocaleDateString('it-IT', { month: 'long' })}
                         </h4>
                         <div className="grid grid-cols-7 gap-1 text-center mb-1">
-                            {weekDays.map((wd, i) => <span key={`${wd}-${i}`} className="text-xs text-gray-400 dark:text-slate-500">{wd}</span>)}
+                            {weekDays.map((wd, i) => <span key={`${wd}-${i}`} className="text-xs text-gray-600 dark:text-slate-600">{wd}</span>)}
                         </div>
                         <div className="grid grid-cols-7 gap-1">
                             {monthData.map((day, dayIndex) => {

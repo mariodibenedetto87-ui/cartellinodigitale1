@@ -158,7 +158,7 @@ export default function ComparativeStats({
   const getDeltaColor = (value: number) => {
     if (value > 0) return 'text-green-600 dark:text-green-400';
     if (value < 0) return 'text-red-600 dark:text-red-400';
-    return 'text-gray-600 dark:text-gray-400';
+    return 'text-gray-600 dark:text-gray-600';
   };
 
   const getDeltaIcon = (value: number) => {
@@ -225,7 +225,7 @@ export default function ComparativeStats({
       {comparisonType === 'month' && monthComparison && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Ore Totali</h3>
+            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-600 mb-2">Ore Totali</h3>
             <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
               {monthComparison.current.totalHours.toFixed(1)}h
             </p>
@@ -235,7 +235,7 @@ export default function ComparativeStats({
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Giorni Lavorati</h3>
+            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-600 mb-2">Giorni Lavorati</h3>
             <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
               {monthComparison.current.workDays}
             </p>
@@ -245,7 +245,7 @@ export default function ComparativeStats({
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Media Giornaliera</h3>
+            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-600 mb-2">Media Giornaliera</h3>
             <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
               {monthComparison.current.averageHoursPerDay.toFixed(1)}h
             </p>
@@ -255,7 +255,7 @@ export default function ComparativeStats({
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Produttività</h3>
+            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-600 mb-2">Produttività</h3>
             <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
               {monthComparison.current.productivity.toFixed(0)}%
             </p>
@@ -271,45 +271,45 @@ export default function ComparativeStats({
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Ore Annuali</h3>
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-600 mb-2">Ore Annuali</h3>
               <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
                 {yearComparison.yearDelta.totalHours > 0 ? '+' : ''}
                 {yearComparison.yearDelta.totalHours.toFixed(0)}h
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-gray-600 dark:text-gray-600">
                 vs {selectedYear - 1}
               </p>
             </div>
 
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Giorni Lavorati</h3>
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-600 mb-2">Giorni Lavorati</h3>
               <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
                 {yearComparison.yearDelta.totalWorkDays > 0 ? '+' : ''}
                 {yearComparison.yearDelta.totalWorkDays}
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-gray-600 dark:text-gray-600">
                 giorni in più/meno
               </p>
             </div>
 
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Straordinari</h3>
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-600 mb-2">Straordinari</h3>
               <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
                 {yearComparison.yearDelta.totalOvertime > 0 ? '+' : ''}
                 {yearComparison.yearDelta.totalOvertime.toFixed(0)}h
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-gray-600 dark:text-gray-600">
                 differenza annuale
               </p>
             </div>
 
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Produttività Media</h3>
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-600 mb-2">Produttività Media</h3>
               <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
                 {yearComparison.yearDelta.averageProductivity > 0 ? '+' : ''}
                 {yearComparison.yearDelta.averageProductivity.toFixed(1)}%
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-gray-600 dark:text-gray-600">
                 variazione annuale
               </p>
             </div>

@@ -86,7 +86,7 @@ const MonthView: React.FC<MonthViewProps> = ({ allLogs, allDayInfo, selectedDate
   return (
     <div className="p-2 sm:p-4 relative">
        <div className="grid grid-cols-7 gap-0.5 sm:gap-1 text-center border-b border-gray-200 dark:border-slate-700">
-        {weekDays.map(day => <div key={day} className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase py-1 sm:py-2">{day}</div>)}
+        {weekDays.map(day => <div key={day} className="text-xs font-bold text-gray-600 dark:text-slate-600 uppercase py-1 sm:py-2">{day}</div>)}
        </div>
        <div className="grid grid-cols-7 grid-rows-6 gap-px bg-gray-300 dark:bg-slate-700 border-l border-t border-gray-300 dark:border-slate-700" style={{ minHeight: '75vh' }}>
         {daysInMonth.map((day, index) => {
@@ -108,7 +108,7 @@ const MonthView: React.FC<MonthViewProps> = ({ allLogs, allDayInfo, selectedDate
              if (isCurrentMonth) {
                 dayClasses += ` bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700/50`;
              } else {
-                dayClasses += ` bg-gray-50 dark:bg-slate-800/50 text-gray-400 dark:text-slate-600`;
+                dayClasses += ` bg-gray-50 dark:bg-slate-800/50 text-gray-600 dark:text-slate-600`;
              }
             
              if (isToday) {
@@ -134,7 +134,7 @@ const MonthView: React.FC<MonthViewProps> = ({ allLogs, allDayInfo, selectedDate
                      {isCurrentMonth && (
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                             <div onClick={(e) => handleDayOptionsClick(e, day)} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600 -mr-1 -mt-1 cursor-pointer" aria-label="Opzioni giorno">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 text-gray-500 dark:text-slate-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 text-gray-600 dark:text-slate-600">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
                                 </svg>
                             </div>

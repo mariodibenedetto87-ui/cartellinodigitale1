@@ -35,7 +35,7 @@ const Auth: React.FC = () => {
                 <div className="text-center mb-8">
                     <img src="/vite.svg" alt="Timecard Pro Logo" className="h-16 w-auto mx-auto mb-4" />
                     <h1 className="text-3xl font-bold text-slate-800 dark:text-white">Timecard Pro</h1>
-                    <p className="text-gray-500 dark:text-slate-400 mt-2">{isLogin ? 'Accedi per continuare' : 'Crea un nuovo account'}</p>
+                    <p className="text-gray-600 dark:text-slate-600 mt-2">{isLogin ? 'Accedi per continuare' : 'Crea un nuovo account'}</p>
                 </div>
 
                 <form onSubmit={handleAuth} className="space-y-6">

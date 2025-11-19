@@ -68,13 +68,13 @@ export default function DashboardLayoutEditor({
             <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
               Gestione Widget Dashboard
             </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-sm text-gray-600 dark:text-gray-600 mt-1">
               Attiva o disattiva i widget e riordinali trascinandoli per personalizzare la tua dashboard.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+            className="text-gray-600 hover:text-gray-700 dark:hover:text-gray-300"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -111,7 +111,7 @@ export default function DashboardLayoutEditor({
                         <div className="text-sm font-medium text-gray-800 dark:text-gray-200">
                           {info.name}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        <div className="text-xs text-gray-600 dark:text-gray-600 truncate">
                           {info.description}
                         </div>
                       </div>
@@ -146,7 +146,7 @@ export default function DashboardLayoutEditor({
                         <div className="text-sm font-medium text-gray-800 dark:text-gray-200">
                           {info.name}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        <div className="text-xs text-gray-600 dark:text-gray-600 truncate">
                           {info.description}
                         </div>
                       </div>

@@ -209,7 +209,7 @@ const DashboardInsights: React.FC<DashboardInsightsProps> = ({
                     <h2 className="text-xl font-bold text-slate-800 dark:text-white">
                         Dashboard Insights
                     </h2>
-                    <p className="text-sm text-gray-600 dark:text-slate-400">
+                    <p className="text-sm text-gray-600 dark:text-slate-600">
                         Analisi intelligente delle tue performance
                     </p>
                 </div>
@@ -246,7 +246,7 @@ const DashboardInsights: React.FC<DashboardInsightsProps> = ({
                         <p className={`text-2xl font-bold mb-2 bg-gradient-to-r ${insight.color} bg-clip-text text-transparent`}>
                             {insight.value}
                         </p>
-                        <p className="text-xs text-gray-600 dark:text-slate-400 leading-relaxed">
+                        <p className="text-xs text-gray-600 dark:text-slate-600 leading-relaxed">
                             {insight.description}
                         </p>
                     </div>

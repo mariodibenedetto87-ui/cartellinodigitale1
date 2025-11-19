@@ -100,7 +100,7 @@ const StatusItemModal: React.FC<StatusItemModalProps> = ({ item, onClose, onSave
         <form onSubmit={handleSubmit}>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-teal-500 dark:text-teal-400">{item?.code ? 'Modifica Status' : 'Aggiungi Nuovo Status'}</h2>
-            <button type="button" onClick={onClose} className="text-gray-400 dark:text-slate-400 hover:text-gray-800 dark:hover:text-white text-3xl leading-none">&times;</button>
+            <button type="button" onClick={onClose} className="text-gray-600 dark:text-slate-600 hover:text-gray-800 dark:hover:text-white text-3xl leading-none">&times;</button>
           </div>
           
           <div className="space-y-4">

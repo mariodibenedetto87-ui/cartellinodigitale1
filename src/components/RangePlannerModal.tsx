@@ -71,7 +71,7 @@ const RangePlannerModal: React.FC<RangePlannerModalProps> = ({ isOpen, startDate
       <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-xl dark:shadow-black/20 w-full max-w-lg animate-modal-content" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-teal-500 dark:text-teal-400">Pianificazione Rapida Intervallo</h2>
-          <button onClick={onClose} className="text-gray-400 dark:text-slate-400 hover:text-gray-800 dark:hover:text-white text-3xl leading-none">&times;</button>
+          <button onClick={onClose} className="text-gray-600 dark:text-slate-600 hover:text-gray-800 dark:hover:text-white text-3xl leading-none">&times;</button>
         </div>
         
         <div className="space-y-6">
@@ -79,7 +79,7 @@ const RangePlannerModal: React.FC<RangePlannerModalProps> = ({ isOpen, startDate
             <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">1. Seleziona l'intervallo di date</label>
             <div className="flex items-center space-x-4">
               <input type="date" value={start} onChange={e => setStart(e.target.value)} className="w-full bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2" />
-              <span className="text-gray-500 dark:text-slate-400">a</span>
+              <span className="text-gray-600 dark:text-slate-600">a</span>
               <input type="date" value={end} onChange={e => setEnd(e.target.value)} className="w-full bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2" />
             </div>
           </div>
@@ -103,7 +103,7 @@ const RangePlannerModal: React.FC<RangePlannerModalProps> = ({ isOpen, startDate
                     </select>
                 )}
                  {actionType === 'clear' && (
-                    <div className="w-full bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 text-gray-500 dark:text-slate-400 italic">
+                    <div className="w-full bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 text-gray-600 dark:text-slate-600 italic">
                         Verranno rimossi turni e assenze.
                     </div>
                 )}

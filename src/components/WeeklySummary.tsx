@@ -29,7 +29,7 @@ StatBox.displayName = 'StatBox';
 
 const OvertimeRow: React.FC<{label: string, valueMs: number, color: string}> = memo(({label, valueMs, color}) => (
     <div className="flex justify-between items-center text-sm">
-        <span className="text-gray-600 dark:text-slate-400">{label}</span>
+        <span className="text-gray-600 dark:text-slate-600">{label}</span>
         <span className={`font-bold ${color}`}>{formatDuration(valueMs)}</span>
     </div>
 ));
@@ -64,7 +64,7 @@ const WeeklySummary: React.FC<WeeklySummaryProps> = memo(({
                 </button>
                  <div className="text-center">
                     <h3 className="text-lg font-semibold text-gray-700 dark:text-slate-300">Riepilogo Sett.</h3>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 font-semibold">{weekRangeString}</p>
+                    <p className="text-xs text-gray-600 dark:text-slate-600 font-semibold">{weekRangeString}</p>
                 </div>
                 <button onClick={() => handleWeekNavigation(7)} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-all active:scale-95" aria-label="Settimana successiva">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
@@ -79,7 +79,7 @@ const WeeklySummary: React.FC<WeeklySummaryProps> = memo(({
                 </div>
 
                 <div className="pt-4 border-t border-gray-200 dark:border-slate-700 text-center">
-                    <p className="text-sm text-gray-500 dark:text-slate-400">Ore Totali Lavorate</p>
+                    <p className="text-sm text-gray-600 dark:text-slate-600">Ore Totali Lavorate</p>
                     <p className="text-5xl font-bold text-slate-800 dark:text-white">{formatDuration(totalWorkMs)}</p>
                 </div>
 

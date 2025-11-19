@@ -59,10 +59,10 @@ const OnCallModal: React.FC<OnCallModalProps> = ({ initialDayInfo, onClose, onSa
             <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-xl w-full max-w-xl animate-modal-content" onClick={e => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-bold text-teal-500 dark:text-teal-400">Gestione Reperibilità</h2>
-                    <button onClick={onClose} className="text-gray-400 dark:text-slate-400 hover:text-gray-800 dark:hover:text-white text-3xl leading-none">&times;</button>
+                    <button onClick={onClose} className="text-gray-600 dark:text-slate-600 hover:text-gray-800 dark:hover:text-white text-3xl leading-none">&times;</button>
                 </div>
                 
-                <p className="text-gray-500 dark:text-slate-400 mb-4 text-sm">Seleziona i giorni del mese per attivare o disattivare la reperibilità (dalle 22:00 alle 07:00 del giorno successivo).</p>
+                <p className="text-gray-600 dark:text-slate-600 mb-4 text-sm">Seleziona i giorni del mese per attivare o disattivare la reperibilità (dalle 22:00 alle 07:00 del giorno successivo).</p>
 
                 <div className="bg-gray-100 dark:bg-slate-800 rounded-lg overflow-hidden">
                     <div className="flex justify-between items-center p-3 border-b border-gray-200 dark:border-slate-700">
@@ -71,7 +71,7 @@ const OnCallModal: React.FC<OnCallModalProps> = ({ initialDayInfo, onClose, onSa
                         <button onClick={() => setDisplayDate(addMonths(displayDate, 1))} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700" aria-label="Mese successivo"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button>
                     </div>
                     <div className="grid grid-cols-7 text-center border-b border-gray-200 dark:border-slate-700">
-                        {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map(d => <div key={d} className="py-2 text-xs font-bold text-gray-500 dark:text-slate-400">{d}</div>)}
+                        {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map(d => <div key={d} className="py-2 text-xs font-bold text-gray-600 dark:text-slate-600">{d}</div>)}
                     </div>
                     <div className="grid grid-cols-7 grid-rows-6">
                         {monthMatrix.map((day, i) => {
@@ -81,7 +81,7 @@ const OnCallModal: React.FC<OnCallModalProps> = ({ initialDayInfo, onClose, onSa
                             
                             let dayClasses = 'relative p-2 h-16 flex items-center justify-center transition-colors text-sm font-semibold border-r border-b border-gray-200 dark:border-slate-700 ';
                             if (!isCurrentMonth) {
-                                dayClasses += 'bg-gray-100/50 dark:bg-slate-800/50 text-gray-400 dark:text-slate-600';
+                                dayClasses += 'bg-gray-100/50 dark:bg-slate-800/50 text-gray-600 dark:text-slate-600';
                             } else {
                                 dayClasses += 'cursor-pointer ';
                                 dayClasses += isOnCall 

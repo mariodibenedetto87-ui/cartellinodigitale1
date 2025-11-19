@@ -13,7 +13,7 @@ const ChartBar: React.FC<{
     value: string;
 }> = ({ percentage, color, label, value }) => (
     <div className="flex items-center group">
-        <div className="w-28 text-sm text-gray-600 dark:text-slate-400 pr-4 text-right">{label}</div>
+        <div className="w-28 text-sm text-gray-600 dark:text-slate-600 pr-4 text-right">{label}</div>
         <div className="flex-1 bg-gray-200 dark:bg-slate-700 rounded-full h-6 relative">
             <div
                 className={`${color} h-6 rounded-full transition-all duration-500 ease-out`}
@@ -60,7 +60,7 @@ const WeeklyHoursChart: React.FC<WeeklyHoursChartProps> = ({ totalWorkMs, totalO
                 </div>
             ) : (
                 <div className="text-center py-8 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
-                    <p className="text-gray-500 dark:text-slate-400">Nessuna ora lavorata registrata per questa settimana.</p>
+                    <p className="text-gray-600 dark:text-slate-600">Nessuna ora lavorata registrata per questa settimana.</p>
                 </div>
             )}
         </div>

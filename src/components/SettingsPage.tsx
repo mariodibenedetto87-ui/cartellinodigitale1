@@ -331,7 +331,7 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
             className="flex items-center justify-between bg-gray-50 dark:bg-slate-700/50 p-3 rounded-lg cursor-grab active:cursor-grabbing transition-shadow"
         >
             <div className="flex items-center gap-3">
-                <DragHandleIcon className="w-5 h-5 text-gray-400 dark:text-slate-500" />
+                <DragHandleIcon className="w-5 h-5 text-gray-600 dark:text-slate-600" />
                 <span className="font-medium text-slate-800 dark:text-white">{widgetNames[widgetId]}</span>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
@@ -364,7 +364,7 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
             <div className="flex justify-between items-center mb-4">
                 <div>
                     <h2 className="text-xl font-bold text-gray-800 dark:text-white">Gestione Widget Dashboard</h2>
-                    <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
+                    <p className="text-sm text-gray-600 dark:text-slate-600 mt-1">
                         Attiva o disattiva i widget e riordinali trascinandoli per personalizzare la tua dashboard.
                     </p>
                 </div>
@@ -407,7 +407,7 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
                 </button>
             </div>
             <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left text-gray-500 dark:text-slate-400">
+                <table className="w-full text-sm text-left text-gray-600 dark:text-slate-600">
                     <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-slate-700 dark:text-slate-300">
                         <tr>
                             <th scope="col" className="px-6 py-3">Codice</th>
@@ -474,7 +474,7 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
                                 <div className={`w-4 h-4 rounded-full ${shift.bgColor}`}></div>
                                 <div>
                                     <p className="font-bold text-slate-800 dark:text-white">{shift.name}</p>
-                                    <p className="text-xs text-gray-500 dark:text-slate-400">{shift.startHour}:00 - {shift.endHour}:00</p>
+                                    <p className="text-xs text-gray-600 dark:text-slate-600">{shift.startHour}:00 - {shift.endHour}:00</p>
                                 </div>
                             </div>
                             <div className="flex items-center space-x-2">
@@ -514,7 +514,7 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
                             <input type="checkbox" name="deductAutoBreak" checked={localWorkSettings.deductAutoBreak} onChange={handleWorkSettingsChange} className="h-5 w-5 rounded border-gray-300 dark:border-slate-600 text-teal-600 focus:ring-teal-500" />
                             <span className="ml-3 text-sm font-medium text-gray-700 dark:text-slate-300">Deduci pausa pranzo automaticamente</span>
                         </label>
-                        <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 ml-8">Sottrae la pausa dalle ore standard quando il totale giornaliero supera una soglia.</p>
+                        <p className="text-xs text-gray-600 dark:text-slate-600 mt-1 ml-8">Sottrae la pausa dalle ore standard quando il totale giornaliero supera una soglia.</p>
                     </div>
                     {localWorkSettings.deductAutoBreak && (
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-8">
@@ -537,14 +537,14 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
                             <input type="checkbox" name="enableClockInReminder" checked={localWorkSettings.enableClockInReminder} onChange={handleWorkSettingsChange} className="h-5 w-5 rounded border-gray-300 dark:border-slate-600 text-teal-600 focus:ring-teal-500" />
                             <span className="ml-3 text-sm font-medium text-gray-700 dark:text-slate-300">Abilita promemoria timbratura in entrata</span>
                         </label>
-                        <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 ml-8">Ricevi una notifica all'orario di inizio del tuo turno.</p>
+                        <p className="text-xs text-gray-600 dark:text-slate-600 mt-1 ml-8">Ricevi una notifica all'orario di inizio del tuo turno.</p>
                     </div>
                      <div>
                         <label htmlFor="enableClockOutReminder" className="flex items-center cursor-pointer">
                             <input type="checkbox" name="enableClockOutReminder" checked={localWorkSettings.enableClockOutReminder} onChange={handleWorkSettingsChange} className="h-5 w-5 rounded border-gray-300 dark:border-slate-600 text-teal-600 focus:ring-teal-500" />
                             <span className="ml-3 text-sm font-medium text-gray-700 dark:text-slate-300">Abilita promemoria timbratura in uscita</span>
                         </label>
-                        <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 ml-8">Ricevi una notifica all'orario di fine del tuo turno.</p>
+                        <p className="text-xs text-gray-600 dark:text-slate-600 mt-1 ml-8">Ricevi una notifica all'orario di fine del tuo turno.</p>
                     </div>
                 </div>
             </div>
@@ -577,7 +577,7 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg dark:shadow-black/20">
             <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Gestione Rotazioni Turni</h2>
-            <p className="text-sm text-gray-500 dark:text-slate-400 mb-6">
+            <p className="text-sm text-gray-600 dark:text-slate-600 mb-6">
                 Salva, esporta o importa i tuoi pattern di rotazione per una pianificazione più rapida. I pattern possono essere creati nel Pianificatore Turni.
             </p>
             <input type="file" ref={importRotationInputRef} onChange={handleFileImport} accept=".json" className="hidden" />
@@ -612,7 +612,7 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
                         ))}
                     </ul>
                 ) : (
-                    <p className="text-sm text-gray-500 dark:text-slate-400">Nessuna rotazione salvata. Creane una dal Pianificatore Turni nel Calendario.</p>
+                    <p className="text-sm text-gray-600 dark:text-slate-600">Nessuna rotazione salvata. Creane una dal Pianificatore Turni nel Calendario.</p>
                 )}
             </div>
         </div>

@@ -40,12 +40,12 @@ const MealVoucherModal: React.FC<MealVoucherModalProps> = ({ date, onClose, allL
             <Receipt className="w-8 h-8 text-blue-500" />
             <div>
               <h2 className="text-2xl font-bold text-blue-500">Buono Pasto</h2>
-              <p className="text-sm text-gray-500 dark:text-slate-400">
+              <p className="text-sm text-gray-600 dark:text-slate-600">
                 {date.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="text-gray-400 dark:text-slate-400 hover:text-gray-800 dark:hover:text-white text-3xl leading-none">&times;</button>
+          <button onClick={onClose} className="text-gray-600 dark:text-slate-600 hover:text-gray-800 dark:hover:text-white text-3xl leading-none">&times;</button>
         </div>
 
         {/* Info timbrature */}
@@ -53,7 +53,7 @@ const MealVoucherModal: React.FC<MealVoucherModalProps> = ({ date, onClose, allL
           <h3 className="text-lg font-semibold text-gray-700 dark:text-slate-300 mb-3">Riepilogo Timbrature</h3>
           
           {workInfo.sessions.length === 0 ? (
-            <div className="text-center py-6 text-gray-500 dark:text-slate-400">
+            <div className="text-center py-6 text-gray-600 dark:text-slate-600">
               <Receipt className="w-12 h-12 mx-auto mb-2 opacity-30" />
               <p>Nessuna timbratura per questo giorno</p>
             </div>
@@ -64,7 +64,7 @@ const MealVoucherModal: React.FC<MealVoucherModalProps> = ({ date, onClose, allL
                 {workInfo.sessions.map((session, index) => (
                   <div key={index} className="bg-gray-50 dark:bg-slate-700/50 rounded-lg p-4">
                     <div className="flex justify-between items-center mb-1">
-                      <div className="text-sm text-gray-500 dark:text-slate-400">Sessione {index + 1}</div>
+                      <div className="text-sm text-gray-600 dark:text-slate-600">Sessione {index + 1}</div>
                       <div className="text-lg font-bold text-gray-800 dark:text-white">{session.hours}h</div>
                     </div>
                     <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-slate-300">
@@ -100,7 +100,7 @@ const MealVoucherModal: React.FC<MealVoucherModalProps> = ({ date, onClose, allL
         {/* Regole */}
         <div className="mb-6 p-4 bg-gray-50 dark:bg-slate-700/30 rounded-lg text-sm">
           <div className="font-semibold text-gray-700 dark:text-slate-300 mb-2">📋 Regole buono pasto:</div>
-          <ul className="space-y-1 text-gray-600 dark:text-slate-400 ml-4">
+          <ul className="space-y-1 text-gray-600 dark:text-slate-600 ml-4">
             <li>• 7 ore continuative senza pause</li>
             <li>• Oppure: 6h + pausa max 2h + altre ore</li>
             <li>• Massimo 1 buono al giorno</li>
@@ -112,7 +112,7 @@ const MealVoucherModal: React.FC<MealVoucherModalProps> = ({ date, onClose, allL
           <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
             <div>
               <div className="font-semibold text-gray-800 dark:text-white">Buono pasto maturato</div>
-              <div className="text-xs text-gray-500 dark:text-slate-400 mt-1">Attiva/disattiva manualmente</div>
+              <div className="text-xs text-gray-600 dark:text-slate-600 mt-1">Attiva/disattiva manualmente</div>
             </div>
             <div className="relative">
               <input

@@ -34,7 +34,7 @@ const CalendarFilter: React.FC<CalendarFilterProps> = ({ statusItems, workSettin
                 Mostra Tutto
             </button>
 
-            <h4 className="text-xs font-bold uppercase text-gray-500 dark:text-slate-400 px-3 mt-3 mb-1">Stati</h4>
+            <h4 className="text-xs font-bold uppercase text-gray-600 dark:text-slate-600 px-3 mt-3 mb-1">Stati</h4>
              <button
                 onClick={() => handleFilterClick('onCall')}
                 className={`w-full text-left px-3 py-2 rounded-md text-sm flex items-center gap-3 ${activeFilter === 'onCall' ? 'bg-gray-200 dark:bg-slate-600 font-bold' : 'hover:bg-gray-100 dark:hover:bg-slate-700'}`}
@@ -44,7 +44,7 @@ const CalendarFilter: React.FC<CalendarFilterProps> = ({ statusItems, workSettin
             </button>
 
 
-            <h4 className="text-xs font-bold uppercase text-gray-500 dark:text-slate-400 px-3 mt-3 mb-1">Turni</h4>
+            <h4 className="text-xs font-bold uppercase text-gray-600 dark:text-slate-600 px-3 mt-3 mb-1">Turni</h4>
             {shiftTypes.map(shift => {
                 const details = getShiftDetails(shift.id, workSettings.shifts);
                 const Icon = {
@@ -66,7 +66,7 @@ const CalendarFilter: React.FC<CalendarFilterProps> = ({ statusItems, workSettin
             
             {leaveItems.length > 0 && (
                 <>
-                    <h4 className="text-xs font-bold uppercase text-gray-500 dark:text-slate-400 px-3 mt-3 mb-1">Permessi</h4>
+                    <h4 className="text-xs font-bold uppercase text-gray-600 dark:text-slate-600 px-3 mt-3 mb-1">Permessi</h4>
                     {leaveItems.map(item => {
                         const leaveId = `code-${item.code}`;
                         const details = getStatusItemDetails(leaveId, statusItems);

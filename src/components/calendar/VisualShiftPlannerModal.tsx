@@ -250,7 +250,7 @@ const VisualShiftPlannerModal: React.FC<VisualShiftPlannerModalProps> = ({ initi
                             )}
                         </div>
                     </div>
-                    <button onClick={onClose} className="text-gray-400 dark:text-slate-400 hover:text-gray-800 dark:hover:text-white text-3xl leading-none">&times;</button>
+                    <button onClick={onClose} className="text-gray-600 dark:text-slate-600 hover:text-gray-800 dark:hover:text-white text-3xl leading-none">&times;</button>
                 </div>
 
                 <div className="flex-grow flex gap-6 overflow-hidden">
@@ -258,7 +258,7 @@ const VisualShiftPlannerModal: React.FC<VisualShiftPlannerModalProps> = ({ initi
                     <div className="w-80 flex-shrink-0 flex flex-col gap-3 overflow-y-auto pr-2">
                        {mode === 'painter' ? (
                             <>
-                                <p className="text-sm text-gray-500 dark:text-slate-400 mb-2">Seleziona uno strumento e clicca sui giorni. Usa la "X" sul giorno per cancellare.</p>
+                                <p className="text-sm text-gray-600 dark:text-slate-600 mb-2">Seleziona uno strumento e clicca sui giorni. Usa la "X" sul giorno per cancellare.</p>
                                 {tools.map(tool => (
                                     <button key={tool.id} onClick={() => setSelectedTool(tool.id)}
                                         className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-all duration-200 ${selectedTool === tool.id ? 'bg-white dark:bg-slate-700 border-teal-500 shadow-md scale-102' : 'bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700/50'}`}>
@@ -290,7 +290,7 @@ const VisualShiftPlannerModal: React.FC<VisualShiftPlannerModalProps> = ({ initi
                                         <div className="p-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-md min-h-[60px] max-h-32 overflow-y-auto flex flex-wrap gap-2 content-start">
                                             {rotationPattern.length > 0 ? rotationPattern.map((shift, index) => (
                                                 <ShiftChip key={index} shift={shift} onRemove={() => setRotationPattern(rotationPattern.filter((_, i) => i !== index))} />
-                                            )) : <p className="text-xs text-gray-400 dark:text-slate-500 w-full text-center py-2 italic">Il pattern è vuoto...</p>}
+                                            )) : <p className="text-xs text-gray-600 dark:text-slate-600 w-full text-center py-2 italic">Il pattern è vuoto...</p>}
                                         </div>
                                         
                                         {rotationPattern.length > 0 && (
@@ -311,11 +311,11 @@ const VisualShiftPlannerModal: React.FC<VisualShiftPlannerModalProps> = ({ initi
                                         <h3 className="font-semibold text-slate-800 dark:text-white mb-2 text-sm uppercase tracking-wider">2. Periodo</h3>
                                         <div className="space-y-2">
                                             <div>
-                                                <label htmlFor="startDate" className="text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Da</label>
+                                                <label htmlFor="startDate" className="text-xs font-medium text-gray-600 dark:text-slate-600 uppercase">Da</label>
                                                 <input type="date" id="startDate" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-teal-500" />
                                             </div>
                                             <div>
-                                                <label htmlFor="endDate" className="text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">A</label>
+                                                <label htmlFor="endDate" className="text-xs font-medium text-gray-600 dark:text-slate-600 uppercase">A</label>
                                                 <input type="date" id="endDate" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-teal-500" />
                                             </div>
                                         </div>
@@ -338,7 +338,7 @@ const VisualShiftPlannerModal: React.FC<VisualShiftPlannerModalProps> = ({ initi
                             <button onClick={() => setDisplayDate(addMonths(displayDate, 1))} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button>
                          </div>
                          <div className="grid grid-cols-7 text-center bg-gray-100 dark:bg-slate-900/50 border-b border-gray-200 dark:border-slate-700 flex-shrink-0">
-                            {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map(d => <div key={d} className="py-3 text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">{d}</div>)}
+                            {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map(d => <div key={d} className="py-3 text-xs font-bold text-gray-600 dark:text-slate-600 uppercase tracking-wider">{d}</div>)}
                          </div>
                          <div className="grid grid-cols-7 grid-rows-6 flex-grow bg-gray-200 dark:bg-slate-700 gap-px border-b border-gray-200 dark:border-slate-700">
                             {monthMatrix.map((day, i) => {

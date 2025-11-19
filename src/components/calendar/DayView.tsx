@@ -136,7 +136,7 @@ const DayView: React.FC<DayViewProps> = ({ allLogs, allDayInfo, selectedDate, st
         return (
             <div className="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-slate-800/50 text-center p-4">
                 <h3 className="text-xl font-bold text-gray-700 dark:text-slate-300">Nessuna Corrispondenza</h3>
-                <p className="text-gray-500 dark:text-slate-400">Questo giorno non corrisponde al filtro attivo.</p>
+                <p className="text-gray-600 dark:text-slate-600">Questo giorno non corrisponde al filtro attivo.</p>
             </div>
         );
     }
@@ -154,13 +154,13 @@ const DayView: React.FC<DayViewProps> = ({ allLogs, allDayInfo, selectedDate, st
                                     {leaveDetails.label}
                                 </div>
                                 {leave.hours && (
-                                    <p className="text-gray-500 dark:text-slate-400">Permesso di {leave.hours} ore</p>
+                                    <p className="text-gray-600 dark:text-slate-600">Permesso di {leave.hours} ore</p>
                                 )}
                             </div>
                         );
                     })}
                     {leaveEvents.length === 1 && !leaveEvents[0].hours && (
-                        <p className="text-gray-500 dark:text-slate-400">Giorno di assenza pianificato</p>
+                        <p className="text-gray-600 dark:text-slate-600">Giorno di assenza pianificato</p>
                     )}
                 </div>
             </div>
@@ -171,11 +171,11 @@ const DayView: React.FC<DayViewProps> = ({ allLogs, allDayInfo, selectedDate, st
         return (
             <div className="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-slate-800/50 p-4">
                 <div className="text-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-slate-200">Nessuna Attività</h3>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">Nessuna timbratura o turno pianificato per questo giorno.</p>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-slate-600">Nessuna timbratura o turno pianificato per questo giorno.</p>
                 </div>
             </div>
         );
@@ -190,7 +190,7 @@ const DayView: React.FC<DayViewProps> = ({ allLogs, allDayInfo, selectedDate, st
                     {totalWorkMs > 0 && (
                         <div className="flex justify-between items-center">
                             <div>
-                                <p className="text-sm font-medium text-gray-500 dark:text-slate-400">Riepilogo Presenza</p>
+                                <p className="text-sm font-medium text-gray-600 dark:text-slate-600">Riepilogo Presenza</p>
                                 <p className="text-3xl font-bold text-slate-800 dark:text-white">{formatDuration(totalWorkMs)}</p>
                             </div>
                             <div className="text-right text-xs space-y-0.5">
@@ -212,7 +212,7 @@ const DayView: React.FC<DayViewProps> = ({ allLogs, allDayInfo, selectedDate, st
             )}
             <div className="flex-grow overflow-y-auto">
                 <div className="flex p-4">
-                    <div className="w-16 text-right pr-2 text-sm text-gray-500 dark:text-slate-400 flex-shrink-0" style={{ height: `${timelineHeight}rem` }}>
+                    <div className="w-16 text-right pr-2 text-sm text-gray-600 dark:text-slate-600 flex-shrink-0" style={{ height: `${timelineHeight}rem` }}>
                         {hours.map(hour => (
                             <div key={hour} className="h-16 flex items-start justify-end pt-1 relative -top-3">
                                 {`${hour.toString().padStart(2, '0')}:00`}
