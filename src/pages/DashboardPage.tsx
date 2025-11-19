@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useEffect, useState } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { AllTimeLogs, WorkStatus, WorkSettings, AllDayInfo, OfferSettings, StatusItem, DashboardLayout, WidgetVisibility, AllManualOvertime, AllMealVouchers } from '../types';
 import { formatDateKey, isSameDay, addDays, startOfWeek, calculateWorkSummary } from '../utils/timeUtils';
 import { Session } from '@supabase/supabase-js';
