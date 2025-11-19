@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useEffect } from 'react';
+import React, { useMemo, useRef, useEffect, useState } from 'react';
 import { AllTimeLogs, WorkStatus, WorkSettings, AllDayInfo, OfferSettings, StatusItem, DashboardLayout, WidgetVisibility, AllManualOvertime, AllMealVouchers } from '../types';
 import { formatDateKey, isSameDay, addDays, startOfWeek, calculateWorkSummary } from '../utils/timeUtils';
 import { Session } from '@supabase/supabase-js';
@@ -57,11 +57,11 @@ const DashboardPage: React.FC<DashboardPageProps> = (props) => {
         onOpenAddOvertimeModal, onOpenMealVoucherModal
     } = props;
     
-    const summaryRenderKey = useRef(0);
+    const [summaryRenderKey, setSummaryRenderKey] = useState(0);
     
     // Force Summary re-render when allLogs changes
     useEffect(() => {
-        summaryRenderKey.current += 1;
+        setSummaryRenderKey(prev => prev + 1);
     }, [allLogs]);
     
     const isTodaySelected = isSameDay(selectedDate, new Date());
@@ -170,7 +170,7 @@ const DashboardPage: React.FC<DashboardPageProps> = (props) => {
         ),
         summary: (
             <Summary
-                key={`summary-dashboard-${selectedDateKey}-${summaryRenderKey.current}`}
+                key={`summary-dashboard-${selectedDateKey}-${summaryRenderKey}`}
                 date={selectedDate}
                 entries={entriesForSelectedDate}
                 dayInfo={dayInfoForSelectedDate}

@@ -50,7 +50,7 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
     const [isImporting, setIsImporting] = useState(false);
     const [importStatus, setImportStatus] = useState<{ message: string; type: 'info' | 'success' | 'error' | '' }>({ message: '', type: '' });
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const summaryRenderKey = useRef(0);
+    const [summaryRenderKey, setSummaryRenderKey] = useState(0);
     const [activeFilter, setActiveFilter] = useState<string | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isDayEventsModalOpen, setDayEventsModalOpen] = useState(false);
@@ -58,7 +58,7 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
 
     // Force Summary re-render when allLogs changes
     useEffect(() => {
-        summaryRenderKey.current += 1;
+        setSummaryRenderKey(prev => prev + 1);
     }, [allLogs]);
 
     const handleExport = (startDateStr: string, endDateStr: string, format: 'ics' | 'csv') => {
@@ -421,7 +421,7 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
                     </button>
                 </div>
                 <Summary
-                    key={`summary-desktop-${selectedDateKey}-${summaryRenderKey.current}`}
+                    key={`summary-desktop-${selectedDateKey}-${summaryRenderKey}`}
                     date={selectedDate}
                     entries={allLogs[selectedDateKey] || []}
                     dayInfo={allDayInfo[selectedDateKey]}
@@ -482,7 +482,7 @@ const CalendarPage: React.FC<CalendarPageProps> = ({ allLogs, allDayInfo, allMan
                                 </button>
                             </div>
                             <Summary
-                                key={`summary-mobile-${selectedDateKey}-${(allLogs[selectedDateKey] || []).length}`}
+                                key={`summary-mobile-${selectedDateKey}-${summaryRenderKey}`}
                                 date={selectedDate}
                                 entries={allLogs[selectedDateKey] || []}
                                 dayInfo={allDayInfo[selectedDateKey]}
