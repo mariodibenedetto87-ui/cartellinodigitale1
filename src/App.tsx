@@ -152,18 +152,25 @@ const App: React.FC = () => {
         workLocation,
         enabled: !!workLocation && workStatus === WorkStatus.ClockedOut,
         onEnterWorkZone: (distance) => {
+            console.log('🎯 ENTRATO NELLA ZONA LAVORO!', { distance, workStatus });
+            
             // Show notification only if not already shown in last 4 hours
             const lastShown = localStorage.getItem('lastGeofenceNotification');
             const hoursSinceLastShown = lastShown 
                 ? (Date.now() - parseInt(lastShown)) / (1000 * 60 * 60)
                 : 999;
 
+            console.log('⏰ Cooldown check:', { hoursSinceLastShown, lastShown });
+
             if (hoursSinceLastShown > 4) {
+                console.log('✅ MOSTRO POPUP GEOFENCE!');
                 setGeofenceNotification({
                     distance,
                     shiftStartHour: todayShift?.startHour ?? undefined,
                 });
                 localStorage.setItem('lastGeofenceNotification', Date.now().toString());
+            } else {
+                console.log('⏳ Popup in cooldown, aspetta ancora', (4 - hoursSinceLastShown).toFixed(1), 'ore');
             }
         },
         onExitWorkZone: (distance) => {

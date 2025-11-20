@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { WorkLocation } from '../types';
 import { 
+  calculateDistance,
   getCurrentPosition, 
   shouldNotifyForShift,
   watchPosition,
@@ -34,8 +35,19 @@ export function useGeofencing({
 
   useEffect(() => {
     if (!enabled || !workLocation || !('geolocation' in navigator)) {
+      console.log('🚫 Geofencing disabled:', { 
+        enabled, 
+        hasWorkLocation: !!workLocation, 
+        hasGeolocation: 'geolocation' in navigator 
+      });
       return;
     }
+
+    console.log('🟢 Geofencing attivato!', { 
+      workLocation: workLocation.name,
+      radius: workLocation.radius + 'm',
+      coords: `${workLocation.latitude.toFixed(4)}, ${workLocation.longitude.toFixed(4)}`
+    });
 
     // Check shift start time notification
     const checkShiftReminder = () => {
@@ -77,13 +89,24 @@ export function useGeofencing({
             const nowWithinZone = newDistance <= workLocation.radius;
             setIsWithinZone(nowWithinZone);
 
+            console.log('📍 Posizione aggiornata:', {
+              lat: position.coords.latitude,
+              lon: position.coords.longitude,
+              distance: newDistance.toFixed(0) + 'm',
+              radius: workLocation.radius + 'm',
+              withinZone: nowWithinZone,
+              wasWithinZone: wasWithinZoneRef.current
+            });
+
             // Detect zone transitions
             if (nowWithinZone && !wasWithinZoneRef.current) {
               // Just entered zone
+              console.log('🎉 TRANSIZIONE: Entrato nella zona!');
               onEnterWorkZone?.(newDistance);
               checkShiftReminder();
             } else if (!nowWithinZone && wasWithinZoneRef.current) {
               // Just exited zone
+              console.log('🚪 TRANSIZIONE: Uscito dalla zona');
               onExitWorkZone?.(newDistance);
             }
 
@@ -131,7 +154,6 @@ export function useGeofencing({
   const calculateDistanceFromWork = (position: GeolocationPosition): number => {
     if (!workLocation) return Infinity;
     
-    const { calculateDistance } = require('../utils/geolocationUtils');
     return calculateDistance(
       position.coords.latitude,
       position.coords.longitude,
