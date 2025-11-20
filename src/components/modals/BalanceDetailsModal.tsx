@@ -75,7 +75,8 @@ const BalanceDetailsModal: React.FC<BalanceDetailsModalProps> = ({
 
           // Per GPO le ore/giorni vanno sottratti, per ACC aggiunti
           const multiplier = statusItem.class === 'GPO' ? -1 : 1;
-          monthlyTotals[month] = (monthlyTotals[month] || 0) + (amount * multiplier);
+          const value = amount * multiplier;
+          monthlyTotals[month] = Math.round(((monthlyTotals[month] || 0) + value) * 100) / 100;
         }
       }
     });
@@ -106,7 +107,8 @@ const BalanceDetailsModal: React.FC<BalanceDetailsModalProps> = ({
 
               // Per GPO le ore vanno sottratte, per ACC aggiunte
               const multiplier = statusItem.class === 'GPO' ? -1 : 1;
-              monthlyTotals[month] = (monthlyTotals[month] || 0) + (hours * multiplier);
+              const value = hours * multiplier;
+              monthlyTotals[month] = Math.round(((monthlyTotals[month] || 0) + value) * 100) / 100;
             }
           });
         }
@@ -120,7 +122,8 @@ const BalanceDetailsModal: React.FC<BalanceDetailsModalProps> = ({
   }, [allDayInfo, allManualOvertime, selectedYear, statusItem]);
 
   const totalUsed = useMemo(() => {
-    return usageDetails.entries.reduce((sum, entry) => sum + entry.amount, 0);
+    const sum = usageDetails.entries.reduce((sum, entry) => sum + entry.amount, 0);
+    return Math.round(sum * 100) / 100; // Arrotonda a 2 decimali
   }, [usageDetails]);
 
   return (
@@ -171,13 +174,13 @@ const BalanceDetailsModal: React.FC<BalanceDetailsModalProps> = ({
                 {statusItem.class === 'ACC' ? 'Totale Accumulato' : 'Totale Utilizzato'}
               </p>
               <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                {totalUsed} {statusItem.category === 'leave-hours' ? 'ore' : 'giorni'}
+                {totalUsed.toFixed(2)} {statusItem.category === 'leave-hours' ? 'ore' : 'giorni'}
               </p>
             </div>
             <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
               <p className="text-sm text-gray-600 dark:text-gray-600 mb-1">Saldo {statusItem.class === 'GPO' ? 'Residuo' : 'Totale'}</p>
               <p className={`text-2xl font-bold ${(statusItem.class === 'GPO' ? statusItem.entitlement - totalUsed : statusItem.entitlement + totalUsed) < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                {statusItem.class === 'GPO' ? statusItem.entitlement - totalUsed : statusItem.entitlement + totalUsed} {statusItem.category === 'leave-hours' ? 'ore' : 'giorni'}
+                {(Math.round((statusItem.class === 'GPO' ? statusItem.entitlement - totalUsed : statusItem.entitlement + totalUsed) * 100) / 100).toFixed(2)} {statusItem.category === 'leave-hours' ? 'ore' : 'giorni'}
               </p>
             </div>
           </div>
