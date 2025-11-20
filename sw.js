@@ -34,6 +34,11 @@ self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // Skip non-cacheable schemes (chrome-extension, data, blob, etc.)
+  if (!request.url.startsWith('http://') && !request.url.startsWith('https://')) {
+    return;
+  }
+
   // Network-first for Supabase API calls (with offline fallback)
   if (url.origin.includes('supabase')) {
     event.respondWith(networkFirstStrategy(request));
