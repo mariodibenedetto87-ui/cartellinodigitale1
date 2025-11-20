@@ -66,14 +66,27 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
         return;
       }
 
+      console.log('Richiedendo permesso notifiche...');
       const result = await requestNotificationPermission();
+      console.log('Permesso ottenuto:', result);
       setPermission(result);
 
       if (result === 'granted') {
         haptic(HapticType.SUCCESS);
-        const subscribed = await subscribeToPushNotifications();
-        setIsSubscribed(!!subscribed);
-        onShowToast('✅ Notifiche abilitate con successo!', 'success');
+        
+        // Prova a sottoscrivere solo se VAPID è configurato
+        try {
+          const subscribed = await subscribeToPushNotifications();
+          setIsSubscribed(!!subscribed);
+          if (subscribed) {
+            onShowToast('✅ Notifiche abilitate con successo!', 'success');
+          } else {
+            onShowToast('⚠️ Notifiche abilitate, ma sottoscrizione push non disponibile', 'success');
+          }
+        } catch (subError) {
+          console.warn('Push subscription failed:', subError);
+          onShowToast('✅ Notifiche abilitate (push notifications non disponibili)', 'success');
+        }
       } else if (result === 'denied') {
         haptic(HapticType.ERROR);
         onShowToast('⚠️ Permesso notifiche negato. Controlla le impostazioni del browser.', 'error');
@@ -83,7 +96,7 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
     } catch (error) {
       console.error('Error requesting permission:', error);
       haptic(HapticType.ERROR);
-      onShowToast('❌ Errore nell\'abilitare le notifiche', 'error');
+      onShowToast('❌ Errore nell\'abilitare le notifiche: ' + (error as Error).message, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -124,13 +137,14 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
     haptic(HapticType.LIGHT);
     try {
       setIsLoading(true);
+      console.log('Inviando notifica di test...');
       await sendTestNotification();
       haptic(HapticType.SUCCESS);
       onShowToast('📱 Notifica di test inviata!', 'success');
     } catch (error) {
       console.error('Error sending test notification:', error);
       haptic(HapticType.ERROR);
-      onShowToast('❌ Errore nell\'invio della notifica', 'error');
+      onShowToast('❌ Errore: ' + (error as Error).message, 'error');
     } finally {
       setIsLoading(false);
     }
