@@ -66,7 +66,7 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
       
       // Check if already granted
       if (permission === 'granted') {
-        onShowToast('✅ Le notifiche sono già abilitate!', 'success');
+        onShowToast('✅ Hai già concesso il permesso! Usa il toggle sotto per attivare/disattivare.', 'success');
         setIsLoading(false);
         return;
       }

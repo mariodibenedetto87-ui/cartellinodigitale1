@@ -39,11 +39,8 @@ export function useGeofencing({
       return;
     }
 
-    console.log('🟢 Geofencing attivato!', { 
-      workLocation: workLocation.name,
-      radius: workLocation.radius + 'm',
-      coords: `${workLocation.latitude.toFixed(4)}, ${workLocation.longitude.toFixed(4)}`
-    });
+    // Log once on mount (silently)
+    // console.log('🟢 Geofencing attivato!', { ... });
 
     // Check shift start time notification
     const checkShiftReminder = () => {
@@ -85,14 +82,8 @@ export function useGeofencing({
             const nowWithinZone = newDistance <= workLocation.radius;
             setIsWithinZone(nowWithinZone);
 
-            console.log('📍 Posizione aggiornata:', {
-              lat: position.coords.latitude,
-              lon: position.coords.longitude,
-              distance: newDistance.toFixed(0) + 'm',
-              radius: workLocation.radius + 'm',
-              withinZone: nowWithinZone,
-              wasWithinZone: wasWithinZoneRef.current
-            });
+            // Log only on transitions, not every update
+            // console.log('📍 Posizione aggiornata:', { ... });
 
             // Detect zone transitions
             if (nowWithinZone && !wasWithinZoneRef.current) {
