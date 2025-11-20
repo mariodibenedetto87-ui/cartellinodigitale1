@@ -66,6 +66,14 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
         return;
       }
 
+      // Verify Service Worker is ready
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        console.log('Service Worker ready:', registration);
+      } else {
+        throw new Error('Service Worker non supportato');
+      }
+
       console.log('Richiedendo permesso notifiche...');
       const result = await requestNotificationPermission();
       console.log('Permesso ottenuto:', result);
@@ -73,19 +81,15 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
 
       if (result === 'granted') {
         haptic(HapticType.SUCCESS);
+        onShowToast('✅ Notifiche abilitate con successo!', 'success');
         
         // Prova a sottoscrivere solo se VAPID è configurato
         try {
           const subscribed = await subscribeToPushNotifications();
           setIsSubscribed(!!subscribed);
-          if (subscribed) {
-            onShowToast('✅ Notifiche abilitate con successo!', 'success');
-          } else {
-            onShowToast('⚠️ Notifiche abilitate, ma sottoscrizione push non disponibile', 'success');
-          }
+          console.log('Push subscription:', subscribed ? 'attiva' : 'non disponibile');
         } catch (subError) {
-          console.warn('Push subscription failed:', subError);
-          onShowToast('✅ Notifiche abilitate (push notifications non disponibili)', 'success');
+          console.warn('Push subscription failed (normal without VAPID):', subError);
         }
       } else if (result === 'denied') {
         haptic(HapticType.ERROR);
@@ -96,7 +100,7 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
     } catch (error) {
       console.error('Error requesting permission:', error);
       haptic(HapticType.ERROR);
-      onShowToast('❌ Errore nell\'abilitare le notifiche: ' + (error as Error).message, 'error');
+      onShowToast('❌ Errore: ' + (error as Error).message, 'error');
     } finally {
       setIsLoading(false);
     }

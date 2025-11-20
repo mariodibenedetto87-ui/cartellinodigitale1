@@ -142,9 +142,9 @@ export const showLocalNotification = async (payload: NotificationPayload): Promi
     throw new Error('Notifiche non supportate');
   }
 
-  const permission = await requestNotificationPermission();
+  const permission = getNotificationPermission();
   if (permission !== 'granted') {
-    throw new Error('Permesso notifiche negato');
+    throw new Error('Permesso notifiche non concesso. Abilita le notifiche prima.');
   }
 
   try {
