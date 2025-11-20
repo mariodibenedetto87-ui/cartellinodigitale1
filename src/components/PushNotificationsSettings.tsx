@@ -28,15 +28,19 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
 
   // Carica stato iniziale
   useEffect(() => {
+    console.log('🔔 PushNotificationsSettings mounted');
     const checkPushSupport = async () => {
       const supported = isPushSupported();
+      console.log('Push supported:', supported);
       setIsSupported(supported);
 
       if (supported) {
         const perm = getNotificationPermission();
+        console.log('Current permission:', perm);
         setPermission(perm);
 
         const subscribed = await isPushSubscribed();
+        console.log('Is subscribed:', subscribed);
         setIsSubscribed(subscribed);
 
         const reminders = getClockReminders();
@@ -55,6 +59,7 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
   }, []);
 
   const handleRequestPermission = async () => {
+    console.log('🎯 Button clicked! isLoading:', isLoading, 'isSupported:', isSupported);
     haptic(HapticType.LIGHT);
     try {
       setIsLoading(true);
@@ -221,7 +226,8 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
           {permission !== 'granted' && (
             <button
               onClick={handleRequestPermission}
-              disabled={isLoading}
+              disabled={isLoading || !isSupported}
+              title={!isSupported ? 'Push notifications non supportate dal browser' : ''}
               className="px-6 py-3 bg-teal-600 hover:bg-teal-700 active:scale-95 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-all shadow-lg hover:shadow-xl"
             >
               {isLoading ? (
@@ -229,6 +235,8 @@ export default function PushNotificationsSettings({ onShowToast }: PushNotificat
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   Attendi...
                 </span>
+              ) : !isSupported ? (
+                '❌ Non Supportato'
               ) : (
                 '🔔 Abilita Notifiche'
               )}
