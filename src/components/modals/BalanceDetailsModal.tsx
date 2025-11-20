@@ -194,14 +194,17 @@ const BalanceDetailsModal: React.FC<BalanceDetailsModalProps> = ({
               {monthNames.map((monthName, index) => {
                 const total = usageDetails.monthlyTotals[index] || 0;
                 const hasActivity = total !== 0;
-                const isPositive = total > 0;
+                // Per ACC: valori positivi = accumulo (verde con +)
+                // Per GPO: valori negativi = sottrazione (rosso con -)
+                const isAccumulating = statusItem.class === 'ACC' ? total > 0 : total < 0;
+                const displayValue = Math.abs(total);
                 
                 return (
                   <div
                     key={index}
                     className={`p-3 rounded-lg border-2 transition-all ${
                       hasActivity
-                        ? isPositive 
+                        ? isAccumulating 
                           ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700'
                           : 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700'
                         : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600'
@@ -212,12 +215,12 @@ const BalanceDetailsModal: React.FC<BalanceDetailsModalProps> = ({
                     </p>
                     <p className={`text-lg font-bold ${
                       hasActivity
-                        ? isPositive 
+                        ? isAccumulating 
                           ? 'text-green-600 dark:text-green-400' 
                           : 'text-red-600 dark:text-red-400'
                         : 'text-gray-600 dark:text-gray-600'
                     }`}>
-                      {hasActivity ? (isPositive ? '+' : '') + total.toFixed(2) : '-'}
+                      {hasActivity ? (isAccumulating ? '+' : '-') + displayValue.toFixed(2) : '-'}
                     </p>
                   </div>
                 );
