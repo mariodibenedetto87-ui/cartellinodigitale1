@@ -60,9 +60,53 @@ export * from '../../utils/icsUtils'; // ❌ Loop infinito!
 
 ---
 
+## ✅ RISOLTO - Problema #3: SQL Migration theme_settings
+
+**Status**: ✅ **COMPLETATO**
+
+**Soluzione Implementata**:
+
+1. **Migration SQL creata**: `supabase/migrations/20250120_add_theme_settings.sql`
+   ```sql
+   ALTER TABLE user_settings 
+   ADD COLUMN IF NOT EXISTS theme_settings JSONB 
+   DEFAULT '{"mode":"system","accentColor":"teal"}'::jsonb;
+   ```
+
+2. **Codice App.tsx semplificato**: Rimosso workaround temporaneo
+   - Rimosso blocco try/catch con retry
+   - Rimosso commento TODO
+   - Codice pulito e diretto
+
+3. **README migrations creato**: `supabase/migrations/README.md`
+   - Istruzioni applicazione (Dashboard, CLI, API)
+   - Comandi verifica
+   - Rollback procedure
+   - Troubleshooting
+
+**Prossimi Passi**:
+1. Applicare la migration in Supabase Dashboard:
+   - SQL Editor → Copia contenuto `20250120_add_theme_settings.sql` → Run
+2. Verificare: `SELECT column_name FROM information_schema.columns WHERE table_name = 'user_settings' AND column_name = 'theme_settings';`
+3. Testare: Cambia tema nell'app → Logout → Login → Verifica tema salvato
+
+**File Modificati**:
+- ✅ `supabase/migrations/20250120_add_theme_settings.sql` (CREATO)
+- ✅ `supabase/migrations/README.md` (CREATO)
+- ✅ `src/App.tsx` (SEMPLIFICATO - rimosso workaround)
+
+---
+
 ## 🟡 IMPORTANTI (High Priority)
 
-### 3. **TODO: Migration SQL per theme_settings** 📝
+### 3. **~~TODO: Migration SQL per theme_settings~~** ✅ RISOLTO
+~~**File**: `src/App.tsx:444`~~
+
+**Status**: ✅ **COMPLETATO** - Vedi sezione sopra
+
+---
+
+### 4. **ErrorBoundary - TODO Monitoring** 📊
 **File**: `src/App.tsx:444`
 
 **Problema**: 
@@ -198,9 +242,9 @@ useEffect(() => {
 
 | # | Problema | Priorità | Impatto | Effort | Status |
 |---|----------|----------|---------|--------|--------|
-| 1 | AddOvertimeModal TypeScript errors | 🔴 CRITICA | App non compila | 2h | ⏳ Da fare |
-| 2 | icsUtils export loop | 🔴 CRITICA | Errore compilazione | 5min | ⏳ Da fare |
-| 3 | theme_settings SQL migration | 🟡 ALTA | Tema non salvato cloud | 30min | ⏳ Da fare |
+| 1 | AddOvertimeModal TypeScript errors | 🔴 CRITICA | App non compila | 2h | ✅ RISOLTO |
+| 2 | icsUtils export loop | 🔴 CRITICA | Errore compilazione | 5min | ✅ RISOLTO |
+| 3 | theme_settings SQL migration | 🟡 ALTA | Tema non salvato cloud | 30min | ✅ RISOLTO |
 | 4 | ErrorBoundary monitoring | 🟡 MEDIA | Debug produzione | 1h | ⏳ Opzionale |
 | 5 | Console logs cleanup | 🟢 BASSA | Già gestito in build | 0min | ✅ OK |
 | 6 | Reminder checker loop | 🟢 BASSA | Feature opzionale | 30min | ⏳ Opzionale |
@@ -211,12 +255,13 @@ useEffect(() => {
 ## 🎯 Piano d'Azione Raccomandato
 
 ### Immediate Actions (Oggi)
-1. ✅ **Fix AddOvertimeModal.tsx** - Risolvere errori TypeScript critici
-2. ✅ **Fix icsUtils export** - Rimuovere export circolare
+1. ✅ **Fix AddOvertimeModal.tsx** - Risolti errori TypeScript critici
+2. ✅ **Fix icsUtils export** - File problematico rimosso/ignorato
+3. ✅ **SQL Migration theme_settings** - Migration creata in `supabase/migrations/`
 
 ### Short Term (Questa settimana)
-3. ⚠️ **SQL Migration theme_settings** - Aggiungere colonna al database
-4. 📊 **Testare in produzione** - Verificare che tutto funzioni
+4. ⚠️ **Applicare SQL Migration** - Esegui migration in Supabase Dashboard
+5. 📊 **Testare in produzione** - Verificare che tutto funzioni
 
 ### Medium Term (Prossimo sprint)
 5. 📈 **Integrare Sentry** - Monitoring errori produzione (opzionale)

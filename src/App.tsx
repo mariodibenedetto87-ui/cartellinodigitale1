@@ -430,31 +430,25 @@ const App: React.FC = () => {
     const debouncedSaveSettings = useCallback(debounce(async (newSettings) => {
         if (!session) return;
         
-        // Prepara i dati da salvare
-        const updateData: any = {
+        // Prepara i dati da salvare (include theme_settings dopo migration SQL)
+        const updateData = {
             work_settings: newSettings.workSettings,
             offer_settings: newSettings.offerSettings,
             dashboard_layout: newSettings.dashboardLayout,
             widget_visibility: newSettings.widgetVisibility,
             status_items: newSettings.statusItems,
             saved_rotations: newSettings.savedRotations,
+            theme_settings: newSettings.themeSettings,
         };
         
-        // Aggiungi theme_settings solo se supportato (evita errore 400)
-        // TODO: Eseguire migration SQL per aggiungere colonna al database
         try {
-            updateData.theme_settings = newSettings.themeSettings;
-            const { error } = await supabase.from('user_settings').update(updateData).eq('user_id', session.user.id);
+            const { error } = await supabase
+                .from('user_settings')
+                .update(updateData)
+                .eq('user_id', session.user.id);
+            
             if (error) {
-                // Se errore per colonna mancante, riprova senza theme_settings
-                if (error.message.includes('theme_settings')) {
-                    delete updateData.theme_settings;
-                    const { error: retryError } = await supabase.from('user_settings').update(updateData).eq('user_id', session.user.id);
-                    if (retryError) showToast(`Salvataggio fallito: ${retryError.message}`, 'error');
-                    else showToast('Impostazioni salvate! (tema locale)');
-                } else {
-                    showToast(`Salvataggio fallito: ${error.message}`, 'error');
-                }
+                showToast(`Salvataggio fallito: ${error.message}`, 'error');
             } else {
                 showToast('Impostazioni salvate nel cloud!');
             }
