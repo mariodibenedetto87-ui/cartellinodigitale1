@@ -14,6 +14,7 @@ import DashboardPage from './pages/DashboardPage';
 const CalendarPage = lazy(() => import('./pages/CalendarPage'));
 const SettingsPage = lazy(() => import('./components/SettingsPage'));
 const BalancesPage = lazy(() => import('./pages/BalancesPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 import QuickLeaveModal from './components/QuickLeaveModal';
 import Toast from './components/Toast';
 import AddTimeEntryModal from './components/AddTimeEntryModal';
@@ -34,7 +35,7 @@ import { syncWithDatabase } from './utils/syncManager';
 import { PageLoader } from './utils/lazyComponents';
 import { useGeofencing } from './hooks/useGeofencing';
 
-type Page = 'dashboard' | 'calendar' | 'settings' | 'balances';
+type Page = 'dashboard' | 'calendar' | 'settings' | 'balances' | 'profile';
 type ToastMessage = { id: number; message: string; type: 'success' | 'error'; };
 
 // Helper function to debounce saving to Supabase
@@ -1430,6 +1431,12 @@ const App: React.FC = () => {
                             allMealVouchers={allMealVouchers}
                             onOpenAddOvertimeModal={(date) => setHoursJustificationModal({ date, mode: 'extra' })}
                         />
+                    </Suspense>
+                );
+            case 'profile':
+                return (
+                    <Suspense fallback={<PageLoader />}>
+                        <ProfilePage />
                     </Suspense>
                 );
             case 'settings':
