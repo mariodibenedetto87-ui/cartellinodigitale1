@@ -472,13 +472,17 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
                     </button>
                 </div>
                 <div className="space-y-2">
-                    {localWorkSettings.shifts.filter(s => s.id !== 'rest').map(shift => (
+                    {localWorkSettings.shifts.filter(s => s.id !== 'rest').map(shift => {
+                        const startTime = `${String(shift.startHour).padStart(2, '0')}:${String(shift.startMinute || 0).padStart(2, '0')}`;
+                        const endTime = `${String(shift.endHour).padStart(2, '0')}:${String(shift.endMinute || 0).padStart(2, '0')}`;
+                        
+                        return (
                         <div key={shift.id} className="flex items-center justify-between bg-gray-50 dark:bg-slate-700/50 p-3 rounded-lg">
                             <div className="flex items-center gap-3">
                                 <div className={`w-4 h-4 rounded-full ${shift.bgColor}`}></div>
                                 <div>
                                     <p className="font-bold text-slate-800 dark:text-white">{shift.name}</p>
-                                    <p className="text-xs text-gray-600 dark:text-slate-600">{shift.startHour}:00 - {shift.endHour}:00</p>
+                                    <p className="text-xs text-gray-600 dark:text-slate-600">{startTime} - {endTime}</p>
                                 </div>
                             </div>
                             <div className="flex items-center space-x-2">
@@ -486,7 +490,8 @@ const SettingsPage: React.FC<SettingsPageProps> = (props) => {
                                 <button onClick={() => handleDeleteShift(shift.id)} className="p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50" aria-label="Elimina Turno"><DeleteIcon className="h-4 w-4 text-red-500" /></button>
                             </div>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 

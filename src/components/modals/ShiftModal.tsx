@@ -23,7 +23,9 @@ const ShiftModal: React.FC<ShiftModalProps> = ({ shift, onClose, onSave }) => {
     id: '',
     name: '',
     startHour: 7,
+    startMinute: 0,
     endHour: 14,
+    endMinute: 0,
     textColor: colorOptions[0].textColor,
     bgColor: colorOptions[0].bgColor,
   });
@@ -35,7 +37,9 @@ const ShiftModal: React.FC<ShiftModalProps> = ({ shift, onClose, onSave }) => {
          id: '',
          name: '',
          startHour: 7,
+         startMinute: 0,
          endHour: 14,
+         endMinute: 0,
          textColor: colorOptions[0].textColor,
          bgColor: colorOptions[0].bgColor,
          ...shift 
@@ -61,10 +65,16 @@ const ShiftModal: React.FC<ShiftModalProps> = ({ shift, onClose, onSave }) => {
         return;
     }
 
-    const start = Number(formData.startHour);
-    const end = Number(formData.endHour);
+    const startHour = Number(formData.startHour);
+    const startMinute = Number(formData.startMinute || 0);
+    const endHour = Number(formData.endHour);
+    const endMinute = Number(formData.endMinute || 0);
 
-    if (start === end) {
+    // Converti in minuti totali per il confronto
+    const startTotalMinutes = startHour * 60 + startMinute;
+    const endTotalMinutes = endHour * 60 + endMinute;
+
+    if (startTotalMinutes === endTotalMinutes) {
         setError("L'ora di inizio e di fine non possono coincidere.");
         return;
     }
@@ -72,8 +82,10 @@ const ShiftModal: React.FC<ShiftModalProps> = ({ shift, onClose, onSave }) => {
     onSave({
         id: formData.id || self.crypto.randomUUID(),
         name: formData.name,
-        startHour: start,
-        endHour: end,
+        startHour,
+        startMinute,
+        endHour,
+        endMinute,
         textColor: formData.textColor || colorOptions[0].textColor,
         bgColor: formData.bgColor || colorOptions[0].bgColor,
     });
@@ -96,11 +108,57 @@ const ShiftModal: React.FC<ShiftModalProps> = ({ shift, onClose, onSave }) => {
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <label htmlFor="startHour" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Ora Inizio</label>
-                    <input type="number" name="startHour" value={formData.startHour ?? ''} onChange={handleChange} required min="0" max="23" className="mt-1 w-full bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2" />
+                    <div className="flex gap-2">
+                      <input 
+                        type="number" 
+                        name="startHour" 
+                        value={formData.startHour ?? ''} 
+                        onChange={handleChange} 
+                        required 
+                        min="0" 
+                        max="23" 
+                        className="mt-1 w-full bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2" 
+                        placeholder="HH"
+                      />
+                      <span className="mt-1 flex items-center text-gray-700 dark:text-slate-300">:</span>
+                      <input 
+                        type="number" 
+                        name="startMinute" 
+                        value={formData.startMinute ?? 0} 
+                        onChange={handleChange} 
+                        min="0" 
+                        max="59" 
+                        className="mt-1 w-full bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2" 
+                        placeholder="mm"
+                      />
+                    </div>
                 </div>
                 <div>
                     <label htmlFor="endHour" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Ora Fine</label>
-                    <input type="number" name="endHour" value={formData.endHour ?? ''} onChange={handleChange} required min="0" max="23" className="mt-1 w-full bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2" />
+                    <div className="flex gap-2">
+                      <input 
+                        type="number" 
+                        name="endHour" 
+                        value={formData.endHour ?? ''} 
+                        onChange={handleChange} 
+                        required 
+                        min="0" 
+                        max="23" 
+                        className="mt-1 w-full bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2" 
+                        placeholder="HH"
+                      />
+                      <span className="mt-1 flex items-center text-gray-700 dark:text-slate-300">:</span>
+                      <input 
+                        type="number" 
+                        name="endMinute" 
+                        value={formData.endMinute ?? 0} 
+                        onChange={handleChange} 
+                        min="0" 
+                        max="59" 
+                        className="mt-1 w-full bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2" 
+                        placeholder="mm"
+                      />
+                    </div>
                 </div>
             </div>
              <div>

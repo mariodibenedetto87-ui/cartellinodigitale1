@@ -180,9 +180,11 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                                 {(() => {
                                     const shift = workSettings.shifts.find(s => s.id === dayInfo.shift);
                                     if (shift && shift.startHour !== null && shift.endHour !== null) {
+                                        const startTime = `${String(shift.startHour).padStart(2, '0')}:${String(shift.startMinute || 0).padStart(2, '0')}`;
+                                        const endTime = `${String(shift.endHour).padStart(2, '0')}:${String(shift.endMinute || 0).padStart(2, '0')}`;
                                         return (
                                             <p className="text-sm text-teal-700 dark:text-teal-300 mt-1">
-                                                {shift.startHour.toString().padStart(2, '0')}:00 - {shift.endHour.toString().padStart(2, '0')}:00
+                                                {startTime} - {endTime}
                                             </p>
                                         );
                                     }

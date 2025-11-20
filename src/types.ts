@@ -8,7 +8,9 @@ export interface Shift {
   id: string;
   name: string;
   startHour: number | null;
+  startMinute?: number; // Minuti per ora inizio (0-59)
   endHour: number | null;
+  endMinute?: number; // Minuti per ora fine (0-59)
   textColor: string;
   bgColor: string;
 }
