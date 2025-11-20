@@ -157,23 +157,31 @@ const App: React.FC = () => {
             
             console.log('🎯 ENTRATO NELLA ZONA LAVORO!', { distance, workStatus });
             
-            // Show notification only if not already shown in last 4 hours
-            const lastShown = localStorage.getItem('lastGeofenceNotification');
-            const hoursSinceLastShown = lastShown 
-                ? (Date.now() - parseInt(lastShown)) / (1000 * 60 * 60)
-                : 999;
+            // Smart cooldown: una notifica per turno (basato su data + shift)
+            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+            const shiftKey = todayShift?.startHour ?? 'default';
+            const cooldownKey = `geofence_enter_${today}_${shiftKey}`;
+            const alreadyNotifiedToday = localStorage.getItem(cooldownKey);
 
-            console.log('⏰ Cooldown check:', { hoursSinceLastShown, lastShown });
+            console.log('⏰ Cooldown check per turno:', { today, shiftKey, alreadyNotifiedToday });
 
-            if (hoursSinceLastShown > 4) {
-                console.log('✅ MOSTRO POPUP GEOFENCE!');
+            if (!alreadyNotifiedToday) {
+                console.log('✅ MOSTRO POPUP GEOFENCE (prima volta questo turno)!');
                 setGeofenceNotification({
                     distance,
                     shiftStartHour: todayShift?.startHour ?? undefined,
                 });
-                localStorage.setItem('lastGeofenceNotification', Date.now().toString());
+                localStorage.setItem(cooldownKey, Date.now().toString());
+                
+                // Cleanup: rimuovi notifiche vecchie (>7 giorni)
+                const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('geofence_') && parseInt(localStorage.getItem(key) || '0') < sevenDaysAgo) {
+                        localStorage.removeItem(key);
+                    }
+                });
             } else {
-                console.log('⏳ Popup in cooldown, aspetta ancora', (4 - hoursSinceLastShown).toFixed(1), 'ore');
+                console.log('⏳ Notifica già mostrata per questo turno oggi');
             }
         },
         onExitWorkZone: (distance) => {
@@ -182,13 +190,13 @@ const App: React.FC = () => {
             
             console.log('🚪 Sei uscito dalla zona lavoro', { distance, shiftEndHour: todayShift?.endHour });
             
-            // Show notification only if not already shown in last 4 hours
-            const lastShown = localStorage.getItem('lastGeofenceExitNotification');
-            const hoursSinceLastShown = lastShown 
-                ? (Date.now() - parseInt(lastShown)) / (1000 * 60 * 60)
-                : 999;
+            // Smart cooldown: una notifica per turno (basato su data + shift)
+            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+            const shiftKey = todayShift?.endHour ?? 'default';
+            const cooldownKey = `geofence_exit_${today}_${shiftKey}`;
+            const alreadyNotifiedToday = localStorage.getItem(cooldownKey);
 
-            if (hoursSinceLastShown > 4 && todayShift?.endHour) {
+            if (!alreadyNotifiedToday && todayShift?.endHour) {
                 const now = new Date();
                 const currentHour = now.getHours();
                 const currentMinute = now.getMinutes();
@@ -201,10 +209,22 @@ const App: React.FC = () => {
                 const timeDiff = Math.abs(currentTimeInMinutes - shiftEndTimeInMinutes);
                 
                 if (timeDiff <= 30) {
-                    console.log('✅ MOSTRO NOTIFICA USCITA!');
+                    console.log('✅ MOSTRO NOTIFICA USCITA (prima volta questo turno)!');
                     showToast(`🚪 Ricorda di timbrare l'uscita! Turno termina alle ${shiftEndHour}:${shiftEndMinute.toString().padStart(2, '0')}`, 'success');
-                    localStorage.setItem('lastGeofenceExitNotification', Date.now().toString());
+                    localStorage.setItem(cooldownKey, Date.now().toString());
+                    
+                    // Cleanup: rimuovi notifiche vecchie (>7 giorni)
+                    const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+                    Object.keys(localStorage).forEach(key => {
+                        if (key.startsWith('geofence_') && parseInt(localStorage.getItem(key) || '0') < sevenDaysAgo) {
+                            localStorage.removeItem(key);
+                        }
+                    });
+                } else {
+                    console.log('⏰ Fuori orario fine turno, non notifico');
                 }
+            } else {
+                console.log('⏳ Notifica uscita già mostrata per questo turno oggi');
             }
         },
         onShiftStartReminder: (shiftStartHour) => {
