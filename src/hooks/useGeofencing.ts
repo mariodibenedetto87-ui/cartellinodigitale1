@@ -35,11 +35,7 @@ export function useGeofencing({
 
   useEffect(() => {
     if (!enabled || !workLocation || !('geolocation' in navigator)) {
-      console.log('🚫 Geofencing disabled:', { 
-        enabled, 
-        hasWorkLocation: !!workLocation, 
-        hasGeolocation: 'geolocation' in navigator 
-      });
+      // Geofencing disabled - silently return without logging
       return;
     }
 

@@ -67,7 +67,8 @@ export const subscribeToPushNotifications = async (): Promise<PushSubscription |
   }
 
   if (!VAPID_PUBLIC_KEY) {
-    console.warn('VAPID_PUBLIC_KEY non configurata - Push notifications disabilitate');
+    // VAPID key not configured - push notifications from server are disabled
+    // Local notifications will still work
     return null;
   }
 
