@@ -136,6 +136,7 @@ export interface WorkLocation {
     longitude: number;
     radius: number; // meters
     name: string;
+    batterySaveMode?: boolean; // ⚡ Se true, usa GPS a bassa precisione (risparmia batteria 50-70%)
 }
 
 // DASHBOARD

@@ -79,8 +79,9 @@ export async function requestLocationPermission(): Promise<PermissionStatus | nu
 
 /**
  * Get current device position
+ * @param batterySaveMode If true, uses low-accuracy positioning (WiFi/Cell) to save battery
  */
-export function getCurrentPosition(): Promise<GeolocationPosition> {
+export function getCurrentPosition(batterySaveMode: boolean = true): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) => {
     if (!('geolocation' in navigator)) {
       reject(new Error('Geolocation non supportata'));
@@ -105,9 +106,9 @@ export function getCurrentPosition(): Promise<GeolocationPosition> {
         }
       },
       {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 30000,
+        enableHighAccuracy: !batterySaveMode, // ⚡ BATTERY SAVE: WiFi/Cell invece di GPS se enabled
+        timeout: batterySaveMode ? 15000 : 10000,
+        maximumAge: batterySaveMode ? 120000 : 30000, // 2 min vs 30 sec
       }
     );
   });
@@ -115,10 +116,15 @@ export function getCurrentPosition(): Promise<GeolocationPosition> {
 
 /**
  * Watch position changes for geofencing
+ * @param callback Callback when position updates
+ * @param errorCallback Callback on error
+ * @param batterySaveMode If true, uses low-accuracy positioning (WiFi/Cell) to save battery
+ * @returns Watch ID to clear later
  */
 export function watchPosition(
   callback: (position: GeolocationPosition) => void,
-  errorCallback?: (error: GeolocationPositionError) => void
+  errorCallback?: (error: GeolocationPositionError) => void,
+  batterySaveMode: boolean = true
 ): number {
   if (!('geolocation' in navigator)) {
     throw new Error('Geolocation non supportata');
@@ -128,9 +134,9 @@ export function watchPosition(
     callback,
     errorCallback,
     {
-      enableHighAccuracy: true,
-      timeout: 5000,
-      maximumAge: 0,
+      enableHighAccuracy: !batterySaveMode, // ⚡ BATTERY SAVE: WiFi/Cell invece di GPS se enabled
+      timeout: batterySaveMode ? 20000 : 5000,
+      maximumAge: batterySaveMode ? 300000 : 0, // 5 min vs no cache
     }
   );
 }
