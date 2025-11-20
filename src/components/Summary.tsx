@@ -356,7 +356,7 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                                                 <p className="text-xs text-gray-600 dark:text-slate-600">{entry.type === 'in' ? 'Entrata' : 'Uscita'}</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center space-x-1 transition-opacity">
                                             <button onClick={() => {
                                                 haptic(HapticType.LIGHT);
                                                 setEditingEntry({ entry, id: entry.id });
@@ -424,7 +424,7 @@ const Summary: React.FC<SummaryProps> = ({ date, entries, dayInfo, nextDayInfo, 
                                             <p className="text-xs text-orange-500 dark:text-orange-400 font-bold">{label}</p>
                                             {entry.note && <p className="text-xs text-gray-600 dark:text-slate-600 mt-1 italic">"{entry.note}"</p>}
                                         </div>
-                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="transition-opacity">
                                             <button onClick={() => {
                                                 haptic(HapticType.LIGHT);
                                                 if (window.confirm('🗑️ Vuoi eliminare questa voce di straordinario?')) {
