@@ -14,7 +14,9 @@ interface UseGeofencingOptions {
   onEnterWorkZone?: (distance: number) => void;
   onExitWorkZone?: (distance: number) => void;
   onShiftStartReminder?: (shiftStartHour: number) => void;
+  onShiftEndReminder?: (shiftEndHour: number) => void;
   shiftStartHour?: number;
+  shiftEndHour?: number;
   notifyMinutesBefore?: number;
 }
 
@@ -24,13 +26,16 @@ export function useGeofencing({
   onEnterWorkZone,
   onExitWorkZone,
   onShiftStartReminder,
+  onShiftEndReminder,
   shiftStartHour,
+  shiftEndHour,
   notifyMinutesBefore = 15,
 }: UseGeofencingOptions) {
   const [isWithinZone, setIsWithinZone] = useState(false);
   const [currentDistance, setCurrentDistance] = useState<number | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const lastNotificationRef = useRef<Date | null>(null);
+  const lastEndReminderRef = useRef<Date | null>(null);
   const wasWithinZoneRef = useRef(false);
 
   useEffect(() => {
@@ -58,6 +63,25 @@ export function useGeofencing({
       if (shouldNotify && hoursSinceLastNotification > 1 && isWithinZone) {
         onShiftStartReminder(shiftStartHour);
         lastNotificationRef.current = now;
+      }
+    };
+
+    // Check shift end time notification
+    const checkShiftEndReminder = () => {
+      if (!shiftEndHour || !onShiftEndReminder) return;
+
+      const now = new Date();
+      const shouldNotify = shouldNotifyForShift(now, shiftEndHour, notifyMinutesBefore);
+      
+      // Only notify once per hour
+      const lastEndNotification = lastEndReminderRef.current;
+      const hoursSinceLastEndNotification = lastEndNotification 
+        ? (now.getTime() - lastEndNotification.getTime()) / (1000 * 60 * 60)
+        : 999;
+
+      if (shouldNotify && hoursSinceLastEndNotification > 1 && isWithinZone) {
+        onShiftEndReminder(shiftEndHour);
+        lastEndReminderRef.current = now;
       }
     };
 
@@ -95,6 +119,7 @@ export function useGeofencing({
               // Just exited zone
               console.log('🚪 TRANSIZIONE: Uscito dalla zona');
               onExitWorkZone?.(newDistance);
+              checkShiftEndReminder();
             }
 
             wasWithinZoneRef.current = nowWithinZone;
@@ -106,8 +131,11 @@ export function useGeofencing({
 
         watchIdRef.current = watchId;
 
-        // Check shift reminder periodically
-        const reminderInterval = setInterval(checkShiftReminder, 60000); // Every minute
+        // Check shift reminders periodically
+        const reminderInterval = setInterval(() => {
+          checkShiftReminder();
+          checkShiftEndReminder();
+        }, 60000); // Every minute
 
         return () => {
           clearInterval(reminderInterval);
@@ -132,7 +160,9 @@ export function useGeofencing({
     onEnterWorkZone,
     onExitWorkZone,
     onShiftStartReminder,
+    onShiftEndReminder,
     shiftStartHour,
+    shiftEndHour,
     notifyMinutesBefore,
     isWithinZone,
   ]);

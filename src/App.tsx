@@ -150,8 +150,11 @@ const App: React.FC = () => {
 
     useGeofencing({
         workLocation,
-        enabled: !!workLocation && workStatus === WorkStatus.ClockedOut,
+        enabled: !!workLocation, // Abilita sempre se c'è una location configurata
         onEnterWorkZone: (distance) => {
+            // Notifica solo se sei ClockedOut (devi timbrare entrata)
+            if (workStatus !== WorkStatus.ClockedOut) return;
+            
             console.log('🎯 ENTRATO NELLA ZONA LAVORO!', { distance, workStatus });
             
             // Show notification only if not already shown in last 4 hours
@@ -174,12 +177,45 @@ const App: React.FC = () => {
             }
         },
         onExitWorkZone: (distance) => {
-            console.log(`Sei uscito dalla zona lavoro (${distance}m)`);
+            // Notifica solo se sei ClockedIn (devi timbrare uscita)
+            if (workStatus !== WorkStatus.ClockedIn) return;
+            
+            console.log('🚪 Sei uscito dalla zona lavoro', { distance, shiftEndHour: todayShift?.endHour });
+            
+            // Show notification only if not already shown in last 4 hours
+            const lastShown = localStorage.getItem('lastGeofenceExitNotification');
+            const hoursSinceLastShown = lastShown 
+                ? (Date.now() - parseInt(lastShown)) / (1000 * 60 * 60)
+                : 999;
+
+            if (hoursSinceLastShown > 4 && todayShift?.endHour) {
+                const now = new Date();
+                const currentHour = now.getHours();
+                const currentMinute = now.getMinutes();
+                const shiftEndHour = todayShift.endHour;
+                const shiftEndMinute = todayShift.endMinute ?? 0;
+                
+                // Notifica solo se siamo vicini all'orario di fine turno (entro 30 minuti prima o dopo)
+                const currentTimeInMinutes = currentHour * 60 + currentMinute;
+                const shiftEndTimeInMinutes = shiftEndHour * 60 + shiftEndMinute;
+                const timeDiff = Math.abs(currentTimeInMinutes - shiftEndTimeInMinutes);
+                
+                if (timeDiff <= 30) {
+                    console.log('✅ MOSTRO NOTIFICA USCITA!');
+                    showToast(`🚪 Ricorda di timbrare l'uscita! Turno termina alle ${shiftEndHour}:${shiftEndMinute.toString().padStart(2, '0')}`, 'success');
+                    localStorage.setItem('lastGeofenceExitNotification', Date.now().toString());
+                }
+            }
         },
         onShiftStartReminder: (shiftStartHour) => {
             showToast(`⏰ Il tuo turno inizia alle ${shiftStartHour}:00`, 'success');
         },
+        onShiftEndReminder: (shiftEndHour) => {
+            const shiftEndMinute = todayShift?.endMinute ?? 0;
+            showToast(`⏰ Il tuo turno termina alle ${shiftEndHour}:${shiftEndMinute.toString().padStart(2, '0')} - Ricorda di timbrare l'uscita!`, 'success');
+        },
         shiftStartHour: todayShift?.startHour ?? undefined,
+        shiftEndHour: todayShift?.endHour ?? undefined,
         notifyMinutesBefore: 15,
     });
 
