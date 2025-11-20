@@ -13,19 +13,21 @@ interface WorkLocationSettingsProps {
 export function WorkLocationSettings({ workLocation, onSave, onRemove }: WorkLocationSettingsProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [locationName, setLocationName] = useState(workLocation?.name || '');
+  const [address, setAddress] = useState('');
   const [radius, setRadius] = useState(workLocation?.radius || 200);
-  const [latitude, setLatitude] = useState(workLocation?.latitude || 0);
-  const [longitude, setLongitude] = useState(workLocation?.longitude || 0);
+  const [latitude, setLatitude] = useState(workLocation?.latitude?.toString() || '');
+  const [longitude, setLongitude] = useState(workLocation?.longitude?.toString() || '');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [currentDistance, setCurrentDistance] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [inputMode, setInputMode] = useState<'gps' | 'manual'>('gps');
 
   useEffect(() => {
     if (workLocation) {
       setLocationName(workLocation.name);
       setRadius(workLocation.radius);
-      setLatitude(workLocation.latitude);
-      setLongitude(workLocation.longitude);
+      setLatitude(workLocation.latitude.toString());
+      setLongitude(workLocation.longitude.toString());
     }
   }, [workLocation]);
 
@@ -59,8 +61,8 @@ export function WorkLocationSettings({ workLocation, onSave, onRemove }: WorkLoc
 
     try {
       const position = await getCurrentPosition();
-      setLatitude(position.coords.latitude);
-      setLongitude(position.coords.longitude);
+      setLatitude(position.coords.latitude.toString());
+      setLongitude(position.coords.longitude.toString());
       haptic(HapticType.SUCCESS);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Errore nel recupero della posizione');
@@ -76,15 +78,24 @@ export function WorkLocationSettings({ workLocation, onSave, onRemove }: WorkLoc
       setError('Inserisci un nome per la posizione');
       return;
     }
-    if (latitude === 0 || longitude === 0) {
-      setError('Imposta una posizione valida');
+    
+    const lat = parseFloat(latitude);
+    const lon = parseFloat(longitude);
+    
+    if (isNaN(lat) || isNaN(lon)) {
+      setError('Inserisci coordinate valide');
+      return;
+    }
+    
+    if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+      setError('Coordinate fuori dal range valido (lat: -90/90, lon: -180/180)');
       return;
     }
 
     onSave({
       name: locationName.trim(),
-      latitude,
-      longitude,
+      latitude: lat,
+      longitude: lon,
       radius,
     });
     setIsEditing(false);
@@ -106,8 +117,8 @@ export function WorkLocationSettings({ workLocation, onSave, onRemove }: WorkLoc
     if (workLocation) {
       setLocationName(workLocation.name);
       setRadius(workLocation.radius);
-      setLatitude(workLocation.latitude);
-      setLongitude(workLocation.longitude);
+      setLatitude(workLocation.latitude.toString());
+      setLongitude(workLocation.longitude.toString());
     }
     setIsEditing(false);
     setError(null);
@@ -256,30 +267,114 @@ export function WorkLocationSettings({ workLocation, onSave, onRemove }: WorkLoc
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Coordinate
+            Posizione
           </label>
-          <button
-            onClick={handleGetCurrentLocation}
-            disabled={isGettingLocation}
-            className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
-          >
-            {isGettingLocation ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Rilevamento posizione...
-              </>
-            ) : (
-              <>
-                <MapPinIcon className="w-5 h-5" />
-                Usa Posizione Attuale
-              </>
-            )}
-          </button>
           
-          {(latitude !== 0 || longitude !== 0) && (
-            <div className="mt-2 p-2 bg-gray-50 dark:bg-slate-700 rounded">
-              <p className="text-xs font-mono text-gray-700 dark:text-gray-300">
-                Lat: {latitude.toFixed(6)}, Lon: {longitude.toFixed(6)}
+          {/* Toggle buttons for input mode */}
+          <div className="flex gap-2 mb-3">
+            <button
+              type="button"
+              onClick={() => {
+                haptic(HapticType.LIGHT);
+                setInputMode('gps');
+              }}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                inputMode === 'gps'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+              }`}
+            >
+              📍 GPS Attuale
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                haptic(HapticType.LIGHT);
+                setInputMode('manual');
+              }}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                inputMode === 'manual'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+              }`}
+            >
+              ✏️ Manuale
+            </button>
+          </div>
+
+          {inputMode === 'gps' ? (
+            <button
+              onClick={handleGetCurrentLocation}
+              disabled={isGettingLocation}
+              className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              {isGettingLocation ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Rilevamento posizione...
+                </>
+              ) : (
+                <>
+                  <MapPinIcon className="w-5 h-5" />
+                  Rileva Posizione Attuale
+                </>
+              )}
+            </button>
+          ) : (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                  Indirizzo (opzionale)
+                </label>
+                <input
+                  type="text"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="es. Via Roma 10, Milano"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="mt-1 text-xs text-gray-600 dark:text-slate-400">
+                  L'indirizzo è solo indicativo. Devi inserire le coordinate sotto.
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    Latitudine *
+                  </label>
+                  <input
+                    type="text"
+                    value={latitude}
+                    onChange={(e) => setLatitude(e.target.value)}
+                    placeholder="45.4642"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    Longitudine *
+                  </label>
+                  <input
+                    type="text"
+                    value={longitude}
+                    onChange={(e) => setLongitude(e.target.value)}
+                    placeholder="9.1900"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 font-mono"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-gray-600 dark:text-slate-400">
+                💡 Puoi trovare le coordinate su <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 underline">Google Maps</a> cliccando col destro sul luogo
+              </p>
+            </div>
+          )}
+          
+          {(latitude !== '' && longitude !== '') && (
+            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <p className="text-xs font-medium text-blue-800 dark:text-blue-300 mb-1">📍 Coordinate impostate:</p>
+              <p className="text-sm font-mono text-blue-700 dark:text-blue-400">
+                {parseFloat(latitude).toFixed(6)}, {parseFloat(longitude).toFixed(6)}
               </p>
             </div>
           )}
