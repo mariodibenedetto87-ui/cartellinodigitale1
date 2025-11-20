@@ -109,9 +109,12 @@ const BalancesPage: React.FC<BalancesPageProps> = (props) => {
 
             {statusItems.map((item) => {
                 const used = usageData[item.code] || 0;
-                const balance = item.entitlement - used;
+                // ACC: somma (entitlement + used), GPO: sottrai (entitlement - used)
+                const balance = item.class === 'GPO' 
+                  ? item.entitlement - used 
+                  : item.entitlement + used;
                 const details = getStatusItemDetails(`code-${item.code}`, statusItems);
-                const progress = item.entitlement > 0 ? (used / item.entitlement) * 100 : 0;
+                const progress = item.entitlement > 0 ? (Math.abs(used) / item.entitlement) * 100 : 0;
                 const isOvertime = item.category === 'overtime';
                 const isClickable = !isOvertime && (item.category === 'leave-day' || item.category === 'leave-hours');
                 
@@ -148,12 +151,14 @@ const BalancesPage: React.FC<BalancesPageProps> = (props) => {
                             <div className="text-right">
                                 {isOvertime ? (
                                     <>
-                                        <p className="text-lg font-bold text-orange-500">{used.toFixed(1)}h</p>
+                                        <p className="text-lg font-bold text-orange-500">{used.toFixed(2)}h</p>
                                         <p className="text-xs text-gray-600 dark:text-slate-600">Accumulate</p>
                                     </>
                                 ) : (
                                     <>
-                                        <p className={`text-lg font-bold ${balance < 0 ? 'text-red-500' : 'text-emerald-500'}`}>{balance}</p>
+                                        <p className={`text-lg font-bold ${balance < 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+                                          {item.category === 'leave-hours' ? balance.toFixed(2) : Math.round(balance)}
+                                        </p>
                                         <p className="text-xs text-gray-600 dark:text-slate-600">Saldo</p>
                                     </>
                                 )}
@@ -165,7 +170,7 @@ const BalancesPage: React.FC<BalancesPageProps> = (props) => {
                                     <div className={`${details.bgColor} h-2 rounded-full`} style={{ width: `${Math.min(100, progress)}%` }}></div>
                                 </div>
                                 <div className="flex justify-between text-xs text-gray-600 dark:text-slate-600 mt-1">
-                                    <span>Usati: {used}</span>
+                                    <span>Usati: {item.category === 'leave-hours' ? used.toFixed(2) : Math.round(used)}</span>
                                     <span>Previsti: {item.entitlement}</span>
                                 </div>
                             </>
