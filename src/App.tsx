@@ -338,7 +338,11 @@ const App: React.FC = () => {
                             workSettings: { 
                                 ...prevSettings.workSettings, 
                                 ...settingsData.work_settings,
-                                shifts: mergedShifts 
+                                shifts: mergedShifts,
+                                // Preserva workLocation se presente
+                                ...(settingsData.work_settings?.workLocation && {
+                                    workLocation: settingsData.work_settings.workLocation
+                                })
                             },
                             offerSettings: { ...prevSettings.offerSettings, ...settingsData.offer_settings },
                             themeSettings: settingsData.theme_settings 
@@ -357,9 +361,12 @@ const App: React.FC = () => {
                         };
                     });
                     
-                    // Carica workLocation da work_settings
+                    // Carica workLocation da work_settings e imposta lo stato
                     if (settingsData.work_settings?.workLocation) {
                         setWorkLocation(settingsData.work_settings.workLocation);
+                        console.log('✅ WorkLocation caricata da Supabase:', settingsData.work_settings.workLocation);
+                    } else {
+                        console.log('⚠️ Nessuna workLocation trovata nel database');
                     }
                 } else if (settingsError && settingsError.code === 'PGRST116') {
                     // Inserimento nuovo utente - non include theme_settings se colonna manca
@@ -465,6 +472,8 @@ const App: React.FC = () => {
             theme_settings: newSettings.themeSettings,
         };
         
+        console.log('💾 Salvando settings con workLocation:', workLocation);
+        
         try {
             const { error } = await supabase
                 .from('user_settings')
@@ -472,8 +481,10 @@ const App: React.FC = () => {
                 .eq('user_id', session.user.id);
             
             if (error) {
+                console.error('❌ Errore salvataggio:', error);
                 showToast(`Salvataggio fallito: ${error.message}`, 'error');
             } else {
+                console.log('✅ Settings salvate con successo (workLocation inclusa)');
                 showToast('Impostazioni salvate nel cloud!');
             }
         } catch (err: any) {
@@ -1458,20 +1469,24 @@ const App: React.FC = () => {
                             onSaveSavedRotations={(r) => setSettings(prev => ({...prev, savedRotations: r}))}
                             onSetStatusItems={(i) => setSettings(prev => ({...prev, statusItems: i}))}
                             onSaveWorkLocation={(location) => {
+                                console.log('📍 Salvando workLocation:', location);
                                 setWorkLocation(location);
                                 // Salva anche in settings per trigger il salvataggio su Supabase
                                 setSettings(prev => ({
                                     ...prev,
                                     workSettings: { ...prev.workSettings, workLocation: location }
                                 }));
+                                showToast('📍 Posizione GPS salvata! Sincronizzata su tutti i dispositivi', 'success');
                             }}
                             onRemoveWorkLocation={() => {
+                                console.log('🗑️ Rimuovendo workLocation');
                                 setWorkLocation(null);
                                 // Rimuovi anche da settings
                                 setSettings(prev => ({
                                     ...prev,
                                     workSettings: { ...prev.workSettings, workLocation: undefined }
                                 }));
+                                showToast('🗑️ Posizione GPS rimossa', 'success');
                             }}
                             onShowToast={showToast}
                         />
