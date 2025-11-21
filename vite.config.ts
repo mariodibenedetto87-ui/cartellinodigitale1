@@ -12,8 +12,8 @@ export default defineConfig({
       output: {
         manualChunks: {
           'vendor-react': ['react', 'react-dom'],
-          'vendor-supabase': ['@supabase/supabase-js'],
-          'vendor-google': ['@google/generative-ai']
+          'vendor-supabase': ['@supabase/supabase-js']
+          // vendor-google rimosso - non usato nell'app
         }
       }
     },

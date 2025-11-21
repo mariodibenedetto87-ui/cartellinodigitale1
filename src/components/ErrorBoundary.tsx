@@ -1,4 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
+import * as Sentry from '@sentry/react';
 
 interface Props {
   children: ReactNode;
@@ -23,7 +24,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Logga l'errore su un servizio di monitoring (Sentry, LogRocket, etc.)
+    // Logga l'errore in console per sviluppo
     console.error('Uncaught error:', error, errorInfo);
     
     this.setState({
@@ -31,8 +32,19 @@ class ErrorBoundary extends Component<Props, State> {
       errorInfo
     });
 
-    // TODO: Invia l'errore a un servizio di monitoring
-    // Esempio: Sentry.captureException(error);
+    // ✅ SENTRY: Invia errore a monitoring in produzione
+    if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
+      Sentry.captureException(error, {
+        contexts: {
+          react: {
+            componentStack: errorInfo.componentStack,
+          },
+        },
+        tags: {
+          errorBoundary: true,
+        },
+      });
+    }
   }
 
   private handleReload = () => {

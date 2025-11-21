@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo, useEffect, useState, lazy, Suspense } from 'react';
 import { AllTimeLogs, WorkStatus, WorkSettings, AllDayInfo, OfferSettings, StatusItem, DashboardLayout, WidgetVisibility, AllManualOvertime, AllMealVouchers } from '../types';
 import { formatDateKey, isSameDay, addDays, startOfWeek, calculateWorkSummary } from '../utils/timeUtils';
 import { Session } from '@supabase/supabase-js';
@@ -8,7 +8,8 @@ import Summary from '../components/Summary';
 import WeeklySummary from '../components/WeeklySummary';
 import MonthlySummary from '../components/MonthlySummary';
 import OfferCard from '../components/OfferCard';
-import WeeklyHoursChart from '../components/WeeklyHoursChart';
+// Lazy load chart pesante solo quando necessario
+const WeeklyHoursChart = lazy(() => import('../components/WeeklyHoursChart'));
 import BalancesSummary from '../components/BalancesSummary';
 import PlannerCard from '../components/PlannerCard';
 import MealVoucherCard from '../components/MealVoucherCard';
@@ -212,10 +213,12 @@ const DashboardPage: React.FC<DashboardPageProps> = (props) => {
             />
         ),
         weeklyHoursChart: (
-            <WeeklyHoursChart 
-                totalWorkMs={weeklyData.totalWorkMs}
-                totalOvertimeMs={weeklyData.totalOvertimeMs}
-            />
+            <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500"></div></div>}>
+                <WeeklyHoursChart 
+                    totalWorkMs={weeklyData.totalWorkMs}
+                    totalOvertimeMs={weeklyData.totalOvertimeMs}
+                />
+            </Suspense>
         ),
         mealVoucherCard: (
             <MealVoucherCard

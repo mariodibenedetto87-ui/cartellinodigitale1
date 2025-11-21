@@ -6,6 +6,7 @@ import { formatDateKey, formatDuration, addDays, parseDateKey } from './utils/ti
 import { scheduleReminders, requestNotificationPermission, clearScheduledNotifications } from './utils/notificationUtils';
 import { generateSmartNotifications, SmartNotification } from './utils/smartNotifications';
 import { applyTheme } from './utils/themeUtils';
+import { calculateMealVoucherEligibility } from './utils/mealVoucherUtils';
 import { defaultStatusItems } from './data/statusItems';
 import Auth from './components/Auth';
 import Header from './components/Header';
@@ -786,7 +787,6 @@ const App: React.FC = () => {
     const autoCheckMealVoucher = async (dateKey: string, entries: TimeEntry[]) => {
         if (!session) return;
         
-        const { calculateMealVoucherEligibility } = await import('./utils/mealVoucherUtils');
         const isEligible = calculateMealVoucherEligibility(entries);
         
         // Se è eligibile e non esiste già un voucher manuale, salvalo automaticamente
