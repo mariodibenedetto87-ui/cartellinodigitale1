@@ -103,6 +103,7 @@ export interface WorkSettings {
     autoBreakThresholdHours: number;
     autoBreakMinutes: number;
     shifts: Shift[];
+    workLocation?: WorkLocation; // Aggiungi posizione GPS (opzionale)
 }
 
 export interface OfferSettings {

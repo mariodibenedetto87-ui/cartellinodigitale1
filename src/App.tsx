@@ -69,10 +69,7 @@ const App: React.FC = () => {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [toasts, setToasts] = useState<ToastMessage[]>([]);
     const [smartNotifications, setSmartNotifications] = useState<SmartNotification[]>([]);
-    const [workLocation, setWorkLocation] = useState<WorkLocation | null>(() => {
-        const saved = localStorage.getItem('workLocation');
-        return saved ? JSON.parse(saved) : null;
-    });
+    const [workLocation, setWorkLocation] = useState<WorkLocation | null>(null);
     
     // All settings are now grouped into one state for easier Supabase management
     const [settings, setSettings] = useState<{
@@ -359,6 +356,11 @@ const App: React.FC = () => {
                             savedRotations: settingsData.saved_rotations || prevSettings.savedRotations,
                         };
                     });
+                    
+                    // Carica workLocation da work_settings
+                    if (settingsData.work_settings?.workLocation) {
+                        setWorkLocation(settingsData.work_settings.workLocation);
+                    }
                 } else if (settingsError && settingsError.code === 'PGRST116') {
                     // Inserimento nuovo utente - non include theme_settings se colonna manca
                     const insertData: any = { 
@@ -454,7 +456,7 @@ const App: React.FC = () => {
         
         // Prepara i dati da salvare (include theme_settings dopo migration SQL)
         const updateData = {
-            work_settings: newSettings.workSettings,
+            work_settings: { ...newSettings.workSettings, workLocation }, // Include workLocation
             offer_settings: newSettings.offerSettings,
             dashboard_layout: newSettings.dashboardLayout,
             widget_visibility: newSettings.widgetVisibility,
@@ -477,7 +479,7 @@ const App: React.FC = () => {
         } catch (err: any) {
             showToast(`Errore: ${err.message}`, 'error');
         }
-    }, 5000), [session, showToast]); // Ottimizzato: da 2000ms a 5000ms
+    }, 5000), [session, showToast, workLocation]); // Aggiungi workLocation alle dipendenze
 
     useEffect(() => {
         if (session && !loading) { debouncedSaveSettings(settings); }
@@ -1457,11 +1459,19 @@ const App: React.FC = () => {
                             onSetStatusItems={(i) => setSettings(prev => ({...prev, statusItems: i}))}
                             onSaveWorkLocation={(location) => {
                                 setWorkLocation(location);
-                                localStorage.setItem('workLocation', JSON.stringify(location));
+                                // Salva anche in settings per trigger il salvataggio su Supabase
+                                setSettings(prev => ({
+                                    ...prev,
+                                    workSettings: { ...prev.workSettings, workLocation: location }
+                                }));
                             }}
                             onRemoveWorkLocation={() => {
                                 setWorkLocation(null);
-                                localStorage.removeItem('workLocation');
+                                // Rimuovi anche da settings
+                                setSettings(prev => ({
+                                    ...prev,
+                                    workSettings: { ...prev.workSettings, workLocation: undefined }
+                                }));
                             }}
                             onShowToast={showToast}
                         />
