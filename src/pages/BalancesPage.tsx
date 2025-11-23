@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { StatusItem, AllDayInfo, AllTimeLogs, WorkSettings, AllManualOvertime, AllMealVouchers } from '../types';
-import { useAppContext } from '../contexts/AppContext';
+import { StatusItem } from '../types';
+import { useData } from '../contexts/DataContext';
+import { useSettings } from '../contexts/SettingsContext';
+import { useUI } from '../contexts/UIContext';
 import { calculateStatusUsage } from '../utils/statusUtils';
 import LeaveDonutChart from '../components/charts/LeaveDonutChart';
 import { getStatusItemDetails } from '../utils/leaveUtils';
@@ -8,42 +10,25 @@ import AnnualSummary from '../components/AnnualSummary';
 import ComparativeStats from '../components/ComparativeStats';
 import BalanceDetailsModal from '../components/modals/BalanceDetailsModal';
 import MealVouchersDetailsModal from '../components/modals/MealVouchersDetailsModal';
+import { formatHoursDecimal } from '../utils/timeUtils';
 
-// Props opzionali - retrocompatibile con Context API
-interface BalancesPageProps {
-  statusItems?: StatusItem[];
-  allDayInfo?: AllDayInfo;
-  allLogs?: AllTimeLogs;
-  workSettings?: WorkSettings;
-  allManualOvertime?: AllManualOvertime;
-  allMealVouchers?: AllMealVouchers;
-  onOpenAddOvertimeModal?: (date: Date) => void;
-}
+const BalancesPage: React.FC = () => {
+  const { allLogs, allDayInfo, allManualOvertime, allMealVouchers } = useData();
+  const { settings } = useSettings();
+  const { openAddOvertimeModal } = useUI();
 
-const BalancesPage: React.FC<BalancesPageProps> = (props) => {
-  // Context API fallback
-  const context = useAppContext();
-  
-  // Usa props se fornite, altrimenti Context
-  const statusItems = props.statusItems ?? context.settings.statusItems;
-  const allDayInfo = props.allDayInfo ?? context.allDayInfo;
-  const allLogs = props.allLogs ?? context.allLogs;
-  const workSettings = props.workSettings ?? context.settings.workSettings;
-  const allManualOvertime = props.allManualOvertime ?? context.allManualOvertime;
-  const allMealVouchers = props.allMealVouchers ?? context.allMealVouchers;
-  const onOpenAddOvertimeModal = props.onOpenAddOvertimeModal ?? (() => {});
-  
+  const { statusItems, workSettings } = settings;
+
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedStatusItem, setSelectedStatusItem] = useState<StatusItem | null>(null);
   const [isMealVouchersModalOpen, setIsMealVouchersModalOpen] = useState(false);
-  
+
   const usageData = useMemo(() => {
     return calculateStatusUsage(allDayInfo, selectedYear, statusItems, allManualOvertime);
   }, [allDayInfo, selectedYear, statusItems, allManualOvertime]);
 
   const leaveItems = useMemo(() => statusItems.filter(item => item.category === 'leave-day' || item.category === 'leave-hours'), [statusItems]);
 
-  // Calcola buoni pasto maturati nell'anno selezionato
   const mealVouchersEarned = useMemo(() => {
     return Object.entries(allMealVouchers)
       .filter(([dateKey, voucher]) => {
@@ -55,7 +40,7 @@ const BalancesPage: React.FC<BalancesPageProps> = (props) => {
 
   return (
     <main className="container mx-auto px-4 py-8 md:px-8">
-      <AnnualSummary 
+      <AnnualSummary
         year={selectedYear}
         onYearChange={setSelectedYear}
         allLogs={allLogs}
@@ -64,7 +49,6 @@ const BalancesPage: React.FC<BalancesPageProps> = (props) => {
         allManualOvertime={allManualOvertime}
       />
 
-      {/* Comparative Statistics Section */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">📊 Statistiche Comparative</h2>
         <ComparativeStats
@@ -84,8 +68,7 @@ const BalancesPage: React.FC<BalancesPageProps> = (props) => {
           </div>
 
           <div className="space-y-4">
-            {/* Card Buoni Pasto */}
-            <div 
+            <div
               className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border-2 border-blue-200 dark:border-blue-800 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all hover:shadow-md"
               onClick={() => setIsMealVouchersModalOpen(true)}
               title="Click per vedere i dettagli dei buoni pasto"
@@ -108,81 +91,83 @@ const BalancesPage: React.FC<BalancesPageProps> = (props) => {
             </div>
 
             {statusItems.map((item) => {
-                const used = usageData[item.code] || 0;
-                // ACC: somma (entitlement + used), GPO: sottrai (entitlement - used)
-                const balance = item.class === 'GPO' 
-                  ? item.entitlement - used 
-                  : item.entitlement + used;
-                const details = getStatusItemDetails(`code-${item.code}`, statusItems);
-                const progress = item.entitlement > 0 ? (Math.abs(used) / item.entitlement) * 100 : 0;
-                const isOvertime = item.category === 'overtime';
-                const isClickable = !isOvertime && (item.category === 'leave-day' || item.category === 'leave-hours');
-                
-                return (
-                    <div 
-                        key={item.code} 
-                        className={`bg-gray-50 dark:bg-slate-700/50 p-4 rounded-lg ${
-                            isOvertime 
-                              ? 'cursor-pointer hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all hover:shadow-md' 
-                              : isClickable 
-                                ? 'cursor-pointer hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-all hover:shadow-md'
-                                : ''
-                        }`}
-                        onClick={
-                          isOvertime 
-                            ? () => onOpenAddOvertimeModal(new Date()) 
-                            : isClickable 
-                              ? () => setSelectedStatusItem(item)
-                              : undefined
-                        }
-                        title={
-                          isOvertime 
-                            ? 'Click per aggiungere straordinari' 
-                            : isClickable 
-                              ? 'Click per vedere i dettagli'
-                              : ''
-                        }
-                    >
-                        <div className="flex justify-between items-center mb-2">
-                            <div className="flex items-center space-x-3">
-                                <details.Icon className={`w-6 h-6 flex-shrink-0 ${details.textColor}`} />
-                                <span className="font-semibold text-gray-800 dark:text-white truncate" title={item.description}>{item.description}</span>
-                            </div>
-                            <div className="text-right">
-                                {isOvertime ? (
-                                    <>
-                                        <p className="text-lg font-bold text-orange-500">{used.toFixed(2)}h</p>
-                                        <p className="text-xs text-gray-600 dark:text-slate-600">Accumulate</p>
-                                    </>
-                                ) : (
-                                    <>
-                                        <p className={`text-lg font-bold ${balance < 0 ? 'text-red-500' : 'text-emerald-500'}`}>
-                                          {item.category === 'leave-hours' ? balance.toFixed(2) : Math.round(balance)}
-                                        </p>
-                                        <p className="text-xs text-gray-600 dark:text-slate-600">Saldo</p>
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                        {item.entitlement > 0 && (
-                            <>
-                                <div className="bg-gray-200 dark:bg-slate-600 rounded-full h-2 w-full">
-                                    <div className={`${details.bgColor} h-2 rounded-full`} style={{ width: `${Math.min(100, progress)}%` }}></div>
-                                </div>
-                                <div className="flex justify-between text-xs text-gray-600 dark:text-slate-600 mt-1">
-                                    <span>Usati: {item.category === 'leave-hours' ? used.toFixed(2) : Math.round(used)}</span>
-                                    <span>Previsti: {item.entitlement}</span>
-                                </div>
-                            </>
-                        )}
+              const used = usageData[item.code] || 0;
+              const balance = item.class === 'GPO'
+                ? item.entitlement - used
+                : item.entitlement + used;
+              const details = getStatusItemDetails(`code-${item.code}`, statusItems);
+              const progress = item.entitlement > 0 ? (Math.abs(used) / item.entitlement) * 100 : 0;
+              const isOvertime = item.category === 'overtime';
+              const isClickable = !isOvertime && (item.category === 'leave-day' || item.category === 'leave-hours');
+              const isHourly = item.category === 'leave-hours';
+
+              const entitlementDisplay = isHourly ? formatHoursDecimal(item.entitlement) : item.entitlement;
+              const usedDisplay = isHourly ? formatHoursDecimal(used) : Math.round(used);
+              const balanceDisplay = isHourly ? formatHoursDecimal(balance) : Math.round(balance);
+
+              return (
+                <div
+                  key={item.code}
+                  className={`bg-gray-50 dark:bg-slate-700/50 p-4 rounded-lg ${isOvertime
+                      ? 'cursor-pointer hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all hover:shadow-md'
+                      : isClickable
+                        ? 'cursor-pointer hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-all hover:shadow-md'
+                        : ''
+                    }`}
+                  onClick={
+                    isOvertime
+                      ? () => openAddOvertimeModal(new Date())
+                      : isClickable
+                        ? () => setSelectedStatusItem(item)
+                        : undefined
+                  }
+                  title={
+                    isOvertime
+                      ? 'Click per aggiungere straordinari'
+                      : isClickable
+                        ? 'Click per vedere i dettagli'
+                        : ''
+                  }
+                >
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="flex items-center space-x-3">
+                      <details.Icon className={`w-6 h-6 flex-shrink-0 ${details.textColor}`} />
+                      <span className="font-semibold text-gray-800 dark:text-white truncate" title={item.description}>{item.description}</span>
                     </div>
-                )
+                    <div className="text-right">
+                      {isOvertime ? (
+                        <>
+                          <p className="text-lg font-bold text-orange-500">{used.toFixed(2)}h</p>
+                          <p className="text-xs text-gray-600 dark:text-slate-600">Accumulate</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className={`text-lg font-bold ${balance < 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+                            {balanceDisplay}
+                          </p>
+                          <p className="text-xs text-gray-600 dark:text-slate-600">Saldo</p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {item.entitlement > 0 && (
+                    <>
+                      <div className="bg-gray-200 dark:bg-slate-600 rounded-full h-2 w-full">
+                        <div className={`${details.bgColor} h-2 rounded-full`} style={{ width: `${Math.min(100, progress)}%` }}></div>
+                      </div>
+                      <div className="flex justify-between text-xs text-gray-600 dark:text-slate-600 mt-1">
+                        <span>Usati: {usedDisplay}</span>
+                        <span>Previsti: {entitlementDisplay}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )
             })}
           </div>
         </div>
       </div>
 
-      {/* Balance Details Modal */}
       {selectedStatusItem && (
         <BalanceDetailsModal
           statusItem={selectedStatusItem}
@@ -193,7 +178,6 @@ const BalancesPage: React.FC<BalancesPageProps> = (props) => {
         />
       )}
 
-      {/* Meal Vouchers Details Modal */}
       {isMealVouchersModalOpen && (
         <MealVouchersDetailsModal
           allMealVouchers={allMealVouchers}

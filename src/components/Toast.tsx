@@ -3,22 +3,22 @@ import React from 'react';
 interface ToastProps {
   message: string;
   type: 'success' | 'error';
-  onDismiss: () => void;
+  onClose: () => void;
 }
 
 const SuccessIcon: React.FC = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
 );
 
 const ErrorIcon: React.FC = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
 );
 
-const Toast: React.FC<ToastProps> = ({ message, type, onDismiss }) => {
+const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
   const baseClasses = "flex items-center w-full p-4 text-white rounded-lg shadow-lg dark:shadow-black/30 animate-modal-content";
   const typeClasses = {
     success: 'bg-emerald-500',
@@ -31,10 +31,10 @@ const Toast: React.FC<ToastProps> = ({ message, type, onDismiss }) => {
         {type === 'success' ? <SuccessIcon /> : <ErrorIcon />}
       </div>
       <div className="ml-3 text-sm font-semibold">{message}</div>
-      <button 
-        type="button" 
-        className="ml-auto -mx-1.5 -my-1.5 bg-white/20 text-white hover:text-white rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-white/30 inline-flex h-8 w-8" 
-        onClick={onDismiss} 
+      <button
+        type="button"
+        className="ml-auto -mx-1.5 -my-1.5 bg-white/20 text-white hover:text-white rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-white/30 inline-flex h-8 w-8"
+        onClick={onClose}
         aria-label="Close"
       >
         <span className="sr-only">Close</span>

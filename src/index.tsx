@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import * as Sentry from '@sentry/react';
 import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
-import { AppProvider } from './contexts/AppContext';
+
 import './index.css';
 
 // ✅ SENTRY: Inizializza monitoring errori in produzione
@@ -43,9 +43,7 @@ const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <ErrorBoundary>
-      <AppProvider>
-        <App />
-      </AppProvider>
+      <App />
     </ErrorBoundary>
   </React.StrictMode>
 );
