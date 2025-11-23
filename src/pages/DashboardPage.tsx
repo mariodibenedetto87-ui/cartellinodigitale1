@@ -16,7 +16,6 @@ import MealVoucherCard from '../components/MealVoucherCard';
 import SmartNotificationsPanel from '../components/SmartNotificationsPanel';
 import DashboardInsights from '../components/DashboardInsights';
 import { GeofenceNotification } from '../components/GeofenceNotification';
-import { useNavigate } from 'react-router-dom';
 
 // Lazy load chart
 const WeeklyHoursChart = lazy(() => import('../components/WeeklyHoursChart'));
@@ -33,8 +32,6 @@ const DashboardPage: React.FC = () => {
         openQuickLeaveModal, openAddEntryModal, openAddManualEntryModal,
         openAddOvertimeModal, openHoursMissingModal, openMealVoucherModal, openRangePlanner
     } = useUI();
-
-    const navigate = useNavigate();
 
     const { workSettings, offerSettings, statusItems, dashboardLayout, widgetVisibility } = settings;
 
@@ -74,7 +71,6 @@ const DashboardPage: React.FC = () => {
             console.log('📍 Entrato nella zona di lavoro!', distance);
 
             const shiftStart = workSettings.shifts.find(s => s.id !== 'rest')?.startHour;
-            const shiftEnd = workSettings.shifts.find(s => s.id !== 'rest')?.endHour;
 
             // Check if we should show the notification
             let shouldShow = false;

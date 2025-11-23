@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { CalendarView, LeaveType } from '../types';
-import { useAuth } from '../contexts/AuthContext';
+import { CalendarView } from '../types';
 import { useData } from '../contexts/DataContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { useUI } from '../contexts/UIContext';
@@ -23,7 +22,6 @@ import DayEventsModal from '../components/modals/DayEventsModal';
 const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY || '';
 
 const CalendarPage: React.FC = () => {
-    const { session } = useAuth();
     const {
         allLogs, allDayInfo, allManualOvertime,
         handleSetAllDayInfo, handleEditEntry, handleDeleteEntry, handleDeleteManualOvertime,

@@ -56,7 +56,7 @@ const LogoutIcon: React.FC<{ className?: string }> = ({ className }) => (
 const Header: React.FC<HeaderProps> = ({ onOpenSearch, onLogout }) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { settings } = useSettings(); // Use settings if needed for theme toggle logic in future
+    useSettings(); // Use settings if needed for theme toggle logic in future
 
     // Determine current page from path
     const currentPath = location.pathname;

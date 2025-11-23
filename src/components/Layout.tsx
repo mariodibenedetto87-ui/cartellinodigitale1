@@ -8,7 +8,7 @@ const Layout: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { session } = useAuth();
-    const { settings } = useSettings(); // For theme if needed
+    useSettings(); // For theme if needed
 
     // Map current path to page name for Header
     const getCurrentPage = () => {
