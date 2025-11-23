@@ -22,6 +22,16 @@ interface SettingsContextType {
     workLocation: WorkLocation | null;
     setWorkLocation: (location: WorkLocation | null) => void;
     saveSettings: (newSettings: SettingsState) => Promise<void>;
+    // Helper methods for updating specific settings
+    updateWorkSettings: (workSettings: WorkSettings) => void;
+    updateOfferSettings: (offerSettings: OfferSettings) => void;
+    updateThemeSettings: (themeSettings: ThemeSettings) => void;
+    updateDashboardLayout: (layout: DashboardLayout) => void;
+    updateWidgetVisibility: (visibility: WidgetVisibility) => void;
+    updateSavedRotations: (rotations: SavedRotation[]) => void;
+    updateStatusItems: (items: StatusItem[]) => void;
+    updateWorkLocation: (location: WorkLocation | null) => void;
+    removeWorkLocation: () => void;
 }
 
 const defaultSettings: SettingsState = {
@@ -215,6 +225,73 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         debouncedSaveSettings(newSettings, workLocation);
     };
 
+    // Helper methods for updating specific settings
+    const updateWorkSettings = useCallback((workSettings: WorkSettings) => {
+        setSettings(prev => {
+            const newSettings = { ...prev, workSettings };
+            debouncedSaveSettings(newSettings, workLocation);
+            return newSettings;
+        });
+    }, [workLocation, debouncedSaveSettings]);
+
+    const updateOfferSettings = useCallback((offerSettings: OfferSettings) => {
+        setSettings(prev => {
+            const newSettings = { ...prev, offerSettings };
+            debouncedSaveSettings(newSettings, workLocation);
+            return newSettings;
+        });
+    }, [workLocation, debouncedSaveSettings]);
+
+    const updateThemeSettings = useCallback((themeSettings: ThemeSettings) => {
+        setSettings(prev => {
+            const newSettings = { ...prev, themeSettings };
+            debouncedSaveSettings(newSettings, workLocation);
+            return newSettings;
+        });
+        applyTheme(themeSettings.accentColor, themeSettings.primaryShade);
+    }, [workLocation, debouncedSaveSettings]);
+
+    const updateDashboardLayout = useCallback((dashboardLayout: DashboardLayout) => {
+        setSettings(prev => {
+            const newSettings = { ...prev, dashboardLayout };
+            debouncedSaveSettings(newSettings, workLocation);
+            return newSettings;
+        });
+    }, [workLocation, debouncedSaveSettings]);
+
+    const updateWidgetVisibility = useCallback((widgetVisibility: WidgetVisibility) => {
+        setSettings(prev => {
+            const newSettings = { ...prev, widgetVisibility };
+            debouncedSaveSettings(newSettings, workLocation);
+            return newSettings;
+        });
+    }, [workLocation, debouncedSaveSettings]);
+
+    const updateSavedRotations = useCallback((savedRotations: SavedRotation[]) => {
+        setSettings(prev => {
+            const newSettings = { ...prev, savedRotations };
+            debouncedSaveSettings(newSettings, workLocation);
+            return newSettings;
+        });
+    }, [workLocation, debouncedSaveSettings]);
+
+    const updateStatusItems = useCallback((statusItems: StatusItem[]) => {
+        setSettings(prev => {
+            const newSettings = { ...prev, statusItems };
+            debouncedSaveSettings(newSettings, workLocation);
+            return newSettings;
+        });
+    }, [workLocation, debouncedSaveSettings]);
+
+    const updateWorkLocation = useCallback((location: WorkLocation | null) => {
+        setWorkLocation(location);
+        // Note: workLocation save is triggered by the useEffect
+    }, []);
+
+    const removeWorkLocation = useCallback(() => {
+        setWorkLocation(null);
+    }, []);
+
     // Also trigger save when workLocation changes
     useEffect(() => {
         if (session && !loading) {
@@ -223,7 +300,22 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }, [workLocation]);
 
     return (
-        <SettingsContext.Provider value={{ settings, setSettings, workLocation, setWorkLocation, saveSettings }}>
+        <SettingsContext.Provider value={{
+            settings,
+            setSettings,
+            workLocation,
+            setWorkLocation,
+            saveSettings,
+            updateWorkSettings,
+            updateOfferSettings,
+            updateThemeSettings,
+            updateDashboardLayout,
+            updateWidgetVisibility,
+            updateSavedRotations,
+            updateStatusItems,
+            updateWorkLocation,
+            removeWorkLocation
+        }}>
             {children}
             <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
                 {toasts.map(toast => (
