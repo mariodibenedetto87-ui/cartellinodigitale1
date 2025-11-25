@@ -7,6 +7,7 @@ import { UIProvider } from './contexts/UIContext';
 import Layout from './components/Layout';
 import Login from './components/Auth';
 import OnboardingModal from './components/Onboarding';
+import ModalManager from './components/ModalManager';
 
 // Lazy loaded pages
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
@@ -92,6 +93,9 @@ const AppContent = () => {
                     }}
                 />
             )}
+
+            {/* Global Modal Manager - Renders all modals based on UIContext state */}
+            {session && <ModalManager />}
         </>
     );
 };
