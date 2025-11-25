@@ -323,7 +323,9 @@ export const calculateWorkSummary = (
                     }
                 }
             }
-            intervalSummary.totalWorkMs = (intervalEndMs - effectiveStartMs);
+            // FIX: totalWorkMs deve includere TUTTE le ore lavorate, anche quelle pre-turno (null hours)
+            // Non usare effectiveStartMs che esclude il pre-turno, ma interval.start effettivo
+            intervalSummary.totalWorkMs = (intervalEndMs - interval.start.getTime());
             intervals.push(intervalSummary);
         }
         
