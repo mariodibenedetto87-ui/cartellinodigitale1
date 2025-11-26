@@ -164,7 +164,8 @@ export function useGeofencing({
     shiftStartHour,
     shiftEndHour,
     notifyMinutesBefore,
-    isWithinZone,
+    // NOTA: Non includere isWithinZone qui - causerebbe ri-render continui
+    // che resetterebbero wasWithinZoneRef e impedirebbero le transizioni
   ]);
 
   // Helper function to calculate distance

@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { useUI } from '../contexts/UIContext';
+import { WorkStatus } from '../types';
 import { formatDateKey, isSameDay, addDays, startOfWeek, calculateWorkSummary } from '../utils/timeUtils';
 import { useGeofencing } from '../hooks/useGeofencing';
 import NfcScanner from '../components/NfcScanner';
@@ -108,12 +109,30 @@ const DashboardPage: React.FC = () => {
             // Check if we should show the exit notification
             let shouldShow = false;
 
-            // Rule 1: Always show near shift end time
+            // Rule 1: Always show if near shift end time
             if (isNearShiftTime(shiftEnd, 30)) {
                 shouldShow = true;
                 console.log('✅ Mostro notifica uscita: vicino alla fine turno');
+            }
+            // Rule 2: Show if currently clocked in (need to remind to clock out)
+            else if (workStatus === WorkStatus.ClockedIn) {
+                shouldShow = true;
+                console.log('✅ Mostro notifica uscita: sei timbrato (ClockedIn)');
+            }
+            // Rule 3: Show if it's during work hours (after shift start, before 2h after shift end)
+            else if (shiftEnd) {
+                const now = new Date();
+                const currentHour = now.getHours();
+                const shiftStart = workSettings.shifts.find(s => s.id !== 'rest')?.startHour || 8;
+                // Mostra se siamo in orario lavorativo (da inizio turno a 2h dopo fine turno)
+                if (currentHour >= shiftStart && currentHour <= shiftEnd + 2) {
+                    shouldShow = true;
+                    console.log('✅ Mostro notifica uscita: in orario lavorativo');
+                } else {
+                    console.log('ℹ️ Noto uscita ma fuori orario lavorativo');
+                }
             } else {
-                console.log('ℹ️ Noto uscita ma non vicino alla fine turno');
+                console.log('ℹ️ Noto uscita ma nessun turno configurato');
             }
 
             // Track exit time for the 3-hour rule
