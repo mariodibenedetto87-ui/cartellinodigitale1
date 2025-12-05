@@ -6,6 +6,7 @@ import { useUI } from '../contexts/UIContext';
 import { WorkStatus } from '../types';
 import { formatDateKey, isSameDay, addDays, startOfWeek, calculateWorkSummary } from '../utils/timeUtils';
 import { useGeofencing } from '../hooks/useGeofencing';
+import { useSmartNotifications } from '../hooks/useSmartNotifications';
 import NfcScanner from '../components/NfcScanner';
 import Summary from '../components/Summary';
 import WeeklySummary from '../components/WeeklySummary';
@@ -41,110 +42,41 @@ const DashboardPage: React.FC = () => {
     // For now, let's assume we might need to implement it here or fetch from DataContext if we added it.
     // I didn't add smartNotifications to DataContext yet. I should probably add it or just calculate it here.
     // Let's calculate it here for now to avoid another context update immediately.
-    const [smartNotifications, setSmartNotifications] = useState<any[]>([]); // Placeholder
-    const [showGeofenceNotification, setShowGeofenceNotification] = useState(false);
-    const [showExitNotification, setShowExitNotification] = useState(false);
-    const [geofenceDistance, setGeofenceDistance] = useState(0);
-    const [lastExitTime, setLastExitTime] = useState<Date | null>(null);
-
     const [summaryRenderKey, setSummaryRenderKey] = useState(0);
 
-    // Helper function to check if current time is near shift start/end
-    const isNearShiftTime = (shiftHour: number | null | undefined, minutesBefore: number = 30): boolean => {
-        if (shiftHour === null || shiftHour === undefined) return false;
+    // NFC URL Parameter Handling
+    useEffect(() => {
+        const searchParams = new URLSearchParams(window.location.search);
+        const hasNfcParam = searchParams.get('nfc') === 'true';
 
-        const now = new Date();
-        const currentHour = now.getHours();
-        const currentMinute = now.getMinutes();
-        const currentTotalMinutes = currentHour * 60 + currentMinute;
-        const shiftTotalMinutes = shiftHour * 60;
+        if (hasNfcParam) {
+            console.log('🔗 Rilevato parametro NFC URL! Eseguo toggle automatico...');
 
-        // Check if we're within minutesBefore of the shift time
-        const diff = shiftTotalMinutes - currentTotalMinutes;
-        return diff >= 0 && diff <= minutesBefore;
-    };
+            // Clean URL immediately
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.replaceState({ path: newUrl }, '', newUrl);
 
-    // Geofencing integration with smart logic
-    useGeofencing({
-        workLocation: workLocation,
-        enabled: !!workLocation,
-        onEnterWorkZone: (distance) => {
-            console.log('📍 Entrato nella zona di lavoro!', distance);
+            handleToggleWorkStatus();
+        }
+    }, []); // Run only once on mount
 
-            const shiftStart = workSettings.shifts.find(s => s.id !== 'rest')?.startHour;
-
-            // Check if we should show the notification
-            let shouldShow = false;
-
-            // Rule 1: Always show near shift start time
-            if (isNearShiftTime(shiftStart, 30)) {
-                shouldShow = true;
-                console.log('✅ Mostro notifica: vicino all\'inizio turno');
-            }
-            // Rule 2: Show if returning within 3 hours of last exit
-            else if (lastExitTime) {
-                const hoursSinceExit = (new Date().getTime() - lastExitTime.getTime()) / (1000 * 60 * 60);
-                if (hoursSinceExit <= 3) {
-                    shouldShow = true;
-                    console.log(`✅ Mostro notifica: ritorno entro 3h (${hoursSinceExit.toFixed(1)}h fa)`);
-                } else {
-                    console.log(`❌ Non mostro notifica: troppo tempo dall'uscita (${hoursSinceExit.toFixed(1)}h fa)`);
-                }
-            }
-            // Rule 3: If no previous exit, show only near shift time
-            else {
-                console.log('❌ Non mostro notifica: nessuna uscita recente e non vicino al turno');
-            }
-
-            if (shouldShow) {
-                setGeofenceDistance(distance);
-                setShowGeofenceNotification(true);
-            }
-        },
-        onExitWorkZone: (distance) => {
-            console.log('🚪 Uscito dalla zona di lavoro!', distance);
-
-            const shiftEnd = workSettings.shifts.find(s => s.id !== 'rest')?.endHour;
-
-            // Check if we should show the exit notification
-            let shouldShow = false;
-
-            // Rule 1: Always show if near shift end time
-            if (isNearShiftTime(shiftEnd, 30)) {
-                shouldShow = true;
-                console.log('✅ Mostro notifica uscita: vicino alla fine turno');
-            }
-            // Rule 2: Show if currently clocked in (need to remind to clock out)
-            else if (workStatus === WorkStatus.ClockedIn) {
-                shouldShow = true;
-                console.log('✅ Mostro notifica uscita: sei timbrato (ClockedIn)');
-            }
-            // Rule 3: Show if it's during work hours (after shift start, before 2h after shift end)
-            else if (shiftEnd) {
-                const now = new Date();
-                const currentHour = now.getHours();
-                const shiftStart = workSettings.shifts.find(s => s.id !== 'rest')?.startHour || 8;
-                // Mostra se siamo in orario lavorativo (da inizio turno a 2h dopo fine turno)
-                if (currentHour >= shiftStart && currentHour <= shiftEnd + 2) {
-                    shouldShow = true;
-                    console.log('✅ Mostro notifica uscita: in orario lavorativo');
-                } else {
-                    console.log('ℹ️ Noto uscita ma fuori orario lavorativo');
-                }
-            } else {
-                console.log('ℹ️ Noto uscita ma nessun turno configurato');
-            }
-
-            // Track exit time for the 3-hour rule
-            setLastExitTime(new Date());
-
-            if (shouldShow) {
-                setGeofenceDistance(distance);
-                setShowExitNotification(true);
-            }
-        },
-        shiftStartHour: workSettings.shifts.find(s => s.id !== 'rest')?.startHour ?? undefined,
-        shiftEndHour: workSettings.shifts.find(s => s.id !== 'rest')?.endHour ?? undefined,
+    // Smart notifications hook
+    const {
+        smartNotifications,
+        showGeofenceNotification,
+        showExitNotification,
+        geofenceDistance,
+        handleDismissGeofence,
+        handleDismissExit,
+        handleGeofenceAction,
+        handleExitAction,
+        handleSmartNotificationAction,
+        handleDismissSmartNotification
+    } = useSmartNotifications({
+        workSettings,
+        workLocation,
+        workStatus,
+        onToggleWorkStatus: handleToggleWorkStatus
     });
 
     useEffect(() => {
@@ -315,14 +247,8 @@ const DashboardPage: React.FC = () => {
         smartNotifications: (
             <SmartNotificationsPanel
                 notifications={smartNotifications}
-                onDismiss={(id) => setSmartNotifications(prev => prev.filter(n => n.id !== id))}
-                onAction={(id) => {
-                    const notification = smartNotifications.find(n => n.id === id);
-                    if (notification?.id === 'forgot-clock-in') {
-                        handleToggleWorkStatus();
-                    }
-                    setSmartNotifications(prev => prev.filter(n => n.id !== id));
-                }}
+                onDismiss={handleDismissSmartNotification}
+                onAction={handleSmartNotificationAction}
             />
         ),
         dashboardInsights: (
@@ -361,11 +287,8 @@ const DashboardPage: React.FC = () => {
                 workLocationName={workLocation?.name || 'Lavoro'}
                 distance={geofenceDistance}
                 shiftStartHour={workSettings.shifts.find(s => s.id !== 'rest')?.startHour ?? undefined}
-                onClockIn={async () => {
-                    await handleToggleWorkStatus();
-                    setShowGeofenceNotification(false);
-                }}
-                onDismiss={() => setShowGeofenceNotification(false)}
+                onClockIn={handleGeofenceAction}
+                onDismiss={handleDismissGeofence}
             />
 
             {/* Geofence Exit Notification */}
@@ -373,11 +296,11 @@ const DashboardPage: React.FC = () => {
                 <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-20 px-4">
                     <div
                         className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
-                        onClick={() => setShowExitNotification(false)}
+                        onClick={handleDismissExit}
                     />
                     <div className="relative bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-2xl max-w-sm w-full animate-slide-down">
                         <button
-                            onClick={() => setShowExitNotification(false)}
+                            onClick={handleDismissExit}
                             className="absolute top-4 right-4 p-1 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
                             aria-label="Chiudi notifica"
                         >
@@ -399,16 +322,13 @@ const DashboardPage: React.FC = () => {
                             </p>
                             <div className="space-y-3">
                                 <button
-                                    onClick={async () => {
-                                        await handleToggleWorkStatus();
-                                        setShowExitNotification(false);
-                                    }}
+                                    onClick={handleExitAction}
                                     className="w-full py-3 px-6 bg-white text-orange-600 font-bold rounded-xl hover:bg-orange-50 active:scale-95 transition-all shadow-lg"
                                 >
                                     ⏱️ Timbra Uscita
                                 </button>
                                 <button
-                                    onClick={() => setShowExitNotification(false)}
+                                    onClick={handleDismissExit}
                                     className="w-full py-2 px-6 bg-orange-700/50 text-white font-medium rounded-xl hover:bg-orange-700/70 transition-colors"
                                 >
                                     Più tardi
