@@ -115,7 +115,6 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
 
                             // Fallback manuale se toText fallisce o non esiste
                             if (!text) {
-                                const textDecoder = new TextDecoder();
                                 const data = new Uint8Array(record.data.buffer);
                                 // Il primo byte contiene encoding status e lunghezza codice lingua
                                 const status = data[0];
@@ -123,6 +122,7 @@ const NfcScanner: React.FC<NfcScannerProps> = ({ workStatus, onToggle, disabled,
                                 const langCodeLength = status & 63;
                                 // Il testo inizia dopo langCodeLength + 1 byte
                                 const textData = data.slice(1 + langCodeLength);
+                                const textDecoder = new TextDecoder(encoding);
                                 text = textDecoder.decode(textData);
                                 console.log("Decoded manually:", text);
                             }
