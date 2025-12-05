@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useGeofencing } from './useGeofencing';
 import { WorkSettings, WorkLocation, WorkStatus } from '../types';
 
 interface UseSmartNotificationsProps {
     workSettings: WorkSettings;
-    workLocation?: WorkLocation;
+    workLocation?: WorkLocation | null;
     workStatus: WorkStatus;
     onToggleWorkStatus: () => Promise<void>;
 }
@@ -37,7 +37,7 @@ export const useSmartNotifications = ({
     };
 
     useGeofencing({
-        workLocation: workLocation,
+        workLocation: workLocation ?? null,
         enabled: !!workLocation,
         onEnterWorkZone: (distance) => {
             console.log('📍 Entrato nella zona di lavoro!', distance);
