@@ -21,11 +21,12 @@ import { GeofenceNotification } from '../components/GeofenceNotification';
 const WeeklyHoursChart = lazy(() => import('../components/WeeklyHoursChart'));
 
 const DashboardPage: React.FC = () => {
-    const { session } = useAuth();
+    const { session, loading: authLoading } = useAuth();
     const {
         allLogs, allDayInfo, allManualOvertime, allMealVouchers,
         selectedDate, setSelectedDate, workStatus, currentSessionStart, currentSessionDuration,
-        handleToggleWorkStatus, handleEditEntry, handleDeleteEntry, handleDeleteManualOvertime
+        handleToggleWorkStatus, handleEditEntry, handleDeleteEntry, handleDeleteManualOvertime,
+        dataLoading
     } = useData();
     const { settings, workLocation } = useSettings();
     const {
@@ -41,6 +42,7 @@ const DashboardPage: React.FC = () => {
     // I didn't add smartNotifications to DataContext yet. I should probably add it or just calculate it here.
     // Let's calculate it here for now to avoid another context update immediately.
     const [summaryRenderKey, setSummaryRenderKey] = useState(0);
+    const nfcHandledRef = React.useRef(false);
 
     // NFC URL Parameter Handling
     useEffect(() => {
@@ -174,7 +176,7 @@ const DashboardPage: React.FC = () => {
             <NfcScanner
                 workStatus={workStatus}
                 onToggle={handleToggleWorkStatus}
-                disabled={!isTodaySelected}
+                disabled={!isTodaySelected || dataLoading}
                 currentSessionDuration={currentSessionDuration}
                 currentSessionStart={currentSessionStart}
                 selectedDate={selectedDate}

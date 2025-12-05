@@ -39,6 +39,7 @@ interface DataContextType {
     handleSetDayInfoForRange: (start: string, end: string, action: { type: 'shift' | 'leave' | 'clear', value: ShiftType | LeaveType | null }) => Promise<void>;
     handleImportData: (importedDays: any[]) => void;
     showToast: (message: string, type?: 'success' | 'error') => void;
+    dataLoading: boolean;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -50,6 +51,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [allDayInfo, setAllDayInfo] = useState<AllDayInfo>({});
     const [allManualOvertime, setAllManualOvertime] = useState<AllManualOvertime>({});
     const [allMealVouchers, setAllMealVouchers] = useState<AllMealVouchers>({});
+
+    const [dataLoading, setDataLoading] = useState(true);
 
     const [workStatus, setWorkStatus] = useState<WorkStatus>(WorkStatus.ClockedOut);
     const [currentSessionStart, setCurrentSessionStart] = useState<Date | null>(null);
@@ -79,9 +82,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setAllDayInfo({});
             setAllManualOvertime({});
             setAllMealVouchers({});
+            setDataLoading(false);
             return;
         }
 
+        setDataLoading(true);
         try {
             // Fetch Logs
             const { data: logsData, error: logsError } = await supabase.from('time_logs').select('id, timestamp, type').eq('user_id', session.user.id);
@@ -140,6 +145,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch (error: any) {
             console.error('Error fetching data:', error);
             showToast(`Errore caricamento dati: ${error.message}`, 'error');
+        } finally {
+            setDataLoading(false);
         }
     }, [session, showToast]);
 
@@ -537,7 +544,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             handleToggleWorkStatus, handleAddEntry, handleEditEntry, handleDeleteEntry,
             handleAddOvertime, handleDeleteManualOvertime, handleSaveMealVoucher,
             handleSetAllDayInfo, handleSetDayInfoForRange, handleImportData,
-            showToast
+            showToast,
+            dataLoading
         }}>
             {children}
             <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
