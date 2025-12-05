@@ -46,11 +46,19 @@ const DashboardPage: React.FC = () => {
 
     // NFC URL Parameter Handling
     useEffect(() => {
+        if (authLoading || dataLoading) {
+            console.log('⏳ Attendo caricamento dati prima di controllare NFC URL...');
+            return;
+        }
+
+        if (nfcHandledRef.current) return;
+
         const searchParams = new URLSearchParams(window.location.search);
         const hasNfcParam = searchParams.get('nfc') === 'true';
 
         if (hasNfcParam) {
             console.log('🔗 Rilevato parametro NFC URL! Eseguo toggle automatico...');
+            nfcHandledRef.current = true;
 
             // Clean URL immediately
             const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
@@ -58,7 +66,7 @@ const DashboardPage: React.FC = () => {
 
             handleToggleWorkStatus();
         }
-    }, []); // Run only once on mount
+    }, [authLoading, dataLoading]); // Run only once on mount
 
     // Smart notifications hook
     const {
